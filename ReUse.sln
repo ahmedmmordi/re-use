@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReUse.API", "ReUse.API\ReUse.API.csproj", "{43DF25B4-5DE8-4827-A6B1-8EE2E48F27C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReUse.Infrastructure", "ReUse.Infrastructure\ReUse.Infrastructure.csproj", "{D4E5714A-4F43-4073-A5D0-D80E7F927A36}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{43DF25B4-5DE8-4827-A6B1-8EE2E48F27C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43DF25B4-5DE8-4827-A6B1-8EE2E48F27C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43DF25B4-5DE8-4827-A6B1-8EE2E48F27C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43DF25B4-5DE8-4827-A6B1-8EE2E48F27C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4E5714A-4F43-4073-A5D0-D80E7F927A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E5714A-4F43-4073-A5D0-D80E7F927A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E5714A-4F43-4073-A5D0-D80E7F927A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E5714A-4F43-4073-A5D0-D80E7F927A36}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
