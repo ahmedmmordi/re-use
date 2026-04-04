@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <Folder Include="Persistence\Migrations\" />
-      <Folder Include="Persistence\Repositories\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -17,8 +16,16 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.*" />
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.*" />
+        <!--    to store identity tables-->
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.*"/>
+        <!--     To Use Ef Core-->
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.*" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.*"/>
+        <!--    JWT Token creation-->
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0"/>
+        <!--    For image-->
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     </ItemGroup>
 
 </Project>
