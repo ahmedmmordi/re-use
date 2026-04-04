@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+
 using ReUse.Domain.Entities;
 
 namespace ReUse.Infrastructure.Persistence;
@@ -22,7 +23,7 @@ public class ApplicationDbContext : DbContext
         // Apply Fluent Configurations
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
-    
+
     // Auto Set Time => For CreatedAt and UpdatedAt
     public override async Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)

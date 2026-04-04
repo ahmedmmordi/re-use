@@ -1,6 +1,7 @@
-using Reuse.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+
+using Reuse.Infrastructure.Identity.Models;
 
 namespace ReUse.Infrastructure.Identity;
 
@@ -15,7 +16,7 @@ public class AppIdentityDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         //modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppIdentityDbContext).Assembly);
         modelBuilder.Entity<ApplicationUser>()
             .HasMany(u => u.RefreshTokens)

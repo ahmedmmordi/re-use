@@ -1,11 +1,13 @@
 using System;
 using System.Text.Json.Serialization;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Persistence;
 
@@ -77,11 +79,11 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(
             options => options.UseNpgsql(connectionString,
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-        
+
         builder.Services.AddDbContext<AppIdentityDbContext>(
             options => options.UseNpgsql(connectionString,
                 b => b.MigrationsAssembly(typeof(AppIdentityDbContext).Assembly.FullName)));
-        
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
