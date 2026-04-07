@@ -10,8 +10,6 @@ namespace ReUse.Domain.Entities;
 
 public class Order : BaseEntity
 {
-    public Guid Id { get; set; }
-
     public Guid BuyerId { get; set; }
     public User Buyer { get; set; } = default!;
 

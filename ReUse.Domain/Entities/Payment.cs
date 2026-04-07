@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace ReUse.Domain.Entities;
 
-public class Payment
+public class Payment : BaseEntity
 {
-    public Guid Id { get; set; }
 }

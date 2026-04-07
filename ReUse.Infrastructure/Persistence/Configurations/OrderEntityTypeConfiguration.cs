@@ -19,6 +19,7 @@ public class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable("orders");
 
         builder.HasKey(o => o.Id);
+        builder.Property(c => c.Id).ValueGeneratedNever();
 
         builder.Property(o => o.Amount)
             .HasPrecision(18, 2)
@@ -39,12 +40,10 @@ public class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
             .HasMaxLength(2000);
 
         builder.Property(o => o.CreatedAt)
-            .IsRequired()
-            .HasDefaultValueSql("NOW()");
+            .IsRequired();
 
         builder.Property(o => o.UpdatedAt)
-            .IsRequired()
-            .HasDefaultValueSql("NOW()");
+            .IsRequired();
 
         builder.Property(o => o.RowVersion)
             .IsRowVersion();

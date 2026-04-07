@@ -11,6 +11,8 @@ using Microsoft.OpenApi.Models;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Persistence;
 
+using Serilog;
+
 namespace ReUse.API;
 
 public class Program
@@ -19,74 +21,15 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers().AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.Converters.Add(
-                new JsonStringEnumConverter());
-        });
-        builder.Services.AddOpenApi();
+        builder.Services.AddPresentation();
+        builder.Services.AddSwagger();
+        builder.Services.AddDatabase(builder.Configuration);
 
-        builder.Services.AddEndpointsApiExplorer();
-
-        // add swagger
-        builder.Services.AddSwaggerGen(options =>
-        {
-            options.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "ReUse API",
-                Version = "v1",
-                Description = "ReUse",
-                Contact = new OpenApiContact
-                {
-                    Name = "ReUse Team"
-                }
-            });
-            options.UseInlineDefinitionsForEnums();
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Name = "Authorization",
-                Type = SecuritySchemeType.Http,
-                Scheme = "Bearer",
-                BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description = "Enter JWT token like: Bearer {your_token}"
-            });
-
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
-
-            // options.IncludeXmlComments(
-            //     Path.Combine(AppContext.BaseDirectory, "ReUse.API.xml"));
-            //
-            // options.IncludeXmlComments(
-            //     Path.Combine(AppContext.BaseDirectory, "ReUse.ApplicationCore.xml"));
-        });
-
-        // DB
-        var connectionString = builder.Configuration.GetConnectionString("pgsql");
-        builder.Services.AddDbContext<ApplicationDbContext>(
-            options => options.UseNpgsql(connectionString,
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-
-        builder.Services.AddDbContext<AppIdentityDbContext>(
-            options => options.UseNpgsql(connectionString,
-                b => b.MigrationsAssembly(typeof(AppIdentityDbContext).Assembly.FullName)));
+        builder.Host.UseSerilog((context, configuration) =>
+            configuration.ReadFrom.Configuration(context.Configuration));
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
@@ -94,13 +37,10 @@ public class Program
             app.UseSwaggerUI();
         }
 
+        app.UseSerilogRequestLogging();
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
-
-
         app.MapControllers();
-
         app.Run();
     }
 }

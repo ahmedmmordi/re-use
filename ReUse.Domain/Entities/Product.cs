@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace ReUse.Domain.Entities;
 
-public class Product
+public class Product : BaseEntity
 {
-    public Guid Id { get; set; }
 }

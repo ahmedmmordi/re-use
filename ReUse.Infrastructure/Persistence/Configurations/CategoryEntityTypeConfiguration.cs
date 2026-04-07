@@ -13,7 +13,7 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
 
         // PK
         builder.HasKey(c => c.Id);
-        builder.Property(c => c.Id).HasColumnName("id");
+        builder.Property(c => c.Id).HasColumnName("id").ValueGeneratedNever();
 
         builder.Property(c => c.ParentId).HasColumnName("parent_id");
 
@@ -31,12 +31,10 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
             .HasDefaultValue(true);
 
         builder.Property(c => c.CreatedAt)
-            .HasColumnName("created_at")
-            .HasDefaultValueSql("NOW()");
+            .IsRequired();
 
         builder.Property(c => c.UpdatedAt)
-            .HasColumnName("updated_at")
-            .HasDefaultValueSql("NOW()");
+            .IsRequired();
 
         // Self-reference FK
         builder.HasOne(c => c.Parent)
