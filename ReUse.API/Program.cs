@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
+using ReUse.API.Middlewares;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Persistence;
 
@@ -39,6 +40,7 @@ public class Program
 
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection();
+        app.UseMiddleware<ExceptionMiddleware>();
         app.UseAuthorization();
         app.MapControllers();
         app.Run();
