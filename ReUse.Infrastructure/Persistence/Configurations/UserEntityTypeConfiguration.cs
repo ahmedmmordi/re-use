@@ -67,10 +67,6 @@ public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
 
 
-        builder.Property(o => o.UpdatedAt)
-            .IsRequired();
-
-
         builder.HasMany(x => x.Followers)
             .WithOne(x => x.FollowingUser)
             .HasForeignKey(x => x.FollowingId)
