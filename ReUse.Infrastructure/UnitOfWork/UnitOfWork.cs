@@ -1,6 +1,8 @@
 
 using ReUse.Application.Interfaces;
+using ReUse.Application.Interfaces.Repository;
 using ReUse.Infrastructure.Persistence;
+using ReUse.Infrastructure.Repositories;
 
 namespace ReUse.Infrastructure.UnitOfWork;
 
@@ -10,9 +12,9 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(ApplicationDbContext context)
     {
         _context = context;
-        //User = new UserRepository(_context);
+        User = new UserRepository(_context);
     }
-    // public IUserRepository User { get; private set; }
+    public IUserRepository User { get; private set; }
 
     public async Task<int> SaveChangesAsync()
     {

@@ -12,8 +12,8 @@ using ReUse.Infrastructure.Persistence;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260408185517_Add_User_Follow_Category_Order_Tables.BuildTargetModel")]
-    partial class Add_User_Follow_Category_Order_TablesBuildTargetModel
+    [Migration("20260409115209_initMigration")]
+    partial class initMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,7 +204,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.ToTable("Product");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>
@@ -255,7 +255,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
