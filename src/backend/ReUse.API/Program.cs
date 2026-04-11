@@ -55,6 +55,9 @@ public class Program
         builder.Services.Configure<JwtOptions>(
             builder.Configuration.GetSection("Jwt"));
 
+        builder.Services.Configure<RefreshTokenOptions>(
+            builder.Configuration.GetSection("RefreshToken"));
+
         // Identity
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
                 {
@@ -102,6 +105,18 @@ public class Program
                     };
                     options.Events = new JwtBearerEvents
                     {
+                        OnMessageReceived = context =>
+                        {
+                            // read token from cookie instead of header
+                            var token = context.Request.Cookies["access_token"];
+
+                            if (!string.IsNullOrEmpty(token))
+                            {
+                                context.Token = token;
+                            }
+
+                            return Task.CompletedTask;
+                        },
                         OnChallenge = context =>
                         {
                             context.HandleResponse();
@@ -151,7 +166,28 @@ public class Program
         builder.Services.AddMemoryCache();
         builder.Services.AddSingleton<IAppCache, MemoryAppCache>();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowReactApp",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials(); // important if using cookies/auth
+                });
+        });
+
         var app = builder.Build();
+
+        // Apply pending migrations automatically
+        using (var scope = app.Services.CreateScope())
+        {
+            var identity = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            identity.Database.Migrate();
+            db.Database.Migrate();
+        }
 
         // Seed Data
         using (var scope = app.Services.CreateScope())
@@ -171,6 +207,7 @@ public class Program
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection();
         app.UseMiddleware<ExceptionMiddleware>();
+        app.UseCors("AllowReactApp");
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

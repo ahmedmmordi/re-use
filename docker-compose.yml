@@ -4,13 +4,63 @@ services:
     container_name: reuse-postgres
     restart: always
     environment:
-      POSTGRES_DB: ReUseDb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: ReUse.API/Dockerfile.dev
+    container_name: reuse_backend
+    depends_on:
+      - postgres
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./src/backend:/app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__pgsql=Host=${DB_HOST};Port=${DB_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__Lifetime=${JWT_LIFETIME}
+      - Jwt__SigningKey=${JWT_KEY}
+      - RefreshToken__Lifetime=${RT_LIFETIME}
+      - ADMIN__FULLNAME=${ADMIN__FULLNAME}
+      - ADMIN__USERNAME=${ADMIN__USERNAME}
+      - ADMIN__EMAIL=${ADMIN__EMAIL}
+      - ADMIN__PASSWORD=${ADMIN__PASSWORD}
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile.dev
+    container_name: reuse_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - CHOKIDAR_USEPOLLING=true
+
 volumes:
   postgres_data:
+  pgadmin_data:

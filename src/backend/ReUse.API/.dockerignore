@@ -1,0 +1,29 @@
+﻿# Git
+.git
+.gitignore
+
+# Env files
+.env
+.env.*
+
+# IDE
+.vs
+.vscode
+.idea
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Node
+node_modules
+npm-debug.log
+
+# OS
+.DS_Store
+
+# Docs
+README.md
+LICENSE
