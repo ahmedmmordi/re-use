@@ -18,15 +18,16 @@ using ReUse.API.Middlewares;
 using ReUse.API.Responses;
 using ReUse.Application.Errors;
 using ReUse.Application.Interfaces;
-using ReUse.Application.Interfaces.Services;
-using ReUse.Application.Options;
+using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.Options.Auth;
+using ReUse.Infrastructure;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Interfaces.Repositories;
 using ReUse.Infrastructure.Interfaces.Services;
 using ReUse.Infrastructure.Persistence;
 using ReUse.Infrastructure.Repositories;
 using ReUse.Infrastructure.Seeders;
-using ReUse.Infrastructure.Services;
+using ReUse.Infrastructure.Services.Auth;
 using ReUse.Infrastructure.UnitOfWork;
 
 using Serilog;
@@ -41,7 +42,10 @@ public class Program
 
         builder.Services.AddPresentation();
         builder.Services.AddSwagger();
+        builder.Services.AddAutoMapperProfiles();
         builder.Services.AddDatabase(builder.Configuration);
+        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddValidation();
 
         builder.Host.UseSerilog((context, configuration) =>
             configuration.ReadFrom.Configuration(context.Configuration));

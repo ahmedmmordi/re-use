@@ -1,4 +1,4 @@
-namespace ReUse.Application.Options;
+namespace ReUse.Application.Options.Auth;
 
 public class RefreshTokenOptions
 {

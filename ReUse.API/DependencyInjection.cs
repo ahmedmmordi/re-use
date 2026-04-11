@@ -1,8 +1,12 @@
 ﻿using System.Text.Json.Serialization;
 
+using FluentValidation;
+using FluentValidation.AspNetCore;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
+using ReUse.Application.DTOs.Users.UserProfile.Commands;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Persistence;
 
@@ -91,4 +95,24 @@ public static class DependencyInjection
 
         return services;
     }
+
+    #region Register FluentValidation validators
+    public static IServiceCollection AddValidation(this IServiceCollection services)
+    {
+        services.AddFluentValidationAutoValidation();
+
+        services.AddValidatorsFromAssembly(typeof(UpdateUserProfileValidator).Assembly);
+
+        return services;
+    }
+    #endregion
+
+    #region Register AutoMapper profiles
+    public static IServiceCollection AddAutoMapperProfiles(this IServiceCollection services)
+    {
+        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+        return services;
+    }
+    #endregion
 }

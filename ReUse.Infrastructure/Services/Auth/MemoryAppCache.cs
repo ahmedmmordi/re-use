@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 using ReUse.Infrastructure.Interfaces.Services;
 
-namespace ReUse.Infrastructure.Services;
+namespace ReUse.Infrastructure.Services.Auth;
 
 public class MemoryAppCache : IAppCache
 {

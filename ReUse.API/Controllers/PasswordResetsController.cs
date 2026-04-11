@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
 using ReUse.Application.DTOs.Auth.PasswordRecovery;
-using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.Auth;
 
 namespace ReUse.API.Controllers;
 

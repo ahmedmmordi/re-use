@@ -62,8 +62,8 @@ public static class IdentitySeeder
             var admin = new User
             {
                 IdentityUserId = user.Id,
-                // Email = adminEmail,
-                // FullName = adminFullName,
+                Email = adminEmail,
+                FullName = adminFullName!,
             };
 
             dbContext.Add(admin);

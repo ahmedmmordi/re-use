@@ -11,11 +11,11 @@ using Microsoft.IdentityModel.Tokens;
 using Reuse.Infrastructure.Identity.Models;
 
 using ReUse.Application.Exceptions;
-using ReUse.Application.Options;
+using ReUse.Application.Options.Auth;
 using ReUse.Infrastructure.Interfaces.Services;
 using ReUse.Infrastructure.Models;
 
-namespace ReUse.Infrastructure.Services;
+namespace ReUse.Infrastructure.Services.Auth;
 
 public class TokenService : ITokenService
 {

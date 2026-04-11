@@ -11,11 +11,20 @@ public class User : BaseEntity
     // FK to ASP.NET Identity user
     public string IdentityUserId { get; set; } = null!;
 
+    // Personal Info
+    public string FullName { get; set; } = null!;
+    public string Email { get; set; } = null!;
+    public string? PhoneNumber { get; set; }
+
     // Profile
     public string? Bio { get; set; }
-    public string? ProfilePictureUrl { get; set; }
+    public string? ProfileImageUrl { get; set; }
 
     public string? CoverImageUrl { get; set; }
+
+    //Cloudinary doesn't delete by URL I need Id 
+    public string? ProfileImagePublicId { get; set; }
+    public string? CoverImagePublicId { get; set; }
 
     // Location 
     public string? AddressLine1 { get; set; }

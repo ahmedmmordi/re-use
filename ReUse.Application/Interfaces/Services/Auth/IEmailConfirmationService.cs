@@ -1,7 +1,6 @@
-
 using ReUse.Application.DTOs.Auth.EmailVerification;
 
-namespace ReUse.Application.Interfaces.Services;
+namespace ReUse.Application.Interfaces.Services.Auth;
 
 public interface IEmailConfirmationService
 {

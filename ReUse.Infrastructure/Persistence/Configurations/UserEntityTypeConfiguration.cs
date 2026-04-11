@@ -36,7 +36,7 @@ public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Bio)
                .HasMaxLength(500);
 
-        builder.Property(x => x.ProfilePictureUrl)
+        builder.Property(x => x.ProfileImageUrl)
                .HasMaxLength(2048)
                .IsUnicode(false);         // URLs are ASCII
 

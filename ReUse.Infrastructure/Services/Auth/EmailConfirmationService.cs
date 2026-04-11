@@ -1,11 +1,10 @@
-
 using ReUse.Application.DTOs.Auth.EmailVerification;
 using ReUse.Application.Exceptions;
-using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.Auth;
 using ReUse.Infrastructure.Interfaces.Repositories;
 using ReUse.Infrastructure.Interfaces.Services;
 
-namespace ReUse.Infrastructure.Services;
+namespace ReUse.Infrastructure.Services.Auth;
 
 public class EmailConfirmationService : IEmailConfirmationService
 {

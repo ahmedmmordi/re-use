@@ -1,7 +1,6 @@
-
 using ReUse.Application.DTOs.Auth.PasswordRecovery;
 
-namespace ReUse.Application.Interfaces.Services;
+namespace ReUse.Application.Interfaces.Services.Auth;
 
 public interface IPasswordResetService
 {

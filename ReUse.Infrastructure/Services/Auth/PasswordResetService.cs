@@ -5,10 +5,10 @@ using Reuse.Infrastructure.Identity.Models;
 
 using ReUse.Application.DTOs.Auth.PasswordRecovery;
 using ReUse.Application.Exceptions;
-using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.Auth;
 using ReUse.Infrastructure.Interfaces.Services;
 
-namespace ReUse.Infrastructure.Services;
+namespace ReUse.Infrastructure.Services.Auth;
 
 public class PasswordResetService : IPasswordResetService
 {

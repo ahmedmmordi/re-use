@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReUse.API.Responses;
 using ReUse.Application.DTOs.Auth.Login;
 using ReUse.Application.DTOs.Auth.Refresh;
-using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.Auth;
 
 namespace ReUse.API.Controllers;
 

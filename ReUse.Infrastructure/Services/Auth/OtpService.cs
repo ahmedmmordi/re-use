@@ -5,7 +5,7 @@ using ReUse.Application.Exceptions;
 using ReUse.Infrastructure.Interfaces.Services;
 using ReUse.Infrastructure.Models;
 
-namespace ReUse.Infrastructure.Services;
+namespace ReUse.Infrastructure.Services.Auth;
 
 public class OtpService : IOtpService
 {

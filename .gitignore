@@ -2,7 +2,7 @@ bin/
 obj/
 .vs/
 .idea/
-images/
+wwwroot/images/
 storage/
 *.user
 *.suo

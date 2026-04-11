@@ -12,7 +12,7 @@ using ReUse.Infrastructure.Persistence;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260409115209_initMigration")]
+    [Migration("20260410154055_initMigration")]
     partial class initMigration
     {
         /// <inheritdoc />
@@ -228,6 +228,9 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("CoverImagePublicId")
+                        .HasColumnType("text");
+
                     b.Property<string>("CoverImageUrl")
                         .HasMaxLength(2048)
                         .IsUnicode(false)
@@ -236,17 +239,31 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("IdentityUserId")
                         .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
 
                     b.Property<string>("PostalCode")
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<string>("ProfilePictureUrl")
+                    b.Property<string>("ProfileImagePublicId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(2048)
                         .IsUnicode(false)
                         .HasColumnType("character varying(2048)");

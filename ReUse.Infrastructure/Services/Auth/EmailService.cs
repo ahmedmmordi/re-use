@@ -4,10 +4,10 @@ using System.Net.Mail;
 
 using Microsoft.Extensions.Options;
 
-using ReUse.Application.Options;
+using ReUse.Application.Options.Auth;
 using ReUse.Infrastructure.Interfaces.Services;
 
-namespace ReUse.Infrastructure.Services;
+namespace ReUse.Infrastructure.Services.Auth;
 
 public class EmailService : IEmailService
 {

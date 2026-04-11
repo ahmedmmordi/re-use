@@ -9,8 +9,11 @@ using ReUse.Domain.Entities;
 namespace ReUse.Application.Interfaces.Repository
 {
 
-    public interface IUserRepository : IBaseRepository<User>
+    public interface IBaseRepository<T> where T : class
     {
-
+        public Task<T?> GetByIdAsync(Guid id);
+        void Add(T entity);
+        void Remove(T entity);
+        public void Update(T entity);
     }
 }
