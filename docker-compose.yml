@@ -46,6 +46,11 @@ services:
       - ADMIN__USERNAME=${ADMIN__USERNAME}
       - ADMIN__EMAIL=${ADMIN__EMAIL}
       - ADMIN__PASSWORD=${ADMIN__PASSWORD}
+      - EMAILSETTINGS__USERNAME=${EMAILSETTINGS__USERNAME}
+      - EMAILSETTINGS__PASSWORD=${EMAILSETTINGS__PASSWORD}
+      - CloudinarySettings__CloudName=${CLOUDINARY__CLOUDNAME}
+      - CloudinarySettings__ApiKey=${CLOUDINARY__APIKEY}
+      - CloudinarySettings__ApiSecret=${CLOUDINARY__APISECRET}
 
   frontend:
     build:

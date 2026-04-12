@@ -40,7 +40,7 @@ public static class IdentitySeeder
             {
                 UserName = adminUserName,
                 Email = adminEmail,
-                EmailConfirmed = false // LOOK
+                EmailConfirmed = true
             };
 
             var result = await userManager.CreateAsync(user, adminPassword);
