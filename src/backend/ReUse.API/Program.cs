@@ -58,6 +58,9 @@ public class Program
         builder.Services.Configure<RefreshTokenOptions>(
             builder.Configuration.GetSection("RefreshToken"));
 
+        builder.Services.Configure<EmailOptions>(
+            builder.Configuration.GetSection("EmailSettings"));
+
         // Identity
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
                 {
