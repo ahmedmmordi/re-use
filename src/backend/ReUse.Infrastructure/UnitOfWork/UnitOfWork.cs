@@ -13,8 +13,11 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
         User = new UserRepository(_context);
+        Follows = new FollowsRepository(_context);
     }
     public IUserRepository User { get; private set; }
+
+    public IFollowsRepository Follows { get; private set; }
 
     public async Task<int> SaveChangesAsync()
     {

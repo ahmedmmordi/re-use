@@ -8,10 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using ReUse.Application.Interfaces;
+using ReUse.Application.Interfaces.Repository;
 using ReUse.Application.Interfaces.Services.Auth;
 using ReUse.Application.Interfaces.Services.Images;
 using ReUse.Application.Interfaces.Services.UserProfile;
 using ReUse.Application.Options.Cloudniary;
+using ReUse.Infrastructure.Repositories;
 using ReUse.Infrastructure.Services.Auth;
 using ReUse.Infrastructure.Services.Images;
 using ReUse.Infrastructure.Services.UserProfile;
@@ -29,6 +31,11 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
         #endregion
 
+        #region Repositorises
+        services.AddScoped<IFollowsRepository, FollowsRepository>();
+        #endregion
+
+
         #region Services
         services.AddScoped<IAuthService, JwtAuthService>();
         services.AddScoped<IUserService, UserService>();
@@ -40,6 +47,7 @@ public static class DependencyInjection
         services.Configure<CloudinaryOptions>(
         configuration.GetSection("CloudinarySettings"));
         #endregion
+
 
 
         return services;
