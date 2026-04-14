@@ -36,19 +36,12 @@ public class FollowEntityTypeConfiguration : IEntityTypeConfiguration<Follow>
         builder.HasOne(x => x.FollowerUser)
             .WithMany(x => x.Following)
             .HasForeignKey(x => x.FollowerId)
-            .OnDelete(DeleteBehavior.Restrict);
+             .OnDelete(DeleteBehavior.Restrict);
 
         // FollowingUser: the person being followed
         builder.HasOne(x => x.FollowingUser)
             .WithMany(x => x.Followers)
             .HasForeignKey(x => x.FollowingId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Audit
-        builder.Property(x => x.CreatedAt)
-            .IsRequired();
-
-        builder.Property(x => x.UpdatedAt)
-            .IsRequired();
     }
 }

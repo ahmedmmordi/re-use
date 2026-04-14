@@ -8,6 +8,7 @@ namespace ReUse.Application.Mappers;
 
 using AutoMapper;
 
+using ReUse.Application.DTOs.Users.UserManagement.Contracts;
 using ReUse.Application.DTOs.Users.UserProfile.Commands;
 using ReUse.Application.DTOs.Users.UserProfile.Contracts;
 using ReUse.Domain.Entities;
@@ -25,6 +26,5 @@ public class UserProfileMappingProfile : Profile
         CreateMap<UpdateUserProfileCommand, User>()
        .ForAllMembers(opts =>
         opts.Condition((src, dest, srcMember) => srcMember != null));
-
     }
 }

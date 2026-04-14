@@ -36,6 +36,7 @@ public class UsersController : ControllerBase
     /// <response code="201">User registered successfully</response>
     /// <response code="400">Invalid request data</response>
     [HttpPost("/register")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto dto)

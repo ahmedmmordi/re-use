@@ -11,6 +11,7 @@ namespace ReUse.Application.Interfaces.Repository
 
     public interface IUserRepository : IBaseRepository<User>
     {
+        Task<User?> GetByIdentityIdAsync(string identityUserId);
 
     }
 }

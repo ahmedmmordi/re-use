@@ -64,6 +64,7 @@ public class SessionsController : ControllerBase
     /// <response code="401">Invalid credentials.</response>
     /// <response code="403">email not confirmed.</response>
     [HttpPost]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]

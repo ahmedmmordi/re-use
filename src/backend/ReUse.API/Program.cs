@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ using Reuse.Infrastructure.Identity.Models;
 
 using ReUse.API.Middlewares;
 using ReUse.API.Responses;
+using ReUse.Application;
 using ReUse.Application.Errors;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services.Auth;
@@ -26,6 +28,7 @@ using ReUse.Infrastructure.Interfaces.Repositories;
 using ReUse.Infrastructure.Interfaces.Services;
 using ReUse.Infrastructure.Persistence;
 using ReUse.Infrastructure.Repositories;
+using ReUse.Infrastructure.Security.Authorization;
 using ReUse.Infrastructure.Seeders;
 using ReUse.Infrastructure.Services.Auth;
 using ReUse.Infrastructure.UnitOfWork;
@@ -44,8 +47,10 @@ public class Program
         builder.Services.AddSwagger();
         builder.Services.AddAutoMapperProfiles();
         builder.Services.AddDatabase(builder.Configuration);
+        builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddValidation();
+
 
         builder.Host.UseSerilog((context, configuration) =>
             configuration.ReadFrom.Configuration(context.Configuration));
@@ -153,12 +158,14 @@ public class Program
                 }
             );
 
-        builder.Services.AddAuthorization();
-
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        builder.Services.AddScoped<IAuthService, JwtAuthService>();
-
+        builder.Services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .AddRequirements(new ActiveUserRequirement())
+                .Build();
+        });
+        builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationResultHandler>();
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IEmailConfirmationService, EmailConfirmationService>();
         builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
@@ -209,8 +216,8 @@ public class Program
 
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection();
-        app.UseMiddleware<ExceptionMiddleware>();
         app.UseCors("AllowReactApp");
+        app.UseMiddleware<ExceptionMiddleware>();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
