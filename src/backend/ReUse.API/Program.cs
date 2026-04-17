@@ -16,6 +16,7 @@ using Reuse.Infrastructure.Identity.Models;
 
 using ReUse.API.Middlewares;
 using ReUse.API.Responses;
+using ReUse.Application;
 using ReUse.Application.Errors;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services.Auth;
@@ -44,8 +45,10 @@ public class Program
         builder.Services.AddSwagger();
         builder.Services.AddAutoMapperProfiles();
         builder.Services.AddDatabase(builder.Configuration);
+        builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddValidation();
+
 
         builder.Host.UseSerilog((context, configuration) =>
             configuration.ReadFrom.Configuration(context.Configuration));
@@ -154,11 +157,6 @@ public class Program
             );
 
         builder.Services.AddAuthorization();
-
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        builder.Services.AddScoped<IAuthService, JwtAuthService>();
-
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IEmailConfirmationService, EmailConfirmationService>();
         builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
