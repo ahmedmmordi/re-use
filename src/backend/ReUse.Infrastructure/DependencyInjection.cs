@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Repository;
 using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.Interfaces.Services.Categories;
 using ReUse.Application.Interfaces.Services.Images;
 using ReUse.Application.Interfaces.Services.UserProfile;
 using ReUse.Application.Options.Cloudniary;
@@ -33,12 +34,14 @@ public static class DependencyInjection
 
         #region Repositorises
         services.AddScoped<IFollowsRepository, FollowsRepository>();
+ 	services.AddScoped<ICategoryRepository, CategoryRepository>();
         #endregion
 
 
         #region Services
         services.AddScoped<IAuthService, JwtAuthService>();
         services.AddScoped<IUserService, UserService>();
+  	services.AddScoped<ICategoryService, CategoryService>();  
         #endregion
 
         #region ImageServic
