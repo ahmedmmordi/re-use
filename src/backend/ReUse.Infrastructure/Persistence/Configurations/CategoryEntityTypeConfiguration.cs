@@ -22,7 +22,7 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
             .HasMaxLength(100)
             .IsRequired();
         builder.HasIndex(c => c.Name).IsUnique();
-        
+
         builder.Property(c => c.Slug)
             .HasColumnName("slug")
             .HasMaxLength(100)
@@ -39,8 +39,8 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
 
         builder.Property(c => c.CreatedAt)
             .IsRequired();
-        
-          
+
+
 
         // Self-reference FK
         builder.HasOne(c => c.Parent)

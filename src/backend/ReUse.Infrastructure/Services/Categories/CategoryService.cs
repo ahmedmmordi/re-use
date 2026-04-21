@@ -1,7 +1,7 @@
 using AutoMapper;
 
-using ReUse.Application.DTOs.Categories.Contracts;
 using ReUse.Application.DTOs.Categories.Commands;
+using ReUse.Application.DTOs.Categories.Contracts;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Repository;
@@ -10,13 +10,13 @@ using ReUse.Domain.Entities;
 
 public class CategoryService : ICategoryService
 {
-    private readonly ICategoryRepository _repo;    
+    private readonly ICategoryRepository _repo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-   
+
 
     public CategoryService(
-        ICategoryRepository repo,                  
+        ICategoryRepository repo,
         IUnitOfWork unitOfWork,
         IMapper mapper)
     {
@@ -97,7 +97,7 @@ public class CategoryService : ICategoryService
         category.Slug = category.Slug.Trim().ToLower();
 
         category.CreatedAt = DateTime.UtcNow;
-        category.UpdatedAt = null; 
+        category.UpdatedAt = null;
 
         await _repo.AddAsync(category);
         await _unitOfWork.SaveChangesAsync();
@@ -117,7 +117,7 @@ public class CategoryService : ICategoryService
 
         _mapper.Map(dto, category);
 
-        category.UpdatedAt = DateTime.UtcNow; 
+        category.UpdatedAt = DateTime.UtcNow;
 
         _repo.Update(category);
         await _unitOfWork.SaveChangesAsync();

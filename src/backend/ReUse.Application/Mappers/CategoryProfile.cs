@@ -1,7 +1,8 @@
 using AutoMapper;
-using ReUse.Domain.Entities;
-using ReUse.Application.DTOs.Categories.Contracts;
+
 using ReUse.Application.DTOs.Categories.Commands;
+using ReUse.Application.DTOs.Categories.Contracts;
+using ReUse.Domain.Entities;
 
 namespace ReUse.Application.Mappers;
 

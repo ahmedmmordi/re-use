@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using ReUse.API.Responses;
 using ReUse.Application.DTOs.Categories.Commands;
 using ReUse.Application.DTOs.Categories.Contracts;

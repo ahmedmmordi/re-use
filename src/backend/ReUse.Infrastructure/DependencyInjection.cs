@@ -34,14 +34,14 @@ public static class DependencyInjection
 
         #region Repositorises
         services.AddScoped<IFollowsRepository, FollowsRepository>();
- 	services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
         #endregion
 
 
         #region Services
         services.AddScoped<IAuthService, JwtAuthService>();
         services.AddScoped<IUserService, UserService>();
-  	services.AddScoped<ICategoryService, CategoryService>();  
+        services.AddScoped<ICategoryService, CategoryService>();
         #endregion
 
         #region ImageServic
