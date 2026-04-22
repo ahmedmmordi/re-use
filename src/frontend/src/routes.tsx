@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import LoginPageWrapper from "./pages/LoginPageWrapper";
-import LoginSuccess from "./pages/LoginSuccess"
-import {ProtectedRoute} from "./components/ProtectedRoute"
+import LoginSuccess from "./pages/LoginSuccess";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   //public
@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
       {
         path: "/login-success",
         Component: LoginSuccess,
-      }
-    ]
-  }
+      },
+    ],
+  },
 ]);

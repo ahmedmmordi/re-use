@@ -1,14 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  ReactNode,
-} from 'react';
-import { loginApi, getMe} from '../services/authService';
-import type {AuthUser, UserRole} from '../services/authService';
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import type { ReactNode } from "react";
+import { loginApi, getMe } from "../services/authService";
+import type { AuthUser } from "../services/authService";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -17,7 +10,7 @@ interface AuthContextType {
   isLoading: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout?: () => Promise<void>;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -67,22 +60,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // }, []);
 
   return (
-      <AuthContext.Provider
-          value={{
-            isAuthenticated: !!user,
-            isLoading,
-            user,
-            login,
-            //logout,
-          }}
-      >
-        {children}
-      </AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!user,
+        isLoading,
+        user,
+        login,
+        //logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
 }

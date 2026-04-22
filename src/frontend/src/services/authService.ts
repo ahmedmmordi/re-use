@@ -18,14 +18,14 @@ export class AuthError extends Error {
 
   constructor(status: number, payload: ApiError) {
     super(payload.message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
     this.code = payload.code;
     this.errors = payload.errors;
     this.status = status;
   }
 }
 
-export type UserRole = 'user' | 'admin';
+export type UserRole = "user" | "admin";
 
 export interface AuthUser {
   email: string;
@@ -34,8 +34,8 @@ export interface AuthUser {
 
 export async function getMe(): Promise<AuthUser> {
   const res = await fetch(`${BASE_URL}/sessions/me`, {
-    method: 'GET',
-    credentials: 'include', 
+    method: "GET",
+    credentials: "include",
   });
 
   return handleResponse<AuthUser>(res);
@@ -43,7 +43,7 @@ export async function getMe(): Promise<AuthUser> {
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    let payload: ApiError = { code: 'UNKNOWN', message: 'An unexpected error occurred.' };
+    let payload: ApiError = { code: "UNKNOWN", message: "An unexpected error occurred." };
     try {
       payload = await res.json();
     } catch {
@@ -57,10 +57,10 @@ async function handleResponse<T>(res: Response): Promise<T> {
 /** POST /api/Sessions — Login */
 export async function loginApi(credentials: LoginRequest): Promise<void> {
   const res = await fetch(`${BASE_URL}/Sessions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
-    credentials: 'include',
+    credentials: "include",
   });
   if (!res.ok) {
     await handleResponse(res); // reuse error logic

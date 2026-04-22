@@ -1,10 +1,15 @@
 @import "./styles/globals.css";
 @import "tailwindcss";
-@import 'tw-animate-css';
+@import "tw-animate-css";
 
 @source "./src/**/*.{js,ts,jsx,tsx}";
 
-
 @layer base {
-  html, body, #root { min-height: 100vh; height: 100%; margin: 0; }
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+    height: 100%;
+    margin: 0;
+  }
 }

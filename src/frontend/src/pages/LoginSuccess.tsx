@@ -1,5 +1,3 @@
 export default function LoginSuccess() {
-    return (
-        <h1>LOGEDIN:)</h1>
-    );
+  return <h1>LOGEDIN:)</h1>;
 }

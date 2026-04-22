@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "format": "cd src/frontend && npm run format",
+    "format:check": "cd src/frontend && npm run format:check"
+  }
+}
