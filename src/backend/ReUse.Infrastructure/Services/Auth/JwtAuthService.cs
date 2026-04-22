@@ -5,6 +5,8 @@ using System.Security.Claims;
 
 using AutoMapper;
 
+using Microsoft.AspNetCore.Identity;
+
 using Reuse.Infrastructure.Identity.Models;
 
 using ReUse.Application.DTOs.Auth.Login;
@@ -13,10 +15,12 @@ using ReUse.Application.DTOs.Auth.Register;
 using ReUse.Application.DTOs.Users.UserProfile.Contracts;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
+using ReUse.Application.Interfaces.Services.Account_Managemet;
 using ReUse.Application.Interfaces.Services.Auth;
 using ReUse.Domain.Entities;
 using ReUse.Infrastructure.Interfaces.Repositories;
 using ReUse.Infrastructure.Interfaces.Services;
+using ReUse.Infrastructure.UnitOfWork;
 
 namespace ReUse.Infrastructure.Services.Auth;
 
@@ -25,17 +29,20 @@ public class JwtAuthService : IAuthService
     private readonly IUnitOfWork _uow;
     private readonly IIdentityUserRepository _identityUserRepo;
     private readonly ITokenService _tokenService;
+    private readonly IAccountService _accountService;
     private readonly IMapper _mapper;
     public JwtAuthService(
         IUnitOfWork uow,
         ITokenService tokenService,
         IIdentityUserRepository identityUserRepo,
-        IMapper mapper
+        IMapper mapper,
+        IAccountService accountService
         )
     {
         _uow = uow;
         _tokenService = tokenService;
         _identityUserRepo = identityUserRepo;
+        _accountService = accountService;
         _mapper = mapper;
     }
     public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
@@ -53,6 +60,13 @@ public class JwtAuthService : IAuthService
         {
             throw new EmailNotConfirmedException();
         }
+
+        var domainUser = await _uow.User.GetByIdentityIdAsync(user.Id)
+         ?? throw new NotFoundException(nameof(User));
+
+        //  Auto-reactivate if account is deactivated
+        //    This is the ONLY place reactivation happens no separate endpoint needed.
+        await _accountService.EnsureActiveOnLoginAsync(domainUser.Id);
 
         var jwtToken = await _tokenService.GenerateJwtAsync(user);
 

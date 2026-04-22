@@ -9,4 +9,5 @@ public interface IFollowsRepository : IBaseRepository<Follow>
     Task<PaginatedList<User>> GetFollowingsAsync(Guid userId, UserQueryOptions query);
     Task<bool> IsAlreadyFollowingAsync(Guid followerId, Guid followingId);
     Task<Follow?> GetFollowAsync(Guid followerId, Guid followingId);
+    Task DeleteByUserIdAsync(Guid userId);
 }

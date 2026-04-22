@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReUse.Infrastructure.Persistence;
@@ -11,13 +12,15 @@ using ReUse.Infrastructure.Persistence;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260415003928_AddCascadeDeleteOnFollows")]
+    partial class AddCascadeDeleteOnFollows
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.15")
+                .HasAnnotation("ProductVersion", "9.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -40,6 +43,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasColumnName("icon_url");
 
                     b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
@@ -54,13 +58,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("parent_id");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("slug");
-
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -69,9 +67,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("ParentId");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
 
                     b.ToTable("categories", (string)null);
                 });
@@ -300,7 +295,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
                     b.HasOne("ReUse.Domain.Entities.Category", "Parent")
-                        .WithMany("Subcategories")
+                        .WithMany("Children")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -362,7 +357,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
-                    b.Navigation("Subcategories");
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>

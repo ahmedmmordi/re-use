@@ -22,6 +22,11 @@ public class User : BaseEntity
 
     public string? CoverImageUrl { get; set; }
 
+    //For Deactive
+    public bool IsActive { get; set; } = true;
+    public DateTime? DeactivatedAt { get; set; }
+    public string? DeactivationReason { get; set; }
+
     //Cloudinary doesn't delete by URL I need Id 
     public string? ProfileImagePublicId { get; set; }
     public string? CoverImagePublicId { get; set; }

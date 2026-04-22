@@ -67,5 +67,12 @@ public class FollowsRepository : BaseRepository<Follow>, IFollowsRepository
             f.FollowingId == followingId);
     }
 
+    public async Task DeleteByUserIdAsync(Guid userId)
+    {
+        await _db.Follows
+            .Where(f => f.FollowerId == userId || f.FollowingId == userId)
+            .ExecuteDeleteAsync();
+    }
+
 
 }
