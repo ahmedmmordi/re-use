@@ -10,4 +10,6 @@ public class CreateCategoryDto
     public Guid? ParentId { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+
 }

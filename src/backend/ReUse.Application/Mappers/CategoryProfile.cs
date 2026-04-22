@@ -20,6 +20,11 @@ public class CategoryProfile : Profile
 
         // Update DTO → Entity
         CreateMap<UpdateCategoryDto, Category>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForMember(d => d.Name, opt => opt.Condition(s => s.Name != null))
+            .ForMember(d => d.Slug, opt => opt.Condition(s => s.Slug != null))
+            .ForMember(d => d.Description, opt => opt.Condition(s => s.Description != null))
+            .ForMember(d => d.IconUrl, opt => opt.Condition(s => s.IconUrl != null))
+            .ForMember(d => d.IsActive, opt => opt.Condition(s => s.IsActive.HasValue))
+            .ForMember(d => d.ParentId, opt => opt.Condition(s => s.ParentId.HasValue));
     }
 }

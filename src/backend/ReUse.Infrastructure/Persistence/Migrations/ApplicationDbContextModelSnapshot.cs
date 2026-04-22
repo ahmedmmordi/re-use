@@ -40,7 +40,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasColumnName("icon_url");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");

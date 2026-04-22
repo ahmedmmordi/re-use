@@ -35,7 +35,9 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
 
         builder.Property(c => c.IsActive)
             .HasColumnName("is_active")
-            .HasDefaultValue(true);
+            .HasDefaultValue(true)
+            .ValueGeneratedNever();
+
 
         builder.Property(c => c.CreatedAt)
             .IsRequired();
