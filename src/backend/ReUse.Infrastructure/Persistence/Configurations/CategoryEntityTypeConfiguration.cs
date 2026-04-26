@@ -23,22 +23,30 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
             .IsRequired();
         builder.HasIndex(c => c.Name).IsUnique();
 
+        builder.Property(c => c.Slug)
+            .HasColumnName("slug")
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.HasIndex(c => c.Slug).IsUnique();
+
         builder.Property(c => c.Description).HasColumnName("description");
         builder.Property(c => c.IconUrl).HasColumnName("icon_url");
 
         builder.Property(c => c.IsActive)
             .HasColumnName("is_active")
-            .HasDefaultValue(true);
+            .HasDefaultValue(true)
+            .ValueGeneratedNever();
+
 
         builder.Property(c => c.CreatedAt)
             .IsRequired();
 
-        builder.Property(c => c.UpdatedAt)
-            .IsRequired();
+
 
         // Self-reference FK
         builder.HasOne(c => c.Parent)
-            .WithMany(c => c.Children)
+            .WithMany(c => c.Subcategories)
             .HasForeignKey(c => c.ParentId)
             .OnDelete(DeleteBehavior.SetNull);
     }

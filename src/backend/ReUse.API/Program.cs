@@ -21,6 +21,7 @@ using ReUse.Application;
 using ReUse.Application.Errors;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.Mappers;
 using ReUse.Application.Options.Auth;
 using ReUse.Infrastructure;
 using ReUse.Infrastructure.Identity;
@@ -50,6 +51,8 @@ public class Program
         builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddValidation();
+
+
 
 
         builder.Host.UseSerilog((context, configuration) =>

@@ -40,7 +40,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasColumnName("icon_url");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
@@ -55,7 +54,13 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("parent_id");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -64,6 +69,9 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("ParentId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
                     b.ToTable("categories", (string)null);
                 });
@@ -375,7 +383,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
                     b.HasOne("ReUse.Domain.Entities.Category", "Parent")
-                        .WithMany("Children")
+                        .WithMany("Subcategories")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -456,7 +464,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
-                    b.Navigation("Children");
+                    b.Navigation("Subcategories");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>
