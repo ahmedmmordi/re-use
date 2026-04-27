@@ -33,19 +33,21 @@ public static class DependencyInjection
 
         #region UnitOfWork
         services.AddScoped<IUnitOfWork,
-        UnitOfWork.UnitOfWork>();#endregion
+        UnitOfWork.UnitOfWork>();
+        #endregion
 
-    #region Repositorises
-    services.AddScoped<IFollowsRepository,
-    FollowsRepository>();
+        #region Repositorises
+        services.AddScoped<IFollowsRepository,
+        FollowsRepository>();
         services.AddScoped<IProductImageRepository,
         ProductImageRepository>();
         services.AddScoped<ICategoryRepository,
-        CategoryRepository>();#endregion
+        CategoryRepository>();
+        #endregion
 
-    #region Services
-    services.AddScoped<IAuthService,
-    JwtAuthService>();
+        #region Services
+        services.AddScoped<IAuthService,
+        JwtAuthService>();
         services.AddScoped<IUserService,
         UserService>();
         services.AddScoped<ICategoryService,
@@ -53,22 +55,25 @@ public static class DependencyInjection
         services.AddScoped<IAccountService,
         AccountService>();
         services.AddScoped<IAuthorizationHandler,
-        ActiveUserHandler>();#endregion
+        ActiveUserHandler>();
+        #endregion
 
-    #region ImageServic
-    services.AddScoped<IImageValidator,
-    ImageValidator>();
+        #region ImageServic
+        services.AddScoped<IImageValidator,
+        ImageValidator>();
         services.AddScoped<ICloudinaryService,
         CloudinaryService>();
         services.AddScoped<IProductImageService,
         ProductImageService>();
 
         services.Configure<CloudinaryOptions>(
-        configuration.GetSection("CloudinarySettings"));#endregion
+        configuration.GetSection("CloudinarySettings"));
+        #endregion
 
-    #region DistributedCache
-    services.AddDistributedMemoryCache();#endregion
+        #region DistributedCache
+        services.AddDistributedMemoryCache();
+        #endregion
 
-    return services;
+        return services;
     }
 }
