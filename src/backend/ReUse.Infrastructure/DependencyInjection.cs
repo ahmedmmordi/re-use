@@ -38,9 +38,7 @@ public static class DependencyInjection
 
         #region Repositorises
         services.AddScoped<IFollowsRepository, FollowsRepository>();
-
         services.AddScoped<IProductImageRepository, ProductImageRepository>();
-
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         #endregion
 
