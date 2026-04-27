@@ -15,7 +15,7 @@ public abstract class Product : BaseEntity
     // Core fields
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public abstract ProductType ProductType { get; }
+    public ProductType ProductType { get; protected set; }
     public ProductCondition? Condition { get; set; }
 
     // Location
@@ -26,4 +26,6 @@ public abstract class Product : BaseEntity
     public ProductStatus Status { get; set; } = ProductStatus.Active;
 
     // TODO: IsShippable, ShippingCost, IsPremium, PremiumExpiresAt, ViewCount, PublishedAt
+
+    public List<ProductImage> ProductImages { get; set; } = [];
 }

@@ -18,10 +18,14 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository User { get; private set; }
 
     public IFollowsRepository Follows { get; private set; }
+    public IProductImageRepository ProductImages { get; private set; }
+
 
     public async Task<int> SaveChangesAsync()
     {
         return await _context.SaveChangesAsync();
+        ProductImages = new ProductImageRepository(_context);
+
     }
 
     public void Dispose()

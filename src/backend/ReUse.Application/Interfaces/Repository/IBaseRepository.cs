@@ -15,5 +15,7 @@ namespace ReUse.Application.Interfaces.Repository
         void Add(T entity);
         void Remove(T entity);
         public void Update(T entity);
+        Task AddRangeAsync(IEnumerable<T> entities);
+
     }
 }

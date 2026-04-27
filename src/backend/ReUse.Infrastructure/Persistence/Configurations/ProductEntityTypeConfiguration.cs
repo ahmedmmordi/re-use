@@ -44,12 +44,18 @@ public class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasDefaultValue(ProductStatus.Active);
 
+
         // Location
         builder.Property(p => p.LocationCity)
             .HasMaxLength(100);
-
         builder.Property(p => p.LocationCountry)
             .HasMaxLength(100);
+
+        //Discriminator 
+        builder.HasDiscriminator(p => p.ProductType)
+    .HasValue<RegularProduct>(ProductType.Regular)
+    .HasValue<WantedProduct>(ProductType.Wanted)
+    .HasValue<SwapProduct>(ProductType.Swap);
 
         // Audit
         builder.Property(p => p.CreatedAt)
@@ -74,4 +80,5 @@ public class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.Status);
         builder.HasIndex(p => p.ProductType);
     }
+
 }

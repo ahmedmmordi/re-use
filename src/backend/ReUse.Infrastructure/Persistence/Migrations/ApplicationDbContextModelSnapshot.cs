@@ -264,6 +264,42 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "DisplayOrder");
+
+                    b.ToTable("ProductImages", (string)null);
+                });
+
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -365,6 +401,25 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.HasDiscriminator().HasValue("Regular");
                 });
 
+            modelBuilder.Entity("ReUse.Domain.Entities.SwapProduct", b =>
+                {
+                    b.HasBaseType("ReUse.Domain.Entities.Product");
+
+                    b.Property<string>("WantedCondition")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("WantedItemDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WantedItemTitle")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasDiscriminator().HasValue("Swap");
+                });
+
             modelBuilder.Entity("ReUse.Domain.Entities.WantedProduct", b =>
                 {
                     b.HasBaseType("ReUse.Domain.Entities.Product");
@@ -462,9 +517,25 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
+                {
+                    b.HasOne("ReUse.Domain.Entities.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Subcategories");
+                });
+
+            modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
+                {
+                    b.Navigation("ProductImages");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>

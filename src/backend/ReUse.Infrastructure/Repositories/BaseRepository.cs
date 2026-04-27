@@ -42,4 +42,11 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
         _dbSet.Update(entity);
     }
+
+    public async Task AddRangeAsync(IEnumerable<T> entities)
+    {
+        await _dbSet.AddRangeAsync(entities);
+    }
+
+
 }

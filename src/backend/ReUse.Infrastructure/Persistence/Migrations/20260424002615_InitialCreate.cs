@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class initMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -50,19 +50,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Product",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Product", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -74,6 +61,9 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     Bio = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     ProfileImageUrl = table.Column<string>(type: "character varying(2048)", unicode: false, maxLength: 2048, nullable: true),
                     CoverImageUrl = table.Column<string>(type: "character varying(2048)", unicode: false, maxLength: 2048, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    DeactivatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeactivationReason = table.Column<string>(type: "text", nullable: true),
                     ProfileImagePublicId = table.Column<string>(type: "text", nullable: true),
                     CoverImagePublicId = table.Column<string>(type: "text", nullable: true),
                     AddressLine1 = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
@@ -97,7 +87,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     FollowerId = table.Column<Guid>(type: "uuid", nullable: false),
                     FollowingId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -113,6 +103,44 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         column: x => x.FollowingId,
                         principalTable: "Users",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "products",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OwnerUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    ProductType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Condition = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    LocationCity = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    LocationCountry = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "Active"),
+                    Price = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true),
+                    AllowNegotiation = table.Column<bool>(type: "boolean", nullable: true, defaultValue: true),
+                    DesiredPriceMin = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true),
+                    DesiredPriceMax = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_products_Users_OwnerUserId",
+                        column: x => x.OwnerUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_products_categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "categories",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -144,12 +172,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_orders_Product_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Product",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_orders_Users_BuyerId",
                         column: x => x.BuyerId,
                         principalTable: "Users",
@@ -161,6 +183,35 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_orders_products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductImages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Url = table.Column<string>(type: "character varying(2048)", unicode: false, maxLength: 2048, nullable: false),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    PublicId = table.Column<string>(type: "text", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductImages_products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -226,6 +277,36 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProductImages_ProductId_DisplayOrder",
+                table: "ProductImages",
+                columns: new[] { "ProductId", "DisplayOrder" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_CategoryId",
+                table: "products",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_OwnerUserId",
+                table: "products",
+                column: "OwnerUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_ProductType",
+                table: "products",
+                column: "ProductType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_Status",
+                table: "products",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_Title",
+                table: "products",
+                column: "Title");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_IdentityUserId",
                 table: "Users",
                 column: "IdentityUserId",
@@ -236,22 +317,25 @@ namespace ReUse.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "categories");
-
-            migrationBuilder.DropTable(
                 name: "Follows");
 
             migrationBuilder.DropTable(
                 name: "orders");
 
             migrationBuilder.DropTable(
+                name: "ProductImages");
+
+            migrationBuilder.DropTable(
                 name: "Payment");
 
             migrationBuilder.DropTable(
-                name: "Product");
+                name: "products");
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "categories");
         }
     }
 }

@@ -12,15 +12,15 @@ using ReUse.Infrastructure.Persistence;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260415003928_AddCascadeDeleteOnFollows")]
-    partial class AddCascadeDeleteOnFollows
+    [Migration("20260424033859_add_SwapProduct_table")]
+    partial class add_SwapProduct_table
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.14")
+                .HasAnnotation("ProductVersion", "9.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -193,18 +193,106 @@ namespace ReUse.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Condition")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LocationCity")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LocationCountry")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProductType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Active");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Product");
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("ProductType");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("Title");
+
+                    b.ToTable("products", (string)null);
+
+                    b.HasDiscriminator<string>("ProductType");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "DisplayOrder");
+
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>
@@ -292,6 +380,56 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("ReUse.Domain.Entities.RegularProduct", b =>
+                {
+                    b.HasBaseType("ReUse.Domain.Entities.Product");
+
+                    b.Property<bool>("AllowNegotiation")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasDiscriminator().HasValue("Regular");
+                });
+
+            modelBuilder.Entity("ReUse.Domain.Entities.SwapProduct", b =>
+                {
+                    b.HasBaseType("ReUse.Domain.Entities.Product");
+
+                    b.Property<string>("WantedCondition")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("WantedItemDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WantedItemTitle")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasDiscriminator().HasValue("Swap");
+                });
+
+            modelBuilder.Entity("ReUse.Domain.Entities.WantedProduct", b =>
+                {
+                    b.HasBaseType("ReUse.Domain.Entities.Product");
+
+                    b.Property<decimal?>("DesiredPriceMax")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("DesiredPriceMin")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasDiscriminator().HasValue("Wanted");
+                });
+
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
                     b.HasOne("ReUse.Domain.Entities.Category", "Parent")
@@ -355,9 +493,44 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.Navigation("Seller");
                 });
 
+            modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
+                {
+                    b.HasOne("ReUse.Domain.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ReUse.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
+                {
+                    b.HasOne("ReUse.Domain.Entities.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
+                {
+                    b.Navigation("ProductImages");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>
