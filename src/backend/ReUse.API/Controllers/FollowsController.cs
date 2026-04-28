@@ -2,8 +2,8 @@
 
 using ReUse.API.Extensions;
 using ReUse.Application.DTOs.Follows;
+using ReUse.Application.DTOs.Users;
 using ReUse.Application.Interfaces.Services;
-using ReUse.Application.Options.Filters;
 
 namespace ReUse.API.Controllers;
 
@@ -30,12 +30,12 @@ public class FollowsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [HttpGet("/My/Followers")]
-    public async Task<IActionResult> GetFollowers([FromQuery] UserQueryOptions query)
+    public async Task<IActionResult> GetFollowers([FromQuery] UserFilterParams filter)
     {
         var userId = User.GetBusinessId();
         _logger.LogInformation("Fetching followers for user {UserId}", userId);
 
-        var followers = await _followService.GetFollowersAsync(userId, query);
+        var followers = await _followService.GetFollowersAsync(userId, filter);
 
         return Ok(followers);
     }
@@ -50,11 +50,11 @@ public class FollowsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
 
     [HttpGet("/My/Following")]
-    public async Task<IActionResult> GetFollowing([FromQuery] UserQueryOptions query)
+    public async Task<IActionResult> GetFollowing([FromQuery] UserFilterParams filter)
     {
         var userId = User.GetBusinessId();
 
-        var followings = await _followService.GetFollowingsAsync(userId, query);
+        var followings = await _followService.GetFollowingsAsync(userId, filter);
         return Ok(followings);
     }
 

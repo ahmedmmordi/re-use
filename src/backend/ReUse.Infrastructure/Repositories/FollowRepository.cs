@@ -1,65 +1,56 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
+using ReUse.Application.DTOs;
+using ReUse.Application.DTOs.Users;
 using ReUse.Application.Interfaces.Repository;
-using ReUse.Application.Options.Filters;
-using ReUse.Application.Options.Filters.Extensions;
 using ReUse.Domain.Entities;
+using ReUse.Infrastructure.Extensions;
 using ReUse.Infrastructure.Persistence;
 
 namespace ReUse.Infrastructure.Repositories;
 
 public class FollowRepository : BaseRepository<Follow>, IFollowRepository
 {
-    private readonly ApplicationDbContext _db;
-    public FollowRepository(ApplicationDbContext db) : base(db)
+    private readonly ApplicationDbContext _context;
+    public FollowRepository(ApplicationDbContext context) : base(context)
     {
-        _db = db;
+        _context = context;
     }
-    public async Task<PaginatedList<User>> GetFollowersAsync(Guid userId, UserQueryOptions query)
+    public async Task<PagedResult<User>> GetFollowersAsync(Guid userId, UserFilterParams filterParams, CancellationToken cancellationToken = default)
     {
-        var queryable = _db.Follows
-    .AsNoTracking()
-    .Where(f => f.FollowingId == userId)
-    .Select(f => f.FollowerUser)
-    .ApplyQuery(
-        query.Filter,
-        query.Search?.Keyword,
-        query.Search?.SearchBy,
-        query.SortBy,
-        query.SortDirection
-    );
-        return await PaginatedList<User>.CreateAsync(
-        queryable,
-        query.PageNumber,
-        query.PageSize);
+        return await _context.Follows
+            .AsNoTracking()
+            .Where(f => f.FollowingId == userId)
+            .Select(f => f.FollowerUser)
+            .Search(filterParams.SearchTerm)
+            .FilterByCity(filterParams.City)
+            .FilterByCountry(filterParams.Country)
+            .FilterByStateProvince(filterParams.StateProvince)
+            .ApplySort(filterParams.SortBy, filterParams.SortOrder)
+            .ToPagedListAsync(filterParams.Pagination.PageNumber, filterParams.Pagination.PageSize, cancellationToken);
     }
-    public async Task<PaginatedList<User>> GetFollowingsAsync(Guid userId, UserQueryOptions query)
+    public async Task<PagedResult<User>> GetFollowingsAsync(Guid userId, UserFilterParams filterParams, CancellationToken cancellationToken = default)
     {
-        var queryable = _db.Follows
-    .AsNoTracking()
-    .Where(f => f.FollowerId == userId)
-    .Select(f => f.FollowingUser)
-    .ApplyQuery(
-        query.Filter,
-        query.Search?.Keyword,
-        query.Search?.SearchBy,
-        query.SortBy,
-        query.SortDirection
-    );
-        return await PaginatedList<User>.CreateAsync(
-       queryable,
-       query.PageNumber,
-       query.PageSize);
+        return await _context.Follows
+            .AsNoTracking()
+            .Where(f => f.FollowerId == userId)
+            .Select(f => f.FollowingUser)
+            .Search(filterParams.SearchTerm)
+            .FilterByCity(filterParams.City)
+            .FilterByCountry(filterParams.Country)
+            .FilterByStateProvince(filterParams.StateProvince)
+            .ApplySort(filterParams.SortBy, filterParams.SortOrder)
+            .ToPagedListAsync(filterParams.Pagination.PageNumber, filterParams.Pagination.PageSize, cancellationToken);
     }
     public async Task<bool> IsAlreadyFollowingAsync(Guid followerId, Guid followingId)
     {
-        return await _db.Follows
+        return await _context.Follows
             .AnyAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
     }
 
     public async Task<Follow?> GetFollowAsync(Guid followerId, Guid followingId)
     {
-        return await _db.Follows
+        return await _context.Follows
         .Include(f => f.FollowerUser)
         .Include(f => f.FollowingUser)
         .FirstOrDefaultAsync(f =>
@@ -69,7 +60,7 @@ public class FollowRepository : BaseRepository<Follow>, IFollowRepository
 
     public async Task DeleteByUserIdAsync(Guid userId)
     {
-        await _db.Follows
+        await _context.Follows
             .Where(f => f.FollowerId == userId || f.FollowingId == userId)
             .ExecuteDeleteAsync();
     }
