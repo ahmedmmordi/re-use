@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Reuse.Infrastructure.Identity.Models;
 
 using ReUse.Application.Exceptions;
-using ReUse.Application.Options.Auth;
+using ReUse.Application.Options;
 using ReUse.Infrastructure.Interfaces.Services;
 using ReUse.Infrastructure.Models;
 

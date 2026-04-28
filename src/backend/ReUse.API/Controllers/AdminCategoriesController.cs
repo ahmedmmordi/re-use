@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
-using ReUse.Application.DTOs.Categories.Commands;
-using ReUse.Application.DTOs.Categories.Contracts;
+using ReUse.Application.DTOs.Categories;
 using ReUse.Application.Interfaces.Services;
-using ReUse.Application.Interfaces.Services.Categories;
 
 namespace ReUse.API.Controllers;
 
@@ -34,9 +32,9 @@ public class AdminCategoriesController : ControllerBase
     /// <response code="400">Invalid request data</response>
     /// <response code="404">Parent category not found</response>
     [HttpPost]
-    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateCategoryRequest dto)
     {
         var category = await _service.CreateAsync(dto);
 
@@ -51,7 +49,7 @@ public class AdminCategoriesController : ControllerBase
     /// <response code="200">Category retrieved successfully</response>
     /// <response code="404">Category not found</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -73,10 +71,10 @@ public class AdminCategoriesController : ControllerBase
     /// <response code="400">Invalid request data</response>
     /// <response code="404">Category not found</response>
     [HttpPatch("{id}")]
-    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest dto)
     {
         var category = await _service.UpdateAsync(id, dto);
         return Ok(category);

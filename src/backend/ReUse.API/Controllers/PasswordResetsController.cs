@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
-using ReUse.Application.DTOs.Auth.PasswordRecovery;
-using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.DTOs.Identity.PasswordReset;
+using ReUse.Application.Interfaces.Services.External;
 
 namespace ReUse.API.Controllers;
 
@@ -42,7 +42,7 @@ public class PasswordResetsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateAsync(CreatePasswordResetRequestDto dto)
+    public async Task<IActionResult> CreateAsync(RequestPasswordResetRequest dto)
     {
         await _passwordResetService.CreateAsync(dto);
         return Accepted();
@@ -64,10 +64,10 @@ public class PasswordResetsController : ControllerBase
     /// <response code="400">Invalid or expired OTP.</response>
     /// <response code="404">User not found.</response>
     [HttpPut("verify")]
-    [ProducesResponseType(typeof(VerifyPasswordResetCodeResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(VerifyPasswordResetResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> VerifyAsync(VerifyPasswordResetCodeDto dto)
+    public async Task<IActionResult> VerifyAsync(VerifyPasswordResetRequest dto)
     {
         var token = await _passwordResetService.VerifyAsync(dto);
         return Ok(token);
@@ -87,7 +87,7 @@ public class PasswordResetsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ResetAsync(ResetPasswordDto dto)
+    public async Task<IActionResult> ResetAsync(ResetPasswordRequest dto)
     {
         await _passwordResetService.ResetAsync(dto);
         return NoContent();

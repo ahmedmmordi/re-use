@@ -15,7 +15,7 @@ public class FollowEntityTypeConfiguration : IEntityTypeConfiguration<Follow>
 {
     public void Configure(EntityTypeBuilder<Follow> builder)
     {
-        builder.ToTable("Follows");
+        builder.ToTable("Follow");
 
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id)

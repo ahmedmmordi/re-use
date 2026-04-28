@@ -6,7 +6,7 @@ namespace ReUse.Application.Interfaces;
 public interface IUnitOfWork : IDisposable
 {
     IUserRepository User { get; }
-    IFollowsRepository Follows { get; }
+    IFollowRepository Follow { get; }
     IProductImageRepository ProductImages { get; }
 
     Task<int> SaveChangesAsync();

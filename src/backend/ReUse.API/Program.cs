@@ -20,9 +20,9 @@ using ReUse.API.Responses;
 using ReUse.Application;
 using ReUse.Application.Errors;
 using ReUse.Application.Interfaces;
-using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.Interfaces.Services.External;
 using ReUse.Application.Mappers;
-using ReUse.Application.Options.Auth;
+using ReUse.Application.Options;
 using ReUse.Infrastructure;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Interfaces.Repositories;
@@ -32,6 +32,9 @@ using ReUse.Infrastructure.Repositories;
 using ReUse.Infrastructure.Security.Authorization;
 using ReUse.Infrastructure.Seeders;
 using ReUse.Infrastructure.Services.Auth;
+using ReUse.Infrastructure.Services.Caching;
+using ReUse.Infrastructure.Services.Communication;
+using ReUse.Infrastructure.Services.Identity;
 using ReUse.Infrastructure.UnitOfWork;
 
 using Serilog;
@@ -177,7 +180,7 @@ public class Program
         builder.Services.AddScoped<IIdentityUserRepository, IdentityUserRepository>();
 
         builder.Services.AddMemoryCache();
-        builder.Services.AddSingleton<IAppCache, MemoryAppCache>();
+        builder.Services.AddSingleton<IAppCache, MemoryCacheService>();
 
         builder.Services.AddCors(options =>
         {

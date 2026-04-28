@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
-using ReUse.Application.DTOs.Auth.Login;
-using ReUse.Application.DTOs.Auth.Refresh;
-using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.DTOs.Auth;
+using ReUse.Application.Interfaces.Services.External;
 
 namespace ReUse.API.Controllers;
 
@@ -68,7 +67,7 @@ public class SessionsController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginDto dto)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest dto)
     {
         var response = await _authService.LoginAsync(dto);
 
@@ -104,7 +103,7 @@ public class SessionsController : ControllerBase
     /// - A new refresh token is returned.
     /// </remarks>
     [HttpPost("refresh")]
-    [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshAsync()
@@ -114,7 +113,7 @@ public class SessionsController : ControllerBase
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized(new { message = "Missing refresh token" });
 
-        var response = await _authService.RefreshAsync(new RefreshTokenRequestDto() { RefreshToken = refreshToken });
+        var response = await _authService.RefreshAsync(new RefreshTokenRequest() { RefreshToken = refreshToken });
 
         // Set new refresh token cookie
         Response.Cookies.Append("refresh_token", response.RefreshToken, new CookieOptions

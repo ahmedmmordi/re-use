@@ -9,12 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Repository;
-using ReUse.Application.Interfaces.Services.Auth;
-using ReUse.Application.Interfaces.Services.Follows;
-using ReUse.Application.Interfaces.Services.Images;
-using ReUse.Application.Interfaces.Services.UserProfile;
-using ReUse.Application.Options.Cloudniary;
-using ReUse.Application.Services.Follows;
+using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
+using ReUse.Application.Services;
 
 namespace ReUse.Application;
 
@@ -25,7 +22,7 @@ public static class DependencyInjection
     {
 
         #region Services
-        services.AddScoped<IFollowsService, FollowsService>();
+        services.AddScoped<IFollowService, FollowService>();
         #endregion
 
 

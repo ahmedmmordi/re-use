@@ -6,7 +6,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
-using ReUse.Application.DTOs.Users.UserProfile.Commands;
+using ReUse.Application.DTOs.Users.UserProfile;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Persistence;
 
@@ -95,13 +95,12 @@ public static class DependencyInjection
 
         return services;
     }
-
     #region Register FluentValidation validators
     public static IServiceCollection AddValidation(this IServiceCollection services)
     {
         services.AddFluentValidationAutoValidation();
 
-        services.AddValidatorsFromAssembly(typeof(UpdateUserProfileValidator).Assembly);
+        services.AddValidatorsFromAssembly(typeof(UpdateUserProfileRequestValidator).Assembly);
 
         return services;
     }
