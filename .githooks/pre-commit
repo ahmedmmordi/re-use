@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "Running dotnet format check..."
+
+cd src/backend
+if ! dotnet format --verify-no-changes --verbosity quiet; then
+    echo "❌ Code formatting issues detected!"
+    echo "Run 'dotnet format' in src/backend to fix."
+    exit 1
+fi
+
+echo "✅ Formatting check passed"
+exit 0

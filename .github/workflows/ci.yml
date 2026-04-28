@@ -36,8 +36,8 @@ jobs:
         working-directory: src/backend
 
       - name: Check formatting (backend)
-        run: dotnet format --verify-no-changes
-        working-directory: src/backend
+        run: dotnet format --verify-no-changes --verbosity diagnostic
+        working-directory: src/backend      
 
       - name: Build (backend)
         run: dotnet build --no-restore --configuration Release
