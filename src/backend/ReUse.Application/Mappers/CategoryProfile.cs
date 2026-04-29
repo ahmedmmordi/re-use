@@ -1,7 +1,6 @@
 using AutoMapper;
 
-using ReUse.Application.DTOs.Categories.Commands;
-using ReUse.Application.DTOs.Categories.Contracts;
+using ReUse.Application.DTOs.Categories;
 using ReUse.Domain.Entities;
 
 namespace ReUse.Application.Mappers;
@@ -11,15 +10,15 @@ public class CategoryProfile : Profile
     public CategoryProfile()
     {
         // Entity → DTO
-        CreateMap<Category, CategoryDto>()
+        CreateMap<Category, CategoryResponse>()
             .ForMember(dest => dest.Subcategories,
                 opt => opt.MapFrom(src => src.Subcategories));
 
         // Create DTO → Entity
-        CreateMap<CreateCategoryDto, Category>();
+        CreateMap<CreateCategoryRequest, Category>();
 
         // Update DTO → Entity
-        CreateMap<UpdateCategoryDto, Category>()
+        CreateMap<UpdateCategoryRequest, Category>()
             .ForMember(d => d.Name, opt => opt.Condition(s => s.Name != null))
             .ForMember(d => d.Slug, opt => opt.Condition(s => s.Slug != null))
             .ForMember(d => d.Description, opt => opt.Condition(s => s.Description != null))

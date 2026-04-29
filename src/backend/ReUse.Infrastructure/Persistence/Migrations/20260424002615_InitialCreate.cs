@@ -80,7 +80,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Follows",
+                name: "Follow",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -227,13 +227,13 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Follows_FollowerId_FollowingId",
-                table: "Follows",
+                table: "Follow",
                 columns: new[] { "FollowerId", "FollowingId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Follows_FollowingId",
-                table: "Follows",
+                table: "Follow",
                 column: "FollowingId");
 
             migrationBuilder.CreateIndex(
@@ -317,7 +317,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Follows");
+                name: "Follow");
 
             migrationBuilder.DropTable(
                 name: "orders");

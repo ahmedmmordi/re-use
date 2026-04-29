@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
-using ReUse.Application.DTOs.Categories.Contracts;
+using ReUse.Application.DTOs.Categories;
 using ReUse.Application.Interfaces.Services;
-using ReUse.Application.Interfaces.Services.Categories;
 
 namespace ReUse.API.Controllers;
 
@@ -31,7 +30,7 @@ public class CategoriesController : ControllerBase
     /// <returns>List of categories with nested subcategories</returns>
     /// <response code="200">Categories retrieved successfully</response>
     [HttpGet]
-    [ProducesResponseType(typeof(List<CategoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<CategoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] bool activeOnly = true)
     {
         var categories = await _service.GetAllAsync(activeOnly);
@@ -46,7 +45,7 @@ public class CategoriesController : ControllerBase
     /// <response code="200">Category retrieved successfully</response>
     /// <response code="404">Category not found</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {

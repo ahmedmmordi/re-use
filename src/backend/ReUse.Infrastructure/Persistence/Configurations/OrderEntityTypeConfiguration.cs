@@ -60,7 +60,7 @@ public class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
             .HasForeignKey(o => o.SellerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Product relationship
+        // Products relationship
         builder.HasOne(o => o.Product)
             .WithMany()
             .HasForeignKey(o => o.ProductId)

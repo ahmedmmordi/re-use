@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
 using ReUse.API.Responses;
-using ReUse.Application.DTOs.Auth.Register;
-using ReUse.Application.DTOs.Users.UserProfile.Commands;
-using ReUse.Application.DTOs.Users.UserProfile.Contracts;
-using ReUse.Application.Interfaces.Services.Auth;
-using ReUse.Application.Interfaces.Services.UserProfile;
-using ReUse.Application.Options.Enums;
+using ReUse.Application.DTOs.Auth;
+using ReUse.Application.DTOs.Users.UserProfile;
+using ReUse.Application.Enums;
+using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
 
 namespace ReUse.API.Controllers;
 
@@ -37,9 +36,9 @@ public class UsersController : ControllerBase
     /// <response code="400">Invalid request data</response>
     [HttpPost("/register")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserProfileResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto dto)
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest dto)
     {
         var user = await _authService.RegisterAsync(dto);
         return Created("me", user);
@@ -55,7 +54,7 @@ public class UsersController : ControllerBase
     /// <response code="403">User is not authorized (User only)</response>
     [Authorize(Roles = "User,Admin")]
     [HttpGet("")]
-    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserProfileResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetByIdAsync()
@@ -81,7 +80,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UpdateAsync([FromBody] UpdateUserProfileCommand dto)
+    public async Task<IActionResult> UpdateAsync([FromBody] UpdateUserProfileRequest dto)
     {
         var userId = User.GetBusinessId();
         await _userService.UpdateUserProfileAsync(userId, dto);
@@ -98,7 +97,7 @@ public class UsersController : ControllerBase
     /// <response code="401">User is not authenticated</response>
     /// <response code="403">User is not authorized</response>
     [HttpPut("images/profile")]
-    public Task<IActionResult> UpdateProfileImage([FromForm] UpdateProfileImageCommand command)
+    public Task<IActionResult> UpdateProfileImage([FromForm] UpdateProfileImageRequest command)
       => UpdateImage(command.Image, ProfileImageOptions.Profile);
 
     /// <summary>
@@ -111,7 +110,7 @@ public class UsersController : ControllerBase
     /// <response code="401">User is not authenticated</response>
     /// <response code="403">User is not authorized</response>
     [HttpPut("images/cover")]
-    public Task<IActionResult> UpdateCoverImage([FromForm] UpdateProfileImageCommand command)
+    public Task<IActionResult> UpdateCoverImage([FromForm] UpdateProfileImageRequest command)
         => UpdateImage(command.Image, ProfileImageOptions.Cover);
 
     /// <summary>
@@ -143,7 +142,7 @@ public class UsersController : ControllerBase
             return BadRequest("Image is required");
 
         await _userService.UpdateImageProfileAsync(
-            userId!, new UpdateProfileImageCommand(image, type));
+            userId!, new UpdateProfileImageRequest { Image = image, ImageType = type });
 
         return NoContent();
     }

@@ -10,20 +10,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Repository;
-using ReUse.Application.Interfaces.Services.Account_Managemet;
-using ReUse.Application.Interfaces.Services.Auth;
-using ReUse.Application.Interfaces.Services.Categories;
-using ReUse.Application.Interfaces.Services.Images;
-using ReUse.Application.Interfaces.Services.Products;
-using ReUse.Application.Interfaces.Services.UserProfile;
-using ReUse.Application.Options.Cloudniary;
-using ReUse.Application.Services.Products;
+using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
+using ReUse.Application.Options;
+using ReUse.Application.Services;
 using ReUse.Infrastructure.Repositories;
 using ReUse.Infrastructure.Security.Authorization;
-using ReUse.Infrastructure.Services.Account_Management;
 using ReUse.Infrastructure.Services.Auth;
-using ReUse.Infrastructure.Services.Images;
-using ReUse.Infrastructure.Services.UserProfile;
+using ReUse.Infrastructure.Services.Identity;
+using ReUse.Infrastructure.Services.Storage;
 namespace ReUse.Infrastructure;
 
 public static class DependencyInjection
@@ -37,8 +32,8 @@ public static class DependencyInjection
         #endregion
 
         #region Repositorises
-        services.AddScoped<IFollowsRepository,
-        FollowsRepository>();
+        services.AddScoped<IFollowRepository,
+        FollowRepository>();
         services.AddScoped<IProductImageRepository,
         ProductImageRepository>();
         services.AddScoped<ICategoryRepository,
@@ -48,10 +43,6 @@ public static class DependencyInjection
         #region Services
         services.AddScoped<IAuthService,
         JwtAuthService>();
-        services.AddScoped<IUserService,
-        UserService>();
-        services.AddScoped<ICategoryService,
-        CategoryService>();
         services.AddScoped<IAccountService,
         AccountService>();
         services.AddScoped<IAuthorizationHandler,

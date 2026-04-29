@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
-using ReUse.Application.DTOs.Auth.EmailVerification;
-using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.DTOs.Identity.EmailConfirmation;
+using ReUse.Application.Interfaces.Services.External;
 
 namespace ReUse.API.Controllers;
 
@@ -43,7 +43,7 @@ public class EmailConfirmationsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SendAsync(SendEmailConfirmationCodeDto dto)
+    public async Task<IActionResult> SendAsync(SendEmailConfirmationRequest dto)
     {
         await _emailConfirmationService.SendAsync(dto);
         // I Choose 202 becuse this is async operation 
@@ -67,7 +67,7 @@ public class EmailConfirmationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [HttpPut]
-    public async Task<IActionResult> ConfirmAsync(ConfirmEmailCodeDto dto)
+    public async Task<IActionResult> ConfirmAsync(ConfirmEmailRequest dto)
     {
         await _emailConfirmationService.ConfirmAsync(dto);
         return NoContent();

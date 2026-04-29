@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
-using ReUse.Application.DTOs.Users.Follows.Contracts;
-using ReUse.Application.Interfaces.Services.Follows;
+using ReUse.Application.DTOs.Follows;
+using ReUse.Application.Interfaces.Services;
 using ReUse.Application.Options.Filters;
-using ReUse.Domain.Entities;
 
 namespace ReUse.API.Controllers;
 
@@ -13,12 +11,12 @@ namespace ReUse.API.Controllers;
 [ApiController]
 public class FollowsController : ControllerBase
 {
-    private readonly IFollowsService _followsService;
+    private readonly IFollowService _followService;
     private readonly ILogger<FollowsController> _logger;
 
-    public FollowsController(IFollowsService followsService, ILogger<FollowsController> logger)
+    public FollowsController(IFollowService followService, ILogger<FollowsController> logger)
     {
-        _followsService = followsService;
+        _followService = followService;
         _logger = logger;
     }
 
@@ -28,7 +26,7 @@ public class FollowsController : ControllerBase
     /// <remarks>
     /// Returns a list of users who are following the specified user.
     /// An empty array is returned if the user has no followers.
-    [ProducesResponseType(typeof(ICollection<FollowsDtos>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<FollowDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [HttpGet("/My/Followers")]
@@ -37,7 +35,7 @@ public class FollowsController : ControllerBase
         var userId = User.GetBusinessId();
         _logger.LogInformation("Fetching followers for user {UserId}", userId);
 
-        var followers = await _followsService.GetFollowersAsync(userId, query);
+        var followers = await _followService.GetFollowersAsync(userId, query);
 
         return Ok(followers);
     }
@@ -47,7 +45,7 @@ public class FollowsController : ControllerBase
     /// <remarks>
     /// Returns all accounts the current user follows.
     /// An empty array is returned when the user follows nobody.
-    [ProducesResponseType(typeof(ICollection<FollowsDtos>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<FollowDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
 
@@ -56,12 +54,12 @@ public class FollowsController : ControllerBase
     {
         var userId = User.GetBusinessId();
 
-        var followings = await _followsService.GetFollowingsAsync(userId, query);
+        var followings = await _followService.GetFollowingsAsync(userId, query);
         return Ok(followings);
     }
 
     /// <summary>
-    /// Follows a target user on behalf of the currently authenticated user.
+    /// Follow a target user on behalf of the currently authenticated user.
     /// </summary>
     /// <remarks>
     /// Creates a following relationship between the authenticated user and the target user.
@@ -77,7 +75,7 @@ public class FollowsController : ControllerBase
     {
         var currentUserId = User.GetBusinessId();
 
-        var result = await _followsService.FollowAsync(currentUserId, userId);
+        var result = await _followService.FollowAsync(currentUserId, userId);
 
 
         return CreatedAtAction(nameof(GetFollowers), new { userId = result.FollowingId }, result);
@@ -98,7 +96,7 @@ public class FollowsController : ControllerBase
     {
         var currentUserId = User.GetBusinessId();
 
-        await _followsService.UnfollowAsync(currentUserId, userId);
+        await _followService.UnfollowAsync(currentUserId, userId);
 
         return NoContent();
     }
@@ -118,7 +116,7 @@ public class FollowsController : ControllerBase
     {
         var currentUserId = User.GetBusinessId();
 
-        await _followsService.RemoveFollowerAsync(currentUserId, userId);
+        await _followService.RemoveFollowerAsync(currentUserId, userId);
 
         return NoContent();
     }

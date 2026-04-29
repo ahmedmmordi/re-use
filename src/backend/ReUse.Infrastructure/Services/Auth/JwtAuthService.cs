@@ -1,26 +1,18 @@
-
-using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 using AutoMapper;
 
-using Microsoft.AspNetCore.Identity;
-
 using Reuse.Infrastructure.Identity.Models;
 
-using ReUse.Application.DTOs.Auth.Login;
-using ReUse.Application.DTOs.Auth.Refresh;
-using ReUse.Application.DTOs.Auth.Register;
-using ReUse.Application.DTOs.Users.UserProfile.Contracts;
+using ReUse.Application.DTOs.Auth;
+using ReUse.Application.DTOs.Users.UserProfile;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
-using ReUse.Application.Interfaces.Services.Account_Managemet;
-using ReUse.Application.Interfaces.Services.Auth;
+using ReUse.Application.Interfaces.Services.External;
 using ReUse.Domain.Entities;
 using ReUse.Infrastructure.Interfaces.Repositories;
 using ReUse.Infrastructure.Interfaces.Services;
-using ReUse.Infrastructure.UnitOfWork;
 
 namespace ReUse.Infrastructure.Services.Auth;
 
@@ -45,13 +37,11 @@ public class JwtAuthService : IAuthService
         _accountService = accountService;
         _mapper = mapper;
     }
-    public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        var response = new LoginResponseDto();
+        var user = await _identityUserRepo.GetByEmail(request.Email);
 
-        var user = await _identityUserRepo.GetByEmail(loginDto.Email);
-
-        if (user == null || !await _identityUserRepo.CheckPasswordAsync(user, loginDto.Password))
+        if (user == null || !await _identityUserRepo.CheckPasswordAsync(user, request.Password))
         {
             throw new InvalidCredentialsException();
         }
@@ -72,19 +62,11 @@ public class JwtAuthService : IAuthService
 
         var refreshToken = await _tokenService.CreateRefreshTokenAsync(user);
 
-        response.Email = user.Email!;
-        response.AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-        response.AccessTokenExpiresAt = jwtToken.ValidTo;
-        response.RefreshToken = refreshToken.Token;
-        response.RefreshTokenExpiresAt = refreshToken.ExpiresAt;
-
-        return response;
+        return new LoginResponse(user.Email!, new JwtSecurityTokenHandler().WriteToken(jwtToken), refreshToken.Token, jwtToken.ValidTo, refreshToken.ExpiresAt);
     }
 
-    public async Task<LoginResponseDto> RefreshAsync(RefreshTokenRequestDto refreshToken)
+    public async Task<LoginResponse> RefreshAsync(RefreshTokenRequest refreshToken)
     {
-        var response = new LoginResponseDto();
-
         var user = await _identityUserRepo.GetByRefreshTokenWithRefreshTokens(refreshToken.RefreshToken);
 
         if (user == null)
@@ -96,13 +78,7 @@ public class JwtAuthService : IAuthService
 
         var jwtToken = await _tokenService.GenerateJwtAsync(user);
 
-        response.Email = user.Email!;
-        response.AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-        response.AccessTokenExpiresAt = jwtToken.ValidTo;
-        response.RefreshToken = newRefreshToken.Token;
-        response.RefreshTokenExpiresAt = newRefreshToken.ExpiresAt;
-
-        return response;
+        return new LoginResponse(user.Email!, new JwtSecurityTokenHandler().WriteToken(jwtToken), newRefreshToken.Token, jwtToken.ValidTo, newRefreshToken.ExpiresAt);
     }
 
     public async Task LogoutAsync(string identityUserId)
@@ -118,7 +94,7 @@ public class JwtAuthService : IAuthService
         await _identityUserRepo.UpdateAsync(user);
     }
 
-    public async Task<UserProfileDto> RegisterAsync(RegisterDto dto)
+    public async Task<UserProfileResponse> RegisterAsync(RegisterRequest dto)
     {
         ApplicationUser? identityUser = null;
         User? businessUser = null;
@@ -184,7 +160,7 @@ public class JwtAuthService : IAuthService
 
 
             // 5. Return DTO
-            return _mapper.Map<UserProfileDto>(businessUser);
+            return _mapper.Map<UserProfileResponse>(businessUser);
 
         }
         catch

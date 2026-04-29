@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
-using ReUse.Application.DTOs.Products.ProductImages.Commands;
-using ReUse.Application.Interfaces.Services.Products;
+using ReUse.Application.Interfaces.Services;
 namespace ReUse.API.Controllers;
 
 [Route("api/[controller]")]
