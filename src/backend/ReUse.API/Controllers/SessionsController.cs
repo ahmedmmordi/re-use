@@ -113,7 +113,7 @@ public class SessionsController : ControllerBase
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized(new { message = "Missing refresh token" });
 
-        var response = await _authService.RefreshAsync(new RefreshTokenRequest() { RefreshToken = refreshToken });
+        var response = await _authService.RefreshAsync(new RefreshTokenRequest(refreshToken));
 
         // Set new refresh token cookie
         Response.Cookies.Append("refresh_token", response.RefreshToken, new CookieOptions

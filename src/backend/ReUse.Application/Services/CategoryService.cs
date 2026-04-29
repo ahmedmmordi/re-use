@@ -54,8 +54,6 @@ public class CategoryService : ICategoryService
 
         var result = _mapper.Map<List<CategoryResponse>>(rootCategories);
 
-        SetProductCount(result);
-
         return result;
     }
 
@@ -71,7 +69,7 @@ public class CategoryService : ICategoryService
 
         var dto = _mapper.Map<CategoryResponse>(category);
         // TODO: set real ProductCount once Products entity is linked
-        dto.ProductCount = 0;
+        dto = dto with { ProductCount = 0 };
 
         return dto;
     }
@@ -140,20 +138,4 @@ public class CategoryService : ICategoryService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    // ==============================
-    // HELPER
-    // ==============================
-    private void SetProductCount(List<CategoryResponse> categories)
-    {
-        foreach (var category in categories)
-        {
-            // TODO: replace with real count from Products table when available
-            category.ProductCount = 0;
-
-            if (category.Subcategories.Any())
-            {
-                SetProductCount(category.Subcategories);
-            }
-        }
-    }
 }

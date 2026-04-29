@@ -53,11 +53,7 @@ public class CloudinaryService : ICloudinaryService
         if (result.StatusCode != HttpStatusCode.OK && result.StatusCode != HttpStatusCode.Created)
             throw new BadRequestException("Failed to upload image");
 
-        return new ImageUpdatedResponse
-        {
-            Url = result.SecureUrl.ToString(),
-            PublicId = result.PublicId
-        };
+        return new ImageUpdatedResponse(result.SecureUrl.ToString(), result.PublicId);
     }
     #endregion
 

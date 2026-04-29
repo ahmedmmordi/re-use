@@ -39,8 +39,6 @@ public class JwtAuthService : IAuthService
     }
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        var response = new LoginResponse();
-
         var user = await _identityUserRepo.GetByEmail(request.Email);
 
         if (user == null || !await _identityUserRepo.CheckPasswordAsync(user, request.Password))
@@ -64,19 +62,11 @@ public class JwtAuthService : IAuthService
 
         var refreshToken = await _tokenService.CreateRefreshTokenAsync(user);
 
-        response.Email = user.Email!;
-        response.AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-        response.AccessTokenExpiresAt = jwtToken.ValidTo;
-        response.RefreshToken = refreshToken.Token;
-        response.RefreshTokenExpiresAt = refreshToken.ExpiresAt;
-
-        return response;
+        return new LoginResponse(user.Email!, new JwtSecurityTokenHandler().WriteToken(jwtToken), refreshToken.Token, jwtToken.ValidTo, refreshToken.ExpiresAt);
     }
 
     public async Task<LoginResponse> RefreshAsync(RefreshTokenRequest refreshToken)
     {
-        var response = new LoginResponse();
-
         var user = await _identityUserRepo.GetByRefreshTokenWithRefreshTokens(refreshToken.RefreshToken);
 
         if (user == null)
@@ -88,13 +78,7 @@ public class JwtAuthService : IAuthService
 
         var jwtToken = await _tokenService.GenerateJwtAsync(user);
 
-        response.Email = user.Email!;
-        response.AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-        response.AccessTokenExpiresAt = jwtToken.ValidTo;
-        response.RefreshToken = newRefreshToken.Token;
-        response.RefreshTokenExpiresAt = newRefreshToken.ExpiresAt;
-
-        return response;
+        return new LoginResponse(user.Email!, new JwtSecurityTokenHandler().WriteToken(jwtToken), newRefreshToken.Token, jwtToken.ValidTo, newRefreshToken.ExpiresAt);
     }
 
     public async Task LogoutAsync(string identityUserId)

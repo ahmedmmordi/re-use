@@ -1,11 +1,10 @@
-﻿
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace ReUse.Application.DTOs.Products;
 
-public class UploadProductImagesRequest
+public record UploadProductImagesRequest
 {
-    public Guid Id { get; set; }
-    public int Order { get; set; }
-    public IEnumerable<IFormFile> Images { get; set; } = null!;
+    public Guid Id { get; init; }
+    public int Order { get; init; }
+    public IReadOnlyList<IFormFile> Images { get; init; } = null!;
 }

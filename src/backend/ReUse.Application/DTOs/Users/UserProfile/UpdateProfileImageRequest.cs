@@ -4,9 +4,8 @@ using ReUse.Application.Enums;
 
 namespace ReUse.Application.DTOs.Users.UserProfile;
 
-public class UpdateProfileImageRequest
+public record UpdateProfileImageRequest
 {
-    public IFormFile Image { get; set; } = null!;
-
-    public ProfileImageOptions ImageType { get; set; }
+    public IFormFile Image { get; init; } = null!;
+    public ProfileImageOptions ImageType { get; init; }
 }

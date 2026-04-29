@@ -73,10 +73,7 @@ public class PasswordResetService : IPasswordResetService
 
         await _otp.RemoveOtpAsync(key);
 
-        return new VerifyPasswordResetResponse
-        {
-            ResetToken = resetToken
-        };
+        return new VerifyPasswordResetResponse(resetToken);
     }
 
     public async Task ResetAsync(ResetPasswordRequest dto)

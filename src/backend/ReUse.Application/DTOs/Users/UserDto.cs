@@ -1,16 +1,16 @@
 namespace ReUse.Application.DTOs.Users;
 
-public class UserDto
+public record UserDto
 {
-    public Guid Id { get; set; }
-    public string FullName { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public string? Username { get; set; }
-    public string? ProfilePictureUrl { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string Status { get; set; } = null!;
-    public bool IsVerified { get; set; }
-    public IEnumerable<string> Roles { get; set; } = [];
-    public DateTime CreatedAt { get; set; }
-    public DateTime? LastLoginAt { get; set; }
+    public Guid Id { get; init; }
+    public string FullName { get; init; } = null!;
+    public string Email { get; init; } = null!;
+    public string? Username { get; init; }
+    public string? ProfilePictureUrl { get; init; }
+    public string? PhoneNumber { get; init; }
+    public string Status { get; init; } = null!;
+    public bool IsVerified { get; init; }
+    public IReadOnlyList<string> Roles { get; init; } = [];
+    public DateTime CreatedAt { get; init; }
+    public DateTime? LastLoginAt { get; init; }
 }

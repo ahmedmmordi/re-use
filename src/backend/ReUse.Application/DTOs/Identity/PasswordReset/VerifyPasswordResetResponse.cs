@@ -1,6 +1,5 @@
 namespace ReUse.Application.DTOs.Identity.PasswordReset;
 
-public class VerifyPasswordResetResponse
-{
-    public string ResetToken { get; set; } = null!;
-}
+public record VerifyPasswordResetResponse(
+    string ResetToken
+);
