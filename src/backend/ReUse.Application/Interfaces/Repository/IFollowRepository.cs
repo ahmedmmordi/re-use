@@ -1,4 +1,4 @@
-﻿using ReUse.Application.DTOs;
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Users;
 using ReUse.Domain.Entities;
 

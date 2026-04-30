@@ -195,7 +195,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.ToTable("Payment");
                 });
 
-            modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ReUse.Domain.Entities.Products", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -387,7 +387,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.RegularProduct", b =>
                 {
-                    b.HasBaseType("ReUse.Domain.Entities.Product");
+                    b.HasBaseType("ReUse.Domain.Entities.Products");
 
                     b.Property<bool>("AllowNegotiation")
                         .ValueGeneratedOnAdd()
@@ -403,7 +403,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.SwapProduct", b =>
                 {
-                    b.HasBaseType("ReUse.Domain.Entities.Product");
+                    b.HasBaseType("ReUse.Domain.Entities.Products");
 
                     b.Property<string>("WantedCondition")
                         .HasMaxLength(20)
@@ -422,7 +422,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.WantedProduct", b =>
                 {
-                    b.HasBaseType("ReUse.Domain.Entities.Product");
+                    b.HasBaseType("ReUse.Domain.Entities.Products");
 
                     b.Property<decimal?>("DesiredPriceMax")
                         .HasPrecision(10, 2)
@@ -477,7 +477,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("ReUse.Domain.Entities.Product", "Product")
+                    b.HasOne("ReUse.Domain.Entities.Products", "Products")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -493,12 +493,12 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Payment");
 
-                    b.Navigation("Product");
+                    b.Navigation("Products");
 
                     b.Navigation("Seller");
                 });
 
-            modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ReUse.Domain.Entities.Products", b =>
                 {
                     b.HasOne("ReUse.Domain.Entities.Category", "Category")
                         .WithMany()
@@ -519,13 +519,13 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
                 {
-                    b.HasOne("ReUse.Domain.Entities.Product", "Product")
+                    b.HasOne("ReUse.Domain.Entities.Products", "Products")
                         .WithMany("ProductImages")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Product");
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.Category", b =>
@@ -533,7 +533,7 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.Navigation("Subcategories");
                 });
 
-            modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ReUse.Domain.Entities.Products", b =>
                 {
                     b.Navigation("ProductImages");
                 });
