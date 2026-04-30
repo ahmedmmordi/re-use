@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Follows;
+using ReUse.Application.DTOs.Users;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
-using ReUse.Application.Options.Filters;
 using ReUse.Domain.Entities;
 
 
@@ -19,38 +20,42 @@ public class FollowService : IFollowService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
-    public async Task<PaginatedList<FollowDto>> GetFollowersAsync(Guid userId, UserQueryOptions query)
+    public async Task<PagedResult<FollowDto>> GetFollowersAsync(Guid userId, UserFilterParams filterParams)
     {
         if (userId == Guid.Empty)
             throw new BadRequestException("UserId cannot be empty");
 
-        var followers = await _unitOfWork.Follow.GetFollowersAsync(userId, query);
+        var followers = await _unitOfWork.Follow.GetFollowersAsync(userId, filterParams);
 
 
-        var mappedItems = _mapper.Map<List<FollowDto>>(followers.Items);
+        var dtoList = _mapper.Map<List<FollowDto>>(followers.Data);
 
 
-        return new PaginatedList<FollowDto>(
-            mappedItems,
-            followers.PageNumber,
-            followers.TotalCount,
-            followers.PageSize);
+        return new PagedResult<FollowDto>
+        {
+            Data = dtoList,
+            PageNumber = followers.PageNumber,
+            PageSize = followers.PageSize,
+            TotalRecords = followers.TotalRecords
+        };
     }
 
-    public async Task<PaginatedList<FollowDto>> GetFollowingsAsync(Guid userId, UserQueryOptions query)
+    public async Task<PagedResult<FollowDto>> GetFollowingsAsync(Guid userId, UserFilterParams filterParams)
     {
         if (userId == Guid.Empty)
             throw new BadRequestException("UserId cannot be empty");
 
-        var followings = await _unitOfWork.Follow.GetFollowingsAsync(userId, query);
+        var followings = await _unitOfWork.Follow.GetFollowingsAsync(userId, filterParams);
 
-        var mappedItems = _mapper.Map<List<FollowDto>>(followings.Items);
+        var dtoList = _mapper.Map<List<FollowDto>>(followings.Data);
 
-        return new PaginatedList<FollowDto>(
-            mappedItems,
-            followings.PageNumber,
-            followings.TotalCount,
-            followings.PageSize);
+        return new PagedResult<FollowDto>
+        {
+            Data = dtoList,
+            PageNumber = followings.PageNumber,
+            PageSize = followings.PageSize,
+            TotalRecords = followings.TotalRecords
+        };
     }
     public async Task<FollowResultDto> FollowAsync(Guid currentUserId, Guid targetUserId)
     {
