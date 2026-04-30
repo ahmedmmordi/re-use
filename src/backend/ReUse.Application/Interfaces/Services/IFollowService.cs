@@ -1,4 +1,4 @@
-﻿using ReUse.Application.DTOs;
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Follows;
 using ReUse.Application.DTOs.Users;
 
