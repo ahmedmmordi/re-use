@@ -1,16 +1,14 @@
+using ReUse.Application.DTOs;
+using ReUse.Application.DTOs.Categories;
 using ReUse.Domain.Entities;
 
 namespace ReUse.Application.Interfaces.Repository;
 
-public interface ICategoryRepository
+public interface ICategoryRepository : IBaseRepository<Category>
 {
-
+    Task<PagedResult<Category>> GetAllAsync(CategoriesFilterParams filterParams, CancellationToken cancellationToken = default);
     Task<List<Category>> GetAllAsync();
-    Task<Category?> GetByIdAsync(Guid id);
-
     Task<bool> ExistsAsync(Guid id);
-    Task AddAsync(Category category);
-    void Update(Category category);
-    void Delete(Category category);
-
+    Task<bool> SlugExistsAsync(string slug, Guid? id = null);
+    Task<bool> NameExistsAsync(string name, Guid? id = null);
 }

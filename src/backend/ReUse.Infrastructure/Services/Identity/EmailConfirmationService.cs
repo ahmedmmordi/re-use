@@ -22,16 +22,16 @@ public class EmailConfirmationService : IEmailConfirmationService
         _otp = otp;
     }
 
-    public async Task SendAsync(SendEmailConfirmationRequest dto)
+    public async Task SendAsync(SendEmailConfirmationRequest request)
     {
-        var user = await _identityUserRepo.GetByEmail(dto.Email);
+        var user = await _identityUserRepo.GetByEmail(request.Email);
 
         if (user == null || user.EmailConfirmed)
         {
             return;
         }
 
-        var key = $"email-confirm:{dto.Email}";
+        var key = $"email-confirm:{request.Email}";
         var otp = await _otp.CreateOtpAsync(key);
 
         await _emailService.SendAsync(

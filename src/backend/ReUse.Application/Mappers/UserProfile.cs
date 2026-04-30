@@ -15,14 +15,12 @@ public class UserProfileMappingProfile : Profile
 {
     public UserProfileMappingProfile()
     {
-        // Only maps what it should fields
         CreateMap<User, UserProfileResponse>()
-        // Computed/aggregate fields — default to 0 on registration
             .ForMember(dest => dest.FollowersCount, opt => opt.MapFrom(src => src.Followers.Count))
             .ForMember(dest => dest.FollowingCount, opt => opt.MapFrom(src => src.Following.Count));
 
         CreateMap<UpdateUserProfileRequest, User>()
-       .ForAllMembers(opts =>
-        opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts =>
+                opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

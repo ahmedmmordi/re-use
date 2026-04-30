@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
@@ -18,6 +19,7 @@ namespace ReUse.API.Controllers;
 /// 2. Confirm email using OTP
 /// </remarks>
 [ApiController]
+[AllowAnonymous]
 [Route("api/email-confirmations")]
 [Tags("EmailConfirmations")]
 public class EmailConfirmationsController : ControllerBase
@@ -37,15 +39,15 @@ public class EmailConfirmationsController : ControllerBase
     /// - Generates a one-time password (OTP).
     /// - Sends the OTP via email.
     /// </remarks>
-    /// <param name="dto">Email confirmation request.</param>
+    /// <param name="request">Email confirmation request.</param>
     /// <response code="202">Email confirmation request accepted.</response>
     /// <response code="400">Invalid request payload.</response>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SendAsync(SendEmailConfirmationRequest dto)
+    public async Task<IActionResult> SendAsync(SendEmailConfirmationRequest request)
     {
-        await _emailConfirmationService.SendAsync(dto);
+        await _emailConfirmationService.SendAsync(request);
         // I Choose 202 becuse this is async operation 
         return Accepted();
     }
@@ -60,16 +62,15 @@ public class EmailConfirmationsController : ControllerBase
     /// - OTP expires after 10 minutes
     /// - Limited number of verification attempts
     /// </remarks>
-    /// <param name="dto">Email confirmation data.</param>
+    /// <param name="request">Email confirmation data.</param>
     /// <response code="204">Email confirmed successfully.</response>
     /// <response code="400">Invalid or expired OTP.</response>
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [HttpPut]
-    public async Task<IActionResult> ConfirmAsync(ConfirmEmailRequest dto)
+    public async Task<IActionResult> ConfirmAsync(ConfirmEmailRequest request)
     {
-        await _emailConfirmationService.ConfirmAsync(dto);
+        await _emailConfirmationService.ConfirmAsync(request);
         return NoContent();
     }
 }

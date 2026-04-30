@@ -23,6 +23,8 @@ public static class DependencyInjection
 
         #region Services
         services.AddScoped<IFollowService, FollowService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICategoryService, CategoryService>();
         #endregion
 
 

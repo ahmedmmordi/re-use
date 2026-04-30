@@ -23,22 +23,22 @@ public class ProductImageService : IProductImageService
     }
 
 
-    public async Task<List<string>> UploadMultipleImagesAsync(UploadProductImagesRequest command)
+    public async Task<List<string>> UploadMultipleImagesAsync(UploadProductImagesRequest request)
     {
-        if (command.Images is null || !command.Images.Any())
+        if (request.Images is null || !request.Images.Any())
             throw new BadRequestException("At least one image is required.");
 
-        var files = command.Images.ToList();
+        var files = request.Images.ToList();
 
         foreach (var file in files)
             _imageValidator.Validate(file);
 
         var existingCount = await _unitOfWork.ProductImages
-            .CountByProductIdAsync(command.Id);
+            .CountByProductIdAsync(request.Id);
 
         var uploadResults = await Task.WhenAll(
             files.Select((file, index) =>
-                _cloudinary.UpdateAsync(file, $"products/{command.Id}")
+                _cloudinary.UpdateAsync(file, $"products/{request.Id}")
                     .ContinueWith(t => (Dto: t.Result, Order: existingCount + index),
                         TaskContinuationOptions.OnlyOnRanToCompletion))
         );
@@ -48,7 +48,7 @@ public class ProductImageService : IProductImageService
             var entities = uploadResults.Select(r => new ProductImage
             {
                 Id = Guid.NewGuid(),
-                ProductId = command.Id,
+                ProductId = request.Id,
                 Url = r.Dto.Url,
                 PublicId = r.Dto.PublicId,
                 DisplayOrder = r.Order

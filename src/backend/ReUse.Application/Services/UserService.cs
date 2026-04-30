@@ -39,27 +39,27 @@ public class UserService : IUserService
 
     }
 
-    public async Task UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest command)
+    public async Task UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest request)
     {
         var user = await _unitOfWork.User.GetByIdAsync(userId);
         // I don't need Check if user is null as iam sure user already Authenticated
-        _mapper.Map(command, user);
+        _mapper.Map(request, user);
         _unitOfWork.User.Update(user!);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateImageProfileAsync(Guid userId, UpdateProfileImageRequest command)
+    public async Task UpdateImageProfileAsync(Guid userId, UpdateProfileImageRequest request)
     {
-        _imageValidator.Validate(command.Image);
+        _imageValidator.Validate(request.Image);
 
         var user = await _unitOfWork.User.GetByIdAsync(userId);
 
-        var folder = $"userImages/{userId}/{command.ImageType.ToString().ToLower()}";
-        var newImage = await _cloudinaryService.UpdateAsync(command.Image, folder);
+        var folder = $"userImages/{userId}/{request.ImageType.ToString().ToLower()}";
+        var newImage = await _cloudinaryService.UpdateAsync(request.Image, folder);
 
         string? oldPublicId;
 
-        if (command.ImageType == ProfileImageOptions.Profile)
+        if (request.ImageType == ProfileImageOptions.Profile)
         {
             oldPublicId = user!.ProfileImagePublicId;
             user.ProfileImageUrl = newImage.Url;
