@@ -32,16 +32,16 @@ public class PasswordResetService : IPasswordResetService
         _cache = cache;
     }
 
-    public async Task CreateAsync(RequestPasswordResetRequest dto)
+    public async Task CreateAsync(RequestPasswordResetRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
+        var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user == null)
         {
             throw new NotFoundException("User");
         }
 
-        var key = $"{ForgetPasswordKey}:{dto.Email}";
+        var key = $"{ForgetPasswordKey}:{request.Email}";
 
         var otp = await _otp.CreateOtpAsync(key);
 
@@ -52,22 +52,22 @@ public class PasswordResetService : IPasswordResetService
         );
     }
 
-    public async Task<VerifyPasswordResetResponse> VerifyAsync(VerifyPasswordResetRequest dto)
+    public async Task<VerifyPasswordResetResponse> VerifyAsync(VerifyPasswordResetRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
+        var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
             throw new NotFoundException("User");
         }
 
-        var key = $"{ForgetPasswordKey}:{dto.Email}";
-        await _otp.VerifyOtpAsync(key, dto.Otp);
+        var key = $"{ForgetPasswordKey}:{request.Email}";
+        await _otp.VerifyOtpAsync(key, request.Otp);
 
         var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
         await _cache.SetAsync(
             $"{ForgetPasswordVerifyKey}:{resetToken}",
-            dto.Email,
+            request.Email,
             TimeSpan.FromMinutes(10)
         );
 
@@ -76,9 +76,9 @@ public class PasswordResetService : IPasswordResetService
         return new VerifyPasswordResetResponse(resetToken);
     }
 
-    public async Task ResetAsync(ResetPasswordRequest dto)
+    public async Task ResetAsync(ResetPasswordRequest request)
     {
-        var key = $"{ForgetPasswordVerifyKey}:{dto.ResetToken}";
+        var key = $"{ForgetPasswordVerifyKey}:{request.ResetToken}";
         var email = await _cache.GetAsync<string>(key);
 
         if (email == null)
@@ -94,8 +94,8 @@ public class PasswordResetService : IPasswordResetService
 
         var result = await _userManager.ResetPasswordAsync(
             user,
-            dto.ResetToken,
-            dto.NewPassword
+            request.ResetToken,
+            request.NewPassword
         );
 
         if (!result.Succeeded)

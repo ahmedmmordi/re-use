@@ -45,6 +45,7 @@ public class SessionsController : ControllerBase
         });
     }
 
+
     /// <summary>
     /// Authenticates a user and creates a new session.
     /// </summary>
@@ -57,7 +58,7 @@ public class SessionsController : ControllerBase
     /// 3. Generate JWT access token
     /// 4. Generate refresh token
     /// </remarks>
-    /// <param name="dto">User login credentials.</param>
+    /// <param name="request">User login credentials.</param>
     /// <response code="200">Login successful.</response>
     /// <response code="400">Invalid request payload.</response>
     /// <response code="401">Invalid credentials.</response>
@@ -67,9 +68,9 @@ public class SessionsController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest dto)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
-        var response = await _authService.LoginAsync(dto);
+        var response = await _authService.LoginAsync(request);
 
         // Set new refresh token cookie
         Response.Cookies.Append("refresh_token", response.RefreshToken, new CookieOptions
@@ -103,12 +104,13 @@ public class SessionsController : ControllerBase
     /// - A new refresh token is returned.
     /// </remarks>
     [HttpPost("refresh")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshAsync()
     {
-        var refreshToken = Request.Cookies["refreshToken"];
+        var refreshToken = Request.Cookies["refresh_token"];
 
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized(new { message = "Missing refresh token" });
@@ -122,7 +124,6 @@ public class SessionsController : ControllerBase
             Secure = true,
             SameSite = SameSiteMode.None,
             Expires = response.RefreshTokenExpiresAt,
-            Path = "/auth/refresh"
         });
 
         // Set access token cookie
@@ -148,8 +149,8 @@ public class SessionsController : ControllerBase
     /// </remarks>
     /// <response code="204">Logout successful.</response>
     /// <response code="401">User is not authenticated.</response>
-    [Authorize]
     [HttpDelete]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> LogoutAsync()
@@ -168,7 +169,6 @@ public class SessionsController : ControllerBase
             Secure = true,
             SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(-1),
-            Path = "/auth/refresh"
         });
 
         // Delete access token cookie

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class inint : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,13 +17,14 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    parent_id = table.Column<Guid>(type: "uuid", nullable: true),
                     name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
                     icon_url = table.Column<string>(type: "text", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    parent_id = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -91,15 +92,15 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Follows", x => x.Id);
+                    table.PrimaryKey("PK_Follow", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Follows_Users_FollowerId",
+                        name: "FK_Follow_Users_FollowerId",
                         column: x => x.FollowerId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Follows_Users_FollowingId",
+                        name: "FK_Follow_Users_FollowingId",
                         column: x => x.FollowingId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -122,6 +123,9 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "Active"),
                     Price = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true),
                     AllowNegotiation = table.Column<bool>(type: "boolean", nullable: true, defaultValue: true),
+                    WantedItemTitle = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    WantedItemDescription = table.Column<string>(type: "text", nullable: true),
+                    WantedCondition = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     DesiredPriceMin = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true),
                     DesiredPriceMax = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -226,13 +230,19 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                 column: "parent_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Follows_FollowerId_FollowingId",
+                name: "IX_categories_slug",
+                table: "categories",
+                column: "slug",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follow_FollowerId_FollowingId",
                 table: "Follow",
                 columns: new[] { "FollowerId", "FollowingId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Follows_FollowingId",
+                name: "IX_Follow_FollowingId",
                 table: "Follow",
                 column: "FollowingId");
 

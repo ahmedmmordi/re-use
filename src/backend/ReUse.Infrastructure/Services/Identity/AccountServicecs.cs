@@ -31,13 +31,13 @@ public class AccountService : IAccountService
         _cache = cache;
     }
 
-    public async Task ChangePasswordAsync(string userId, ChangePasswordRequest command)
+    public async Task ChangePasswordAsync(string userId, ChangePasswordRequest request)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
             throw new NotFoundException(nameof(ApplicationUser));
 
-        var result = await _userManager.ChangePasswordAsync(user, command.CurrentPassword, command.NewPassword);
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description);
@@ -45,7 +45,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task DeactivateAccountAsync(Guid userId, DeactivateAccountRequest command)
+    public async Task DeactivateAccountAsync(Guid userId, DeactivateAccountRequest request)
     {
         var user = await _unitOfWork.User.GetByIdAsync(userId)
             ?? throw new NotFoundException(nameof(User));
@@ -56,13 +56,13 @@ public class AccountService : IAccountService
         var identityUser = await _userManager.FindByIdAsync(user.IdentityUserId)
             ?? throw new NotFoundException(nameof(ApplicationUser));
 
-        var passwordValid = await _userManager.CheckPasswordAsync(identityUser, command.Password);
+        var passwordValid = await _userManager.CheckPasswordAsync(identityUser, request.Password);
         if (!passwordValid)
             throw new ForbiddenException();
 
         user.IsActive = false;
         user.DeactivatedAt = DateTime.UtcNow;
-        user.DeactivationReason = command.Reason;
+        user.DeactivationReason = request.Reason;
 
         _tokenService.RevokeAllAsync(identityUser);
         await _userManager.UpdateSecurityStampAsync(identityUser);
@@ -72,7 +72,7 @@ public class AccountService : IAccountService
         await _cache.RemoveAsync($"user:active:{userId}");
     }
 
-    //public async Task ReactivateAccountAsync(Guid userId, ReactivateAccountCommand command)
+    //public async Task ReactivateAccountAsync(Guid userId, ReactivateAccountCommand request)
     //{
     //    var user = await _unitOfWork.User.GetByIdAsync(userId)
     //        ?? throw new NotFoundException(nameof(User));
@@ -83,7 +83,7 @@ public class AccountService : IAccountService
     //    var identityUser = await _userManager.FindByIdAsync(user.IdentityUserId)
     //        ?? throw new NotFoundException(nameof(ApplicationUser));
 
-    //    if (!await _userManager.CheckPasswordAsync(identityUser, command.Password))
+    //    if (!await _userManager.CheckPasswordAsync(identityUser, request.Password))
     //        throw new ForbiddenException();
 
     //    user.IsActive = true;
@@ -115,7 +115,7 @@ public class AccountService : IAccountService
         await _cache.RemoveAsync($"user:active:{userId}");
     }
 
-    public async Task DeleteAccountAsync(Guid userId, DeactivateAccountRequest command)
+    public async Task DeleteAccountAsync(Guid userId, DeactivateAccountRequest request)
     {
         var user = await _unitOfWork.User.GetByIdAsync(userId)
             ?? throw new NotFoundException(nameof(User));
@@ -123,7 +123,7 @@ public class AccountService : IAccountService
         var identityUser = await _userManager.FindByIdAsync(user.IdentityUserId)
             ?? throw new NotFoundException(nameof(ApplicationUser));
 
-        var passwordValid = await _userManager.CheckPasswordAsync(identityUser, command.Password);
+        var passwordValid = await _userManager.CheckPasswordAsync(identityUser, request.Password);
         if (!passwordValid)
             throw new ForbiddenException();
 

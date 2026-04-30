@@ -94,7 +94,7 @@ public class JwtAuthService : IAuthService
         await _identityUserRepo.UpdateAsync(user);
     }
 
-    public async Task<UserProfileResponse> RegisterAsync(RegisterRequest dto)
+    public async Task<UserProfileResponse> RegisterAsync(RegisterRequest request)
     {
         ApplicationUser? identityUser = null;
         User? businessUser = null;
@@ -106,12 +106,12 @@ public class JwtAuthService : IAuthService
 
             identityUser = new ApplicationUser
             {
-                UserName = dto.UserName,
-                Email = dto.Email
+                UserName = request.UserName,
+                Email = request.Email
             };
 
             var createUserResult = await _identityUserRepo
-                .CreateAsync(identityUser, dto.Password);
+                .CreateAsync(identityUser, request.Password);
 
             if (!createUserResult.Succeeded)
             {
@@ -138,7 +138,7 @@ public class JwtAuthService : IAuthService
             {
                 IdentityUserId = identityUser.Id,
                 Email = identityUser.Email,
-                FullName = dto.FullName
+                FullName = request.FullName
             };
 
             _uow.User.Add(businessUser);

@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
@@ -18,6 +19,7 @@ namespace ReUse.API.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/password-resets")]
+[AllowAnonymous]
 [Tags("PasswordResets")]
 public class PasswordResetsController : ControllerBase
 {
@@ -34,7 +36,7 @@ public class PasswordResetsController : ControllerBase
     /// <remarks>
     /// Sends a one-time password (OTP) to the user's email address.
     /// </remarks>
-    /// <param name="dto">Password reset request containing the user's email.</param>
+    /// <param name="request">Password reset request containing the user's email.</param>
     /// <response code="202">Password reset request accepted.</response>
     /// <response code="400">Invalid request payload.</response>
     /// <response code="404">User not found.</response>
@@ -42,9 +44,9 @@ public class PasswordResetsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateAsync(RequestPasswordResetRequest dto)
+    public async Task<IActionResult> CreateAsync(RequestPasswordResetRequest request)
     {
-        await _passwordResetService.CreateAsync(dto);
+        await _passwordResetService.CreateAsync(request);
         return Accepted();
     }
 
@@ -58,7 +60,7 @@ public class PasswordResetsController : ControllerBase
     /// - OTP expires after 10 minutes
     /// - Limited number of verification attempts
     /// </remarks>
-    /// <param name="dto">OTP verification request.</param>
+    /// <param name="request">OTP verification request.</param>
     /// <returns>Password reset token.</returns>
     /// <response code="200">OTP verified successfully.</response>
     /// <response code="400">Invalid or expired OTP.</response>
@@ -67,9 +69,9 @@ public class PasswordResetsController : ControllerBase
     [ProducesResponseType(typeof(VerifyPasswordResetResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> VerifyAsync(VerifyPasswordResetRequest dto)
+    public async Task<IActionResult> VerifyAsync(VerifyPasswordResetRequest request)
     {
-        var token = await _passwordResetService.VerifyAsync(dto);
+        var token = await _passwordResetService.VerifyAsync(request);
         return Ok(token);
     }
 
@@ -79,7 +81,7 @@ public class PasswordResetsController : ControllerBase
     /// <remarks>
     /// Updates the user's password and invalidates the reset token.
     /// </remarks>
-    /// <param name="dto">Password reset request.</param>
+    /// <param name="request">Password reset request.</param>
     /// <response code="204">Password reset successfully.</response>
     /// <response code="400">Invalid or expired reset token.</response>
     /// <response code="404">User not found.</response>
@@ -87,9 +89,9 @@ public class PasswordResetsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ResetAsync(ResetPasswordRequest dto)
+    public async Task<IActionResult> ResetAsync(ResetPasswordRequest request)
     {
-        await _passwordResetService.ResetAsync(dto);
+        await _passwordResetService.ResetAsync(request);
         return NoContent();
     }
 }

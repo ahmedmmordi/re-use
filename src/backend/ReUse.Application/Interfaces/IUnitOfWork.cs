@@ -8,7 +8,7 @@ public interface IUnitOfWork : IDisposable
     IUserRepository User { get; }
     IFollowRepository Follow { get; }
     IProductImageRepository ProductImages { get; }
-
+    ICategoryRepository Category { get; }
     Task<int> SaveChangesAsync();
     void Dispose();
 }

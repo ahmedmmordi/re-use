@@ -8,23 +8,23 @@ namespace ReUse.Infrastructure.Repositories;
 
 public class ProductImageRepository : BaseRepository<ProductImage>, IProductImageRepository
 {
-    private readonly ApplicationDbContext _db;
+    private readonly ApplicationDbContext _context;
 
-    public ProductImageRepository(ApplicationDbContext db) : base(db)
+    public ProductImageRepository(ApplicationDbContext context) : base(context)
     {
-        _db = db;
+        _context = context;
     }
 
     public async Task<List<ProductImage>> GetByProductIdAsync(Guid productId)
     {
-        return await _db.ProductImages
+        return await _context.ProductImages
             .Where(x => x.ProductId == productId)
             .ToListAsync();
     }
 
     public async Task<int> CountByProductIdAsync(Guid productId)
     {
-        return await _db.ProductImages
+        return await _context.ProductImages
             .CountAsync(x => x.ProductId == productId);
     }
 }

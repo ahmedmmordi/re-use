@@ -1,13 +1,15 @@
 
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Categories;
 
 namespace ReUse.Application.Interfaces.Services;
 
 public interface ICategoryService
 {
-    Task<List<CategoryResponse>> GetAllAsync(bool activeOnly);
+    Task<PagedResult<CategoryResponse>> GetCategoriesAsync(CategoriesFilterParams filterParams);
+    Task<List<CategoryResponse>> GetCategoryTreeAsync();
     Task<CategoryResponse?> GetByIdAsync(Guid id);
-    Task<CategoryResponse> CreateAsync(CreateCategoryRequest dto);
-    Task<CategoryResponse> UpdateAsync(Guid id, UpdateCategoryRequest dto);
+    Task<CategoryResponse> CreateAsync(CreateCategoryRequest request);
+    Task<CategoryResponse> UpdateAsync(Guid id, UpdateCategoryRequest request);
     Task DeleteAsync(Guid id);
 }

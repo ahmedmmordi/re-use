@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
 using ReUse.Application.DTOs.Follows;
@@ -7,8 +8,9 @@ using ReUse.Application.Interfaces.Services;
 
 namespace ReUse.API.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Route("api/me/")]
+[Authorize]
 public class FollowsController : ControllerBase
 {
     private readonly IFollowService _followService;
@@ -20,16 +22,11 @@ public class FollowsController : ControllerBase
         _logger = logger;
     }
 
-    /// <summary>
-    /// Retrieves all followers for a specific user.
-    /// </summary>
-    /// <remarks>
-    /// Returns a list of users who are following the specified user.
-    /// An empty array is returned if the user has no followers.
+
     [ProducesResponseType(typeof(ICollection<FollowDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [HttpGet("/My/Followers")]
+    [HttpGet("followers")]
     public async Task<IActionResult> GetFollowers([FromQuery] UserFilterParams filter)
     {
         var userId = User.GetBusinessId();
@@ -39,17 +36,12 @@ public class FollowsController : ControllerBase
 
         return Ok(followers);
     }
-    /// <summary>
-    /// Retrieves the list of users that the currently authenticated user is following.
-    /// </summary>
-    /// <remarks>
-    /// Returns all accounts the current user follows.
-    /// An empty array is returned when the user follows nobody.
+
+
+    [HttpGet("following")]
     [ProducesResponseType(typeof(ICollection<FollowDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-
-    [HttpGet("/My/Following")]
     public async Task<IActionResult> GetFollowing([FromQuery] UserFilterParams filter)
     {
         var userId = User.GetBusinessId();
@@ -58,19 +50,12 @@ public class FollowsController : ControllerBase
         return Ok(followings);
     }
 
-    /// <summary>
-    /// Follow a target user on behalf of the currently authenticated user.
-    /// </summary>
-    /// <remarks>
-    /// Creates a following relationship between the authenticated user and the target user.
-    /// The authenticated user becomes a follower of the target user.
+    [HttpPost("following/{userId}")]
     [ProducesResponseType(typeof(FollowResultDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-
-    [HttpPost("/Follow/{userId}")]
     public async Task<IActionResult> FollowUser([FromRoute] Guid userId)
     {
         var currentUserId = User.GetBusinessId();
@@ -81,17 +66,10 @@ public class FollowsController : ControllerBase
         return CreatedAtAction(nameof(GetFollowers), new { userId = result.FollowingId }, result);
     }
 
-    /// <summary>
-    /// Unfollows a target user on behalf of the currently authenticated user.
-    /// </summary>
-    /// <remarks>
-    /// Removes the following relationship between the authenticated user and the target user.
-    /// Returns 404 if the relationship doesn't exist or the target user is not found.
-    /// </remarks>
+    [HttpDelete("following/{userId}")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [HttpDelete("/UnFollow/{userId}")]
     public async Task<IActionResult> UnfollowUser([FromRoute] Guid userId)
     {
         var currentUserId = User.GetBusinessId();
@@ -101,17 +79,11 @@ public class FollowsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Removes a follower from the currently authenticated user's followers list.
-    /// </summary>
-    /// <remarks>
-    /// Deletes the follow relationship where the specified user is following you.
-    /// Returns 404 if the specified user is not currently following you.
-    /// </remarks>
+
+    [HttpDelete("followers/{userId}")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [HttpDelete("/Removefollower/{userId}")]
     public async Task<IActionResult> RemoveFollower([FromRoute] Guid userId)
     {
         var currentUserId = User.GetBusinessId();

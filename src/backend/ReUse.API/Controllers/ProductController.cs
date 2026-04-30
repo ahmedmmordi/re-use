@@ -14,10 +14,10 @@ public class ProductController : ControllerBase
     }
     //[HttpPost]
     //public async Task<IActionResult> UploadImages(
-    // [FromForm] ProductImageCommand command)
+    // [FromForm] ProductImageCommand request)
     //{
 
-    //    var result = await _productImageService.UploadMultipleImagesAsync(command);
+    //    var result = await _productImageService.UploadMultipleImagesAsync(request);
 
     //    return Ok(new
     //    {

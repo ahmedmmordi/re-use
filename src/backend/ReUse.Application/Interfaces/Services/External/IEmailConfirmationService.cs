@@ -5,6 +5,6 @@ namespace ReUse.Application.Interfaces.Services.External;
 
 public interface IEmailConfirmationService
 {
-    Task SendAsync(SendEmailConfirmationRequest dto);
-    Task ConfirmAsync(ConfirmEmailRequest dto);
+    Task SendAsync(SendEmailConfirmationRequest request);
+    Task ConfirmAsync(ConfirmEmailRequest request);
 }

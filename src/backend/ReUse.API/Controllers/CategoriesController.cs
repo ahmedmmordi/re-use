@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Responses;
@@ -6,12 +7,10 @@ using ReUse.Application.Interfaces.Services;
 
 namespace ReUse.API.Controllers;
 
-/// <summary>
-/// Public endpoints for browsing categories
-/// </summary>
 [ApiController]
 [Route("api/categories")]
 [Tags("Categories")]
+[Authorize(Roles = "Admin")]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _service;
@@ -21,39 +20,64 @@ public class CategoriesController : ControllerBase
         _service = service;
     }
 
-    /// <summary>
-    /// Get all categories as a tree structure
-    /// </summary>
-    /// <param name="activeOnly">
-    /// If true, returns only active categories (default: true)
-    /// </param>
-    /// <returns>List of categories with nested subcategories</returns>
-    /// <response code="200">Categories retrieved successfully</response>
-    [HttpGet]
-    [ProducesResponseType(typeof(List<CategoryResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] bool activeOnly = true)
+
+    [HttpGet("tree")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAllTree()
     {
-        var categories = await _service.GetAllAsync(activeOnly);
+        var categories = await _service.GetCategoryTreeAsync();
         return Ok(categories);
     }
 
-    /// <summary>
-    /// Get a single category by ID
-    /// </summary>
-    /// <param name="id">Category ID</param>
-    /// <returns>Category details</returns>
-    /// <response code="200">Category retrieved successfully</response>
-    /// <response code="404">Category not found</response>
-    [HttpGet("{id}")]
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAll([FromQuery] CategoriesFilterParams filterParams)
+    {
+        var categories = await _service.GetCategoriesAsync(filterParams);
+        return Ok(categories);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{categoryId}")]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid categoryId)
     {
-        var category = await _service.GetByIdAsync(id);
-
-        if (category == null)
-            return NotFound();
+        var category = await _service.GetByIdAsync(categoryId);
 
         return Ok(category);
     }
+
+
+    [HttpPost]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
+    {
+        var category = await _service.CreateAsync(request);
+
+        return CreatedAtAction(nameof(GetById), new { categoryId = category.Id }, category);
+    }
+
+
+    [HttpPatch("{categoryId}")]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid categoryId, [FromBody] UpdateCategoryRequest request)
+    {
+        var category = await _service.UpdateAsync(categoryId, request);
+        return NoContent();
+    }
+
+
+    [HttpDelete("{categoryId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid categoryId)
+    {
+        await _service.DeleteAsync(categoryId);
+        return NoContent();
+    }
+
 }
