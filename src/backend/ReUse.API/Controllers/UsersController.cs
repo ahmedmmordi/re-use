@@ -64,11 +64,11 @@ public class UsersController : ControllerBase
 
 
     [HttpPut("profile-image")]
-    public Task<IActionResult> UpdateProfileImage([FromForm] UpdateProfileImageRequest request)
+    public Task<IActionResult> UpdateProfileImage([FromForm] UpdateImageRequest request)
       => UpdateImage(request.Image, ProfileImageOptions.Profile);
 
     [HttpPut("cover-image")]
-    public Task<IActionResult> UpdateCoverImage([FromForm] UpdateProfileImageRequest request)
+    public Task<IActionResult> UpdateCoverImage([FromForm] UpdateImageRequest request)
         => UpdateImage(request.Image, ProfileImageOptions.Cover);
 
     [HttpDelete("profile-image")]
@@ -82,10 +82,7 @@ public class UsersController : ControllerBase
     private async Task<IActionResult> UpdateImage(IFormFile image, ProfileImageOptions type)
     {
         var userId = User.GetBusinessId();
-
-        await _userService.UpdateImageProfileAsync(
-            userId!, new UpdateProfileImageRequest { Image = image, ImageType = type });
-
+        await _userService.UpdateImageProfileAsync(userId!, new UpdateImageRequest { Image = image }, type);
         return NoContent();
     }
 
