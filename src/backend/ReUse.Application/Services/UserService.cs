@@ -48,18 +48,18 @@ public class UserService : IUserService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateImageProfileAsync(Guid userId, UpdateProfileImageRequest request)
+    public async Task UpdateImageProfileAsync(Guid userId, UpdateImageRequest request, ProfileImageOptions imageType)
     {
         _imageValidator.Validate(request.Image);
 
         var user = await _unitOfWork.User.GetByIdAsync(userId);
 
-        var folder = $"userImages/{userId}/{request.ImageType.ToString().ToLower()}";
+        var folder = $"userImages/{userId}/{imageType.ToString().ToLower()}";
         var newImage = await _cloudinaryService.UpdateAsync(request.Image, folder);
 
         string? oldPublicId;
 
-        if (request.ImageType == ProfileImageOptions.Profile)
+        if (imageType == ProfileImageOptions.Profile)
         {
             oldPublicId = user!.ProfileImagePublicId;
             user.ProfileImageUrl = newImage.Url;
