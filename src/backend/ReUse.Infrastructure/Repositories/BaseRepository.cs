@@ -48,5 +48,10 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         await _dbSet.AddRangeAsync(entities);
     }
 
+    public void RemoveRange(IEnumerable<T> entities)
+    {
+        _dbSet.RemoveRange(entities);
+    }
+
 
 }

@@ -66,6 +66,7 @@ public static class DependencyInjection
         ProductImageRepository>();
         services.AddScoped<ICategoryRepository,
         CategoryRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
         #endregion
 
         #region Services

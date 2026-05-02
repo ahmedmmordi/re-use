@@ -8,5 +8,5 @@ public interface ICloudinaryService
 {
     Task<ImageUpdatedResponse> UpdateAsync(IFormFile file, string folder);
     Task DeleteAsync(string publicId);
-
+    Task DeleteMultipleAsync(IEnumerable<string> publicIds);
 }

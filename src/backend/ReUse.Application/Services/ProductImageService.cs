@@ -1,4 +1,5 @@
-﻿using ReUse.Application.DTOs.Products;
+﻿using ReUse.Application.DTOs.Products.Requests;
+using ReUse.Application.DTOs.Products.Responses;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
@@ -23,7 +24,8 @@ public class ProductImageService : IProductImageService
     }
 
 
-    public async Task<List<string>> UploadMultipleImagesAsync(UploadProductImagesRequest request)
+    public async Task<List<UploadedImageResponse>> UploadMultipleImagesAsync(
+     UploadProductImagesRequest request)
     {
         if (request.Images is null || !request.Images.Any())
             throw new BadRequestException("At least one image is required.");
@@ -39,8 +41,11 @@ public class ProductImageService : IProductImageService
         var uploadResults = await Task.WhenAll(
             files.Select((file, index) =>
                 _cloudinary.UpdateAsync(file, $"products/{request.Id}")
-                    .ContinueWith(t => (Dto: t.Result, Order: existingCount + index),
-                        TaskContinuationOptions.OnlyOnRanToCompletion))
+                    .ContinueWith(t => new
+                    {
+                        Dto = t.Result,
+                        Order = existingCount + index
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion))
         );
 
         try
@@ -51,13 +56,16 @@ public class ProductImageService : IProductImageService
                 ProductId = request.Id,
                 Url = r.Dto.Url,
                 PublicId = r.Dto.PublicId,
-                DisplayOrder = r.Order
+                DisplayOrder = r.Order,
+                Type = request.Type
             }).ToList();
 
             await _unitOfWork.ProductImages.AddRangeAsync(entities);
             await _unitOfWork.SaveChangesAsync();
 
-            return entities.Select(e => e.Url).ToList();
+
+            return entities.Select(e =>
+           new UploadedImageResponse(e.Id, e.Url, e.PublicId)).ToList();
         }
         catch
         {
@@ -69,4 +77,25 @@ public class ProductImageService : IProductImageService
             throw;
         }
     }
+
+    public async Task DeleteByPublicIdsAsync(IEnumerable<string> publicIds)
+    {
+        if (publicIds is null || !publicIds.Any())
+            throw new BadRequestException("No public IDs provided.");
+
+
+        await _cloudinary.DeleteMultipleAsync(publicIds);
+
+
+        var images = await _unitOfWork.ProductImages
+            .GetByPublicIdsAsync(publicIds);
+
+        if (images.Any())
+        {
+            _unitOfWork.ProductImages.RemoveRange(images);
+            await _unitOfWork.SaveChangesAsync();
+        }
+    }
+
+
 }

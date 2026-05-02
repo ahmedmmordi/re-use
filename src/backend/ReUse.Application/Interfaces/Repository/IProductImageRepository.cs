@@ -13,4 +13,6 @@ public interface IProductImageRepository : IBaseRepository<ProductImage>
     Task<List<ProductImage>> GetByProductIdAsync(Guid productId);
 
     Task<int> CountByProductIdAsync(Guid productId);
+
+    Task<List<ProductImage>> GetByPublicIdsAsync(IEnumerable<string> publicIds);
 }

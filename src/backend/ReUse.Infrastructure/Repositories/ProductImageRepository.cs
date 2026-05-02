@@ -27,4 +27,14 @@ public class ProductImageRepository : BaseRepository<ProductImage>, IProductImag
         return await _context.ProductImages
             .CountAsync(x => x.ProductId == productId);
     }
+
+    public async Task<List<ProductImage>> GetByPublicIdsAsync(IEnumerable<string> publicIds)
+    {
+        if (publicIds is null || !publicIds.Any())
+            return new List<ProductImage>();
+
+        return await _context.ProductImages
+            .Where(x => publicIds.Contains(x.PublicId))
+            .ToListAsync();
+    }
 }
