@@ -65,12 +65,58 @@ public class ProductController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("/prpducts")]
+    [HttpGet("")]
     [AllowAnonymous]
     public async Task<IActionResult> GetAll([FromQuery] ProductFilterParams filterParams)
     {
         var result = await _productService.GetAllProductsAsync(filterParams);
         return Ok(result);
+    }
+
+    [HttpPatch("regular/{id:guid}")]
+    public async Task<IActionResult> UpdateRegular(
+    Guid id,
+    [FromBody] UpdateRegularProductRequest request)
+    {
+        var userId = User.GetBusinessId();
+        var result = await _productService.UpdateRegularProductAsync(id, request, userId);
+        return Ok(result);
+    }
+
+    [HttpPatch("swap/{id:guid}")]
+    public async Task<IActionResult> UpdateSwap(
+        Guid id,
+        [FromBody] UpdateSwapProductRequest request)
+    {
+        var userId = User.GetBusinessId();
+        var result = await _productService.UpdateSwapProductAsync(id, request, userId);
+        return Ok(result);
+    }
+
+    [HttpPatch("wanted/{id:guid}")]
+    public async Task<IActionResult> UpdateWanted(
+        Guid id,
+        [FromBody] UpdateWantedProductRequest request)
+    {
+        var userId = User.GetBusinessId();
+        var result = await _productService.UpdateWantedProductAsync(id, request, userId);
+        return Ok(result);
+    }
+
+    [HttpDelete("images/{imageId:guid}")]
+    public async Task<IActionResult> DeleteImage(Guid imageId)
+    {
+        var userId = User.GetBusinessId();
+        await _productImageService.DeleteImageAsync(imageId, userId);
+        return NoContent();
+    }
+
+    [HttpPut("images/reorder")]
+    public async Task<IActionResult> ReorderImages([FromBody] ReorderImagesRequest request)
+    {
+        var userId = User.GetBusinessId();
+        await _productImageService.ReorderImagesAsync(request, userId);
+        return NoContent();
     }
 
 }

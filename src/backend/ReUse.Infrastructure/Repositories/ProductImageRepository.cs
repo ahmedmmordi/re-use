@@ -37,4 +37,11 @@ public class ProductImageRepository : BaseRepository<ProductImage>, IProductImag
             .Where(x => publicIds.Contains(x.PublicId))
             .ToListAsync();
     }
+
+    public async Task<List<ProductImage>> GetByIdsAsync(IEnumerable<Guid> ids)
+    {
+        return await _context.ProductImages
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync();
+    }
 }

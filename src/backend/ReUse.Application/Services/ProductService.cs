@@ -150,6 +150,151 @@ public class ProductService : IProductService
     }
     #endregion
 
+    #region Update
+
+    public async Task<ProductResponse> UpdateRegularProductAsync(
+        Guid productId,
+        UpdateRegularProductRequest request,
+        Guid userId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        // Business Rules
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.ProductType != ProductType.Regular)
+            throw new BadRequestException("Product type cannot be changed");
+
+        if (product.Status == ProductStatus.Deleted)
+            throw new BadRequestException("Cannot update a deleted product");
+
+        var regular = (RegularProduct)product;
+
+        // Apply BasicInfo
+        if (request.BasicInfo is not null)
+            await ApplyBasicInfoUpdate(regular, request.BasicInfo);
+
+        // Apply type-specific fields
+        if (request.Price is not null)
+            regular.Price = request.Price.Value;
+
+        if (request.AllowNegotiation is not null)
+            regular.AllowNegotiation = request.AllowNegotiation.Value;
+
+        // Post-update validation
+        if (regular.Price <= 0)
+            throw new BadRequestException("Product must have a valid price after update");
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapRegularProduct(regular);
+    }
+
+    public async Task<ProductResponse> UpdateSwapProductAsync(
+        Guid productId,
+        UpdateSwapProductRequest request,
+        Guid userId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.ProductType != ProductType.Swap)
+            throw new BadRequestException("Product type cannot be changed");
+
+        if (product.Status == ProductStatus.Deleted)
+            throw new BadRequestException("Cannot update a deleted product");
+
+        var swap = (SwapProduct)product;
+
+        if (request.BasicInfo is not null)
+            await ApplyBasicInfoUpdate(swap, request.BasicInfo);
+
+        if (request.WantedItemTitle is not null)
+            swap.WantedItemTitle = request.WantedItemTitle;
+
+        if (request.WantedItemDescription is not null)
+            swap.WantedItemDescription = request.WantedItemDescription;
+
+        // Post-update validation
+        if (string.IsNullOrWhiteSpace(swap.WantedItemTitle))
+            throw new BadRequestException("Swap product must have a wanted item title");
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapSwapProduct(swap, 0);
+    }
+
+    public async Task<ProductResponse> UpdateWantedProductAsync(
+        Guid productId,
+        UpdateWantedProductRequest request,
+        Guid userId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.ProductType != ProductType.Wanted)
+            throw new BadRequestException("Product type cannot be changed");
+
+        if (product.Status == ProductStatus.Deleted)
+            throw new BadRequestException("Cannot update a deleted product");
+
+        var wanted = (WantedProduct)product;
+
+        if (request.BasicInfo is not null)
+            await ApplyBasicInfoUpdate(wanted, request.BasicInfo);
+
+        if (request.DesiredPriceMin is not null)
+            wanted.DesiredPriceMin = request.DesiredPriceMin.Value;
+
+        if (request.DesiredPriceMax is not null)
+            wanted.DesiredPriceMax = request.DesiredPriceMax.Value;
+
+        // Post-update validation
+        if (wanted.DesiredPriceMin.HasValue &&
+            wanted.DesiredPriceMax.HasValue &&
+            wanted.DesiredPriceMax < wanted.DesiredPriceMin)
+            throw new BadRequestException("Maximum price must be >= minimum price after update");
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapWantedProduct(wanted);
+    }
+
+    // Helper Shared Method to Apply Basic Info Updates
+    private async Task ApplyBasicInfoUpdate(Product product, BasicInfoUpdateRequest info)
+    {
+        if (info.Title is not null)
+            product.Title = info.Title;
+
+        if (info.Description is not null)
+            product.Description = info.Description;
+
+        if (info.LocationCity is not null)
+            product.LocationCity = info.LocationCity;
+
+        if (info.LocationCountry is not null)
+            product.LocationCountry = info.LocationCountry;
+
+        if (info.CategoryId.HasValue)
+        {
+            await EnsureLeafCategory(info.CategoryId.Value);
+            product.CategoryId = info.CategoryId.Value;
+        }
+
+        if (info.Condition.HasValue)
+            product.Condition = info.Condition.Value;
+    }
+
+    #endregion
+
     #region Monitor
     private async Task<ProductResponse> PersistSwapProductAsync(
    SwapProduct product,
