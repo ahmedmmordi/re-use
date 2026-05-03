@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
-import { loginApi, getMe } from "../services/authService";
+import { loginApi, getMe, logoutApi, refreshApi } from "../services/authService";
 import type { AuthUser } from "../services/authService";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -9,8 +9,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: AuthUser | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout?: () => Promise<void>;
+  setUser: (user: AuthUser | null) => void;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  logout: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -29,7 +31,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await getMe(); // backend reads cookie
         setUser(me);
       } catch {
-        setUser(null);
+        try {
+          await refreshApi();
+          const me = await getMe();
+          setUser(me);
+        } catch {
+          setUser(null);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -44,20 +52,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loginApi({ email, password }); // sets cookies
 
     const me = await getMe(); // fetch user after login
-    setUser(me);
+    return me;
   }, []);
 
   // ── Logout ──────────────────────────────────────────────────────────
 
-  // const logout = useCallback(async () => {
-  //   try {
-  //     await logoutApi(); // clears cookies server-side
-  //   } catch {
-  //     // ignore
-  //   }
-  //
-  //   setUser(null);
-  // }, []);
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi(); // clears cookie on backend
+    } catch {
+      // optional: ignore error
+    }
+
+    setUser(null); // ✅ this updates UI immediately
+  }, []);
+
+  const refresh = useCallback(async () => {
+    try {
+      await refreshApi(); // refresh cookies
+      const me = await getMe(); // re-fetch user
+      setUser(me);
+    } catch {
+      setUser(null); // session invalid → logout
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -65,8 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         user,
+        setUser,
         login,
-        //logout,
+        logout,
+        refresh,
       }}
     >
       {children}
