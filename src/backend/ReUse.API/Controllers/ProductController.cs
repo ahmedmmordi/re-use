@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
+using ReUse.Application.DTOs;
+using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
 using ReUse.Application.Interfaces.Services;
@@ -56,10 +58,18 @@ public class ProductController : ControllerBase
 
     [HttpGet("{productId:guid}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetProductDetails(Guid productId)
+    public async Task<IActionResult> GetById(Guid productId)
     {
         var result = await _productService.GetByIdAsync(productId);
 
+        return Ok(result);
+    }
+
+    [HttpGet("/prpducts")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAll([FromQuery] ProductFilterParams filterParams)
+    {
+        var result = await _productService.GetAllProductsAsync(filterParams);
         return Ok(result);
     }
 

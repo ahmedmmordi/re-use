@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
@@ -42,6 +43,8 @@ public class ProductService : IProductService
             Description = request.BasicInfo.Description,
             CategoryId = request.BasicInfo.CategoryId,
             Condition = request.BasicInfo.Condition,
+            LocationCity = request.BasicInfo.LocationCity,
+            LocationCountry = request.BasicInfo.LocationCountry,
             OwnerUserId = sellerId,
             Price = request.Price,
             AllowNegotiation = request.AllowNegotiation
@@ -72,6 +75,8 @@ public class ProductService : IProductService
             Description = request.BasicInfo.Description,
             CategoryId = request.BasicInfo.CategoryId,
             Condition = request.BasicInfo.Condition,
+            LocationCity = request.BasicInfo.LocationCity,
+            LocationCountry = request.BasicInfo.LocationCountry,
             OwnerUserId = sellerId,
             WantedItemTitle = request.WantedItemTitle,
             WantedItemDescription = request.WantedItemDescription
@@ -102,6 +107,8 @@ public class ProductService : IProductService
             Description = request.BasicInfo.Description,
             CategoryId = request.BasicInfo.CategoryId,
             Condition = request.BasicInfo.Condition,
+            LocationCity = request.BasicInfo.LocationCity,
+            LocationCountry = request.BasicInfo.LocationCountry,
             OwnerUserId = sellerId,
             DesiredPriceMin = request.DesiredPriceMin,
             DesiredPriceMax = request.DesiredPriceMax
@@ -124,6 +131,22 @@ public class ProductService : IProductService
             throw new NotFoundException("Product not found.");
 
         return MapToDetails(product);
+    }
+    #endregion
+
+    #region GetAll
+    public async Task<PagedResult<ProductResponse>> GetAllProductsAsync(
+  ProductFilterParams filterParams)
+    {
+        var pagedProducts = await _unitOfWork.Product.GetAllAsync(filterParams);
+
+        return new PagedResult<ProductResponse>
+        {
+            Data = pagedProducts.Data.Select(MapToProductResponse).ToList(),
+            PageNumber = pagedProducts.PageNumber,
+            PageSize = pagedProducts.PageSize,
+            TotalRecords = pagedProducts.TotalRecords
+        };
     }
     #endregion
 
@@ -257,6 +280,62 @@ public class ProductService : IProductService
     #endregion
 
     #region MAPPING 
+
+    private static ProductResponse MapToProductResponse(Product product)
+    {
+        var images = product.ProductImages
+            .OrderBy(i => i.DisplayOrder)
+            .Select(i => new UploadedImageResponse(i.Id, i.Url, i.PublicId))
+            .ToList();
+
+        decimal? price = null;
+        bool allowNegotiation = false;
+        string? wantedItem = null;
+        string? wantedItemDesc = null;
+        decimal? minPrice = null;
+        decimal? maxPrice = null;
+
+        switch (product)
+        {
+            case RegularProduct r:
+                price = r.Price;
+                allowNegotiation = r.AllowNegotiation;
+                break;
+
+            case SwapProduct s:
+                wantedItem = s.WantedItemTitle;
+                wantedItemDesc = s.WantedItemDescription;
+                break;
+
+            case WantedProduct w:
+                minPrice = w.DesiredPriceMin;
+                maxPrice = w.DesiredPriceMax;
+                break;
+        }
+
+        return new ProductResponse(
+            Id: product.Id,
+            Type: product.ProductType,
+            Title: product.Title,
+            Description: product.Description,
+            CategoryId: product.CategoryId,
+            Condition: product.Condition,
+            LocationCity: product.LocationCity,
+            LocationCountry: product.LocationCountry,
+            OwnerUserId: product.OwnerUserId,
+            CreatedAt: product.CreatedAt,
+            Price: price,
+            AllowNegotiation: allowNegotiation,
+            WantedItem: wantedItem,
+            WantedItemDescription: wantedItemDesc,
+            MinPrice: minPrice,
+            MaxPrice: maxPrice,
+            Images: images,
+            CoverImageUrl: images.FirstOrDefault()?.Url ?? string.Empty
+        );
+    }
+
+
     private ProductResponse MapRegularProduct(RegularProduct product)
     {
         var images = MapImages(product);
@@ -268,6 +347,8 @@ public class ProductService : IProductService
             product.Description,
             product.CategoryId,
             product.Condition,
+            product.LocationCity,
+            product.LocationCountry,
             product.OwnerUserId,
             product.CreatedAt,
             product.Price,
@@ -292,6 +373,8 @@ public class ProductService : IProductService
             product.Description,
             product.CategoryId,
             product.Condition,
+            product.LocationCity,
+            product.LocationCountry,
             product.OwnerUserId,
             product.CreatedAt,
             null,
@@ -326,6 +409,8 @@ public class ProductService : IProductService
             product.Description,
             product.CategoryId,
             product.Condition,
+            product.LocationCity,
+            product.LocationCountry,
             product.OwnerUserId,
             product.CreatedAt,
             null,
@@ -386,27 +471,34 @@ public class ProductService : IProductService
         }
 
         return new ProductDetailsResponse(
-            Id: product.Id,
-            Title: product.Title,
-            Description: product.Description,
-            Type: product.ProductType.ToString(),
-            Condition: FormatCondition(product.Condition),
-            Status: product.Status.ToString().ToLower(),
-            Price: price,
-            AllowNegotiation: allowNegotiation,
-            WantedItemTitle: wantedItemTitle,
-            WantedItemDescription: wantedItemDesc,
-            WantedCondition: wantedCondition,
-            DesiredPriceMin: desiredPriceMin,
-            DesiredPriceMax: desiredPriceMax,
-            Images: images,
-            CreatedAt: product.CreatedAt,
-            CategoryId: categoryId,
-            CategoryName: categoryName,
-            OwnerUserId: product.OwnerUserId,
-            OwnerUserName: product.Owner.FullName,
-            MemberSince: product.Owner.CreatedAt.ToString("MMMM yyyy")
-        );
+        Id: product.Id,
+        Title: product.Title,
+        Description: product.Description,
+        Type: product.ProductType.ToString(),
+        Condition: FormatCondition(product.Condition),
+        Status: product.Status.ToString().ToLower(),
+
+        LocationCity: product.LocationCity,
+        LocationCountry: product.LocationCountry,
+
+        Price: price,
+        AllowNegotiation: allowNegotiation,
+
+        WantedItemTitle: wantedItemTitle,
+        WantedItemDescription: wantedItemDesc,
+        WantedCondition: wantedCondition,
+
+        DesiredPriceMin: desiredPriceMin,
+        DesiredPriceMax: desiredPriceMax,
+
+        Images: images,
+        CreatedAt: product.CreatedAt,
+        CategoryId: categoryId,
+        CategoryName: categoryName,
+        OwnerUserId: product.OwnerUserId,
+        OwnerUserName: product.Owner.FullName,
+        MemberSince: product.Owner.CreatedAt.ToString("MMMM yyyy")
+);
     }
     // Formatter
     private static string FormatCondition(ProductCondition? condition) => condition switch

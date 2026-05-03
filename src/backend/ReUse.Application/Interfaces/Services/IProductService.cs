@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
 
+using ReUse.Application.DTOs;
+using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
 
@@ -18,5 +20,8 @@ public interface IProductService
     public Task<ProductResponse> CreateWantedProductAsync(CreateWantedProductRequest request, Guid sellerId);
 
     Task<ProductDetailsResponse> GetByIdAsync(Guid productId);
+
+    Task<PagedResult<ProductResponse>> GetAllProductsAsync(ProductFilterParams filterParams);
+
 
 }

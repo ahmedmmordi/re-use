@@ -14,6 +14,8 @@ public record ProductDetailsResponse
   string Type,
   string? Condition,
   string Status,
+  string? LocationCity,
+    string? LocationCountry,
 // int Views,
   decimal? Price,           //Rerular
   bool? AllowNegotiation,  //Rerular

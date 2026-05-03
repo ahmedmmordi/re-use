@@ -11,6 +11,8 @@ namespace ReUse.Application.DTOs.Products.Requests;
 public record BasicInfoRequest(
     string Title,
     string Description,
+    string? LocationCity,
+    string? LocationCountry,
     Guid CategoryId,
     ProductCondition Condition
 );
