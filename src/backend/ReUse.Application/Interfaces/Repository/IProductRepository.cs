@@ -10,4 +10,5 @@ namespace ReUse.Application.Interfaces.Repository;
 
 public interface IProductRepository : IBaseRepository<Product>
 {
+    Task<Product?> GetProductDetailsAsync(Guid productId);
 }

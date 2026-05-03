@@ -22,6 +22,7 @@ public class ProductService : IProductService
         _productImageService = productImageService;
     }
 
+    #region Create
     // REGULAR 
     public async Task<ProductResponse> CreateRegularProductAsync(
         CreateRegularProductRequest request,
@@ -82,11 +83,55 @@ public class ProductService : IProductService
             request.WantedImages
         );
     }
+    // WANTED
+    public async Task<ProductResponse> CreateWantedProductAsync(
+        CreateWantedProductRequest request,
+        Guid sellerId)
+    {
+        if (request is null)
+            throw new BadRequestException("Request cannot be null");
 
+        if (request.BasicInfo is null)
+            throw new BadRequestException("Invalid basic info");
+
+        await EnsureLeafCategory(request.BasicInfo.CategoryId);
+
+        var product = new WantedProduct
+        {
+            Title = request.BasicInfo.Title,
+            Description = request.BasicInfo.Description,
+            CategoryId = request.BasicInfo.CategoryId,
+            Condition = request.BasicInfo.Condition,
+            OwnerUserId = sellerId,
+            DesiredPriceMin = request.DesiredPriceMin,
+            DesiredPriceMax = request.DesiredPriceMax
+        };
+
+        return await PersistProductAsync(product, request.Images);
+    }
+
+    #endregion
+
+    #region GetById
+    public async Task<ProductDetailsResponse> GetByIdAsync(Guid productId)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+        var product = await _unitOfWork.Product.GetProductDetailsAsync(productId);
+
+        if (product is null)
+            throw new NotFoundException("Product not found.");
+
+        return MapToDetails(product);
+    }
+    #endregion
+
+    #region Monitor
     private async Task<ProductResponse> PersistSwapProductAsync(
-        SwapProduct product,
-        List<IFormFile> offerImages,
-        List<IFormFile>? wantedImages)
+   SwapProduct product,
+   List<IFormFile> offerImages,
+   List<IFormFile>? wantedImages)
     {
         List<string>? uploadedIds = null;
 
@@ -145,35 +190,10 @@ public class ProductService : IProductService
             throw;
         }
     }
+    #endregion
 
-    //  WANTED 
-    public async Task<ProductResponse> CreateWantedProductAsync(
-        CreateWantedProductRequest request,
-        Guid sellerId)
-    {
-        if (request is null)
-            throw new BadRequestException("Request cannot be null");
+    #region COMMON 
 
-        if (request.BasicInfo is null)
-            throw new BadRequestException("Invalid basic info");
-
-        await EnsureLeafCategory(request.BasicInfo.CategoryId);
-
-        var product = new WantedProduct
-        {
-            Title = request.BasicInfo.Title,
-            Description = request.BasicInfo.Description,
-            CategoryId = request.BasicInfo.CategoryId,
-            Condition = request.BasicInfo.Condition,
-            OwnerUserId = sellerId,
-            DesiredPriceMin = request.DesiredPriceMin,
-            DesiredPriceMax = request.DesiredPriceMax
-        };
-
-        return await PersistProductAsync(product, request.Images);
-    }
-
-    // COMMON 
     private async Task<ProductResponse> PersistProductAsync(
         Product product,
         List<IFormFile> imageFiles)
@@ -234,8 +254,9 @@ public class ProductService : IProductService
             throw new BadRequestException("Category must be a subcategory");
     }
 
-    // MAPPING 
+    #endregion
 
+    #region MAPPING 
     private ProductResponse MapRegularProduct(RegularProduct product)
     {
         var images = MapImages(product);
@@ -324,4 +345,78 @@ public class ProductService : IProductService
             .Select(i => new UploadedImageResponse(i.Id, i.Url, i.PublicId))
             .ToList() ?? new List<UploadedImageResponse>();
     }
+
+    private static ProductDetailsResponse MapToDetails(Product product)
+    {
+        var images = product.ProductImages
+            .OrderBy(i => i.DisplayOrder)
+            .Select(i => i.Url)
+            .ToList();
+
+        // CategoryId = subcategory when present, root category otherwise
+        var categoryId = product.CategoryId;
+        var categoryName = product.Category.Name;
+
+        //  Type-specific fields 
+        decimal? price = null;
+        bool? allowNegotiation = null;
+        string? wantedItemTitle = null;
+        string? wantedItemDesc = null;
+        string? wantedCondition = null;
+        decimal? desiredPriceMin = null;
+        decimal? desiredPriceMax = null;
+
+        switch (product)
+        {
+            case RegularProduct r:
+                price = r.Price;
+                allowNegotiation = r.AllowNegotiation;
+                break;
+
+            case SwapProduct s:
+                wantedItemTitle = s.WantedItemTitle;
+                wantedItemDesc = s.WantedItemDescription;
+                wantedCondition = FormatCondition(s.WantedCondition);
+                break;
+
+            case WantedProduct w:
+                desiredPriceMin = w.DesiredPriceMin;
+                desiredPriceMax = w.DesiredPriceMax;
+                break;
+        }
+
+        return new ProductDetailsResponse(
+            Id: product.Id,
+            Title: product.Title,
+            Description: product.Description,
+            Type: product.ProductType.ToString(),
+            Condition: FormatCondition(product.Condition),
+            Status: product.Status.ToString().ToLower(),
+            Price: price,
+            AllowNegotiation: allowNegotiation,
+            WantedItemTitle: wantedItemTitle,
+            WantedItemDescription: wantedItemDesc,
+            WantedCondition: wantedCondition,
+            DesiredPriceMin: desiredPriceMin,
+            DesiredPriceMax: desiredPriceMax,
+            Images: images,
+            CreatedAt: product.CreatedAt,
+            CategoryId: categoryId,
+            CategoryName: categoryName,
+            OwnerUserId: product.OwnerUserId,
+            OwnerUserName: product.Owner.FullName,
+            MemberSince: product.Owner.CreatedAt.ToString("MMMM yyyy")
+        );
+    }
+    // Formatter
+    private static string FormatCondition(ProductCondition? condition) => condition switch
+    {
+        ProductCondition.New => "New",
+        ProductCondition.LikeNew => "Like New",
+        ProductCondition.Used => "Used",
+        ProductCondition.Broken => "Broken",
+        _ => condition.ToString()
+    };
+
 }
+#endregion

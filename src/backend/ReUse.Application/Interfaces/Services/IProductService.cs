@@ -17,4 +17,6 @@ public interface IProductService
     public Task<ProductResponse> CreateSwapProductAsync(CreateSwapProductRequest request, Guid sellerId);
     public Task<ProductResponse> CreateWantedProductAsync(CreateWantedProductRequest request, Guid sellerId);
 
+    Task<ProductDetailsResponse> GetByIdAsync(Guid productId);
+
 }

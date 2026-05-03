@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
 using ReUse.Application.DTOs.Products.Requests;
+using ReUse.Application.DTOs.Products.Responses;
 using ReUse.Application.Interfaces.Services;
 namespace ReUse.API.Controllers;
 
@@ -48,6 +50,15 @@ public class ProductController : ControllerBase
         var sellerId = User.GetBusinessId();
 
         var result = await _productService.CreateWantedProductAsync(request, sellerId);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{productId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetProductDetails(Guid productId)
+    {
+        var result = await _productService.GetByIdAsync(productId);
 
         return Ok(result);
     }
