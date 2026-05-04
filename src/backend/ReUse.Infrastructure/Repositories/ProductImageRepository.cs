@@ -44,4 +44,12 @@ public class ProductImageRepository : BaseRepository<ProductImage>, IProductImag
             .Where(x => ids.Contains(x.Id))
             .ToListAsync();
     }
+
+    public async Task<int> GetMaxOrderAsync(Guid productId)
+    {
+        return await _context.ProductImages
+            .Where(x => x.ProductId == productId)
+            .Select(x => (int?)x.DisplayOrder)
+            .MaxAsync() ?? -1;
+    }
 }

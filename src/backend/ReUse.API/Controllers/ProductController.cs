@@ -103,6 +103,31 @@ public class ProductController : ControllerBase
         return Ok(result);
     }
 
+
+    [HttpPost("{productId:guid}/images/offer")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadOfferImages(
+    Guid productId,
+    [FromForm] UploadMoreImagesRequest request)
+    {
+        var userId = User.GetBusinessId();
+        var result = await _productImageService
+            .UploadOfferImagesAsync(productId, request, userId);
+        return Ok(result);
+    }
+
+    [HttpPost("{productId:guid}/images/wanted")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadWantedImages(
+        Guid productId,
+        [FromForm] UploadMoreImagesRequest request)
+    {
+        var userId = User.GetBusinessId();
+        var result = await _productImageService
+            .UploadWantedImagesAsync(productId, request, userId);
+        return Ok(result);
+    }
+
     [HttpDelete("images/{imageId:guid}")]
     public async Task<IActionResult> DeleteImage(Guid imageId)
     {

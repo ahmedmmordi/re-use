@@ -17,4 +17,6 @@ public interface IProductImageRepository : IBaseRepository<ProductImage>
     Task<List<ProductImage>> GetByPublicIdsAsync(IEnumerable<string> publicIds);
 
     Task<List<ProductImage>> GetByIdsAsync(IEnumerable<Guid> ids);
+
+    Task<int> GetMaxOrderAsync(Guid productId);
 }
