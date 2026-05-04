@@ -28,5 +28,7 @@ public interface IProductService
 
     Task<PagedResult<ProductResponse>> GetAllProductsAsync(ProductFilterParams filterParams);
 
+    Task DeleteProductAsync(Guid productId, Guid userId);
+
 
 }

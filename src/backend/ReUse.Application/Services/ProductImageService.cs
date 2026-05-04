@@ -111,7 +111,7 @@ public class ProductImageService : IProductImageService
             throw new ForbiddenException("You don't own this image");
 
         if (product.Status == ProductStatus.Deleted)
-            throw new BadRequestException("Cannot modify a deleted product");
+            throw new NotFoundException("Product not found");
 
         // no delete last image 
         var imageCount = await _unitOfWork.ProductImages.CountByProductIdAsync(image.ProductId);
@@ -145,7 +145,7 @@ public class ProductImageService : IProductImageService
             throw new ForbiddenException("You don't own this product");
 
         if (product.Status == ProductStatus.Deleted)
-            throw new BadRequestException("Cannot modify a deleted product");
+            throw new NotFoundException("Product not found");
 
         // Apply reorder
         foreach (var item in request.Items)
@@ -190,7 +190,7 @@ public class ProductImageService : IProductImageService
 
         // Soft-deleted check
         if (product.Status == ProductStatus.Deleted)
-            throw new BadRequestException("Cannot modify a deleted product");
+            throw new NotFoundException("Product not found");
 
         // Wanted images — Swap 
         if (imageType == ProductImageType.Wanted &&

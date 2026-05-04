@@ -167,8 +167,7 @@ public class ProductService : IProductService
         if (product.ProductType != ProductType.Regular)
             throw new BadRequestException("Product type cannot be changed");
 
-        if (product.Status == ProductStatus.Deleted)
-            throw new BadRequestException("Cannot update a deleted product");
+        EnsureNotDeleted(product);
 
         var regular = (RegularProduct)product;
 
@@ -206,8 +205,7 @@ public class ProductService : IProductService
         if (product.ProductType != ProductType.Swap)
             throw new BadRequestException("Product type cannot be changed");
 
-        if (product.Status == ProductStatus.Deleted)
-            throw new BadRequestException("Cannot update a deleted product");
+        EnsureNotDeleted(product);
 
         var swap = (SwapProduct)product;
 
@@ -243,8 +241,7 @@ public class ProductService : IProductService
         if (product.ProductType != ProductType.Wanted)
             throw new BadRequestException("Product type cannot be changed");
 
-        if (product.Status == ProductStatus.Deleted)
-            throw new BadRequestException("Cannot update a deleted product");
+        EnsureNotDeleted(product);
 
         var wanted = (WantedProduct)product;
 
@@ -293,6 +290,36 @@ public class ProductService : IProductService
             product.Condition = info.Condition.Value;
     }
 
+    #endregion
+
+    #region Delete
+    public async Task DeleteProductAsync(Guid productId, Guid userId)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        EnsureNotDeleted(product);
+
+        // already deleted
+        if (product.Status == ProductStatus.Deleted)
+            throw new NotFoundException("Product not found");
+
+        product.Status = ProductStatus.Deleted;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+    #endregion
+
+    #region DeleteHelper
+    private static void EnsureNotDeleted(Product product)
+    {
+        if (product.Status == ProductStatus.Deleted)
+            throw new NotFoundException("Product not found");
+    }
     #endregion
 
     #region Monitor

@@ -144,4 +144,14 @@ public class ProductController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("{productId:guid}")]
+    public async Task<IActionResult> DeleteProduct(Guid productId)
+    {
+        var userId = User.GetBusinessId();
+
+        await _productService.DeleteProductAsync(productId, userId);
+
+        return NoContent();
+    }
+
 }
