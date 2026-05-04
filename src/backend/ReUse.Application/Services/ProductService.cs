@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
@@ -22,6 +23,7 @@ public class ProductService : IProductService
         _productImageService = productImageService;
     }
 
+    #region Create
     // REGULAR 
     public async Task<ProductResponse> CreateRegularProductAsync(
         CreateRegularProductRequest request,
@@ -41,6 +43,8 @@ public class ProductService : IProductService
             Description = request.BasicInfo.Description,
             CategoryId = request.BasicInfo.CategoryId,
             Condition = request.BasicInfo.Condition,
+            LocationCity = request.BasicInfo.LocationCity,
+            LocationCountry = request.BasicInfo.LocationCountry,
             OwnerUserId = sellerId,
             Price = request.Price,
             AllowNegotiation = request.AllowNegotiation
@@ -71,6 +75,8 @@ public class ProductService : IProductService
             Description = request.BasicInfo.Description,
             CategoryId = request.BasicInfo.CategoryId,
             Condition = request.BasicInfo.Condition,
+            LocationCity = request.BasicInfo.LocationCity,
+            LocationCountry = request.BasicInfo.LocationCountry,
             OwnerUserId = sellerId,
             WantedItemTitle = request.WantedItemTitle,
             WantedItemDescription = request.WantedItemDescription
@@ -82,11 +88,245 @@ public class ProductService : IProductService
             request.WantedImages
         );
     }
+    // WANTED
+    public async Task<ProductResponse> CreateWantedProductAsync(
+        CreateWantedProductRequest request,
+        Guid sellerId)
+    {
+        if (request is null)
+            throw new BadRequestException("Request cannot be null");
 
+        if (request.BasicInfo is null)
+            throw new BadRequestException("Invalid basic info");
+
+        await EnsureLeafCategory(request.BasicInfo.CategoryId);
+
+        var product = new WantedProduct
+        {
+            Title = request.BasicInfo.Title,
+            Description = request.BasicInfo.Description,
+            CategoryId = request.BasicInfo.CategoryId,
+            Condition = request.BasicInfo.Condition,
+            LocationCity = request.BasicInfo.LocationCity,
+            LocationCountry = request.BasicInfo.LocationCountry,
+            OwnerUserId = sellerId,
+            DesiredPriceMin = request.DesiredPriceMin,
+            DesiredPriceMax = request.DesiredPriceMax
+        };
+
+        return await PersistProductAsync(product, request.Images);
+    }
+
+    #endregion
+
+    #region GetById
+    public async Task<ProductDetailsResponse> GetByIdAsync(Guid productId)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+        var product = await _unitOfWork.Product.GetProductDetailsAsync(productId);
+
+        if (product is null)
+            throw new NotFoundException("Product not found.");
+
+        return MapToDetails(product);
+    }
+    #endregion
+
+    #region GetAll
+    public async Task<PagedResult<ProductResponse>> GetAllProductsAsync(
+  ProductFilterParams filterParams)
+    {
+        var pagedProducts = await _unitOfWork.Product.GetAllAsync(filterParams);
+
+        return new PagedResult<ProductResponse>
+        {
+            Data = pagedProducts.Data.Select(MapToProductResponse).ToList(),
+            PageNumber = pagedProducts.PageNumber,
+            PageSize = pagedProducts.PageSize,
+            TotalRecords = pagedProducts.TotalRecords
+        };
+    }
+    #endregion
+
+    #region Update
+
+    public async Task<ProductResponse> UpdateRegularProductAsync(
+        Guid productId,
+        UpdateRegularProductRequest request,
+        Guid userId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        // Business Rules
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.ProductType != ProductType.Regular)
+            throw new BadRequestException("Product type cannot be changed");
+
+        EnsureNotDeleted(product);
+
+        var regular = (RegularProduct)product;
+
+        // Apply BasicInfo
+        if (request.BasicInfo is not null)
+            await ApplyBasicInfoUpdate(regular, request.BasicInfo);
+
+        // Apply type-specific fields
+        if (request.Price is not null)
+            regular.Price = request.Price.Value;
+
+        if (request.AllowNegotiation is not null)
+            regular.AllowNegotiation = request.AllowNegotiation.Value;
+
+        // Post-update validation
+        if (regular.Price <= 0)
+            throw new BadRequestException("Product must have a valid price after update");
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapRegularProduct(regular);
+    }
+
+    public async Task<ProductResponse> UpdateSwapProductAsync(
+        Guid productId,
+        UpdateSwapProductRequest request,
+        Guid userId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.ProductType != ProductType.Swap)
+            throw new BadRequestException("Product type cannot be changed");
+
+        EnsureNotDeleted(product);
+
+        var swap = (SwapProduct)product;
+
+        if (request.BasicInfo is not null)
+            await ApplyBasicInfoUpdate(swap, request.BasicInfo);
+
+        if (request.WantedItemTitle is not null)
+            swap.WantedItemTitle = request.WantedItemTitle;
+
+        if (request.WantedItemDescription is not null)
+            swap.WantedItemDescription = request.WantedItemDescription;
+
+        // Post-update validation
+        if (string.IsNullOrWhiteSpace(swap.WantedItemTitle))
+            throw new BadRequestException("Swap product must have a wanted item title");
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapSwapProduct(swap, 0);
+    }
+
+    public async Task<ProductResponse> UpdateWantedProductAsync(
+        Guid productId,
+        UpdateWantedProductRequest request,
+        Guid userId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.ProductType != ProductType.Wanted)
+            throw new BadRequestException("Product type cannot be changed");
+
+        EnsureNotDeleted(product);
+
+        var wanted = (WantedProduct)product;
+
+        if (request.BasicInfo is not null)
+            await ApplyBasicInfoUpdate(wanted, request.BasicInfo);
+
+        if (request.DesiredPriceMin is not null)
+            wanted.DesiredPriceMin = request.DesiredPriceMin.Value;
+
+        if (request.DesiredPriceMax is not null)
+            wanted.DesiredPriceMax = request.DesiredPriceMax.Value;
+
+        // Post-update validation
+        if (wanted.DesiredPriceMin.HasValue &&
+            wanted.DesiredPriceMax.HasValue &&
+            wanted.DesiredPriceMax < wanted.DesiredPriceMin)
+            throw new BadRequestException("Maximum price must be >= minimum price after update");
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapWantedProduct(wanted);
+    }
+
+    // Helper Shared Method to Apply Basic Info Updates
+    private async Task ApplyBasicInfoUpdate(Product product, BasicInfoUpdateRequest info)
+    {
+        if (info.Title is not null)
+            product.Title = info.Title;
+
+        if (info.Description is not null)
+            product.Description = info.Description;
+
+        if (info.LocationCity is not null)
+            product.LocationCity = info.LocationCity;
+
+        if (info.LocationCountry is not null)
+            product.LocationCountry = info.LocationCountry;
+
+        if (info.CategoryId.HasValue)
+        {
+            await EnsureLeafCategory(info.CategoryId.Value);
+            product.CategoryId = info.CategoryId.Value;
+        }
+
+        if (info.Condition.HasValue)
+            product.Condition = info.Condition.Value;
+    }
+
+    #endregion
+
+    #region Delete
+    public async Task DeleteProductAsync(Guid productId, Guid userId)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product not found");
+
+        EnsureNotDeleted(product);
+
+        // already deleted
+        if (product.Status == ProductStatus.Deleted)
+            throw new NotFoundException("Product not found");
+
+        product.Status = ProductStatus.Deleted;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+    #endregion
+
+    #region DeleteHelper
+    private static void EnsureNotDeleted(Product product)
+    {
+        if (product.Status == ProductStatus.Deleted)
+            throw new NotFoundException("Product not found");
+    }
+    #endregion
+
+    #region Monitor
     private async Task<ProductResponse> PersistSwapProductAsync(
-        SwapProduct product,
-        List<IFormFile> offerImages,
-        List<IFormFile>? wantedImages)
+   SwapProduct product,
+   List<IFormFile> offerImages,
+   List<IFormFile>? wantedImages)
     {
         List<string>? uploadedIds = null;
 
@@ -145,35 +385,10 @@ public class ProductService : IProductService
             throw;
         }
     }
+    #endregion
 
-    //  WANTED 
-    public async Task<ProductResponse> CreateWantedProductAsync(
-        CreateWantedProductRequest request,
-        Guid sellerId)
-    {
-        if (request is null)
-            throw new BadRequestException("Request cannot be null");
+    #region COMMON 
 
-        if (request.BasicInfo is null)
-            throw new BadRequestException("Invalid basic info");
-
-        await EnsureLeafCategory(request.BasicInfo.CategoryId);
-
-        var product = new WantedProduct
-        {
-            Title = request.BasicInfo.Title,
-            Description = request.BasicInfo.Description,
-            CategoryId = request.BasicInfo.CategoryId,
-            Condition = request.BasicInfo.Condition,
-            OwnerUserId = sellerId,
-            DesiredPriceMin = request.DesiredPriceMin,
-            DesiredPriceMax = request.DesiredPriceMax
-        };
-
-        return await PersistProductAsync(product, request.Images);
-    }
-
-    // COMMON 
     private async Task<ProductResponse> PersistProductAsync(
         Product product,
         List<IFormFile> imageFiles)
@@ -234,7 +449,64 @@ public class ProductService : IProductService
             throw new BadRequestException("Category must be a subcategory");
     }
 
-    // MAPPING 
+    #endregion
+
+    #region MAPPING 
+
+    private static ProductResponse MapToProductResponse(Product product)
+    {
+        var images = product.ProductImages
+            .OrderBy(i => i.DisplayOrder)
+            .Select(i => new UploadedImageResponse(i.Id, i.Url, i.PublicId))
+            .ToList();
+
+        decimal? price = null;
+        bool allowNegotiation = false;
+        string? wantedItem = null;
+        string? wantedItemDesc = null;
+        decimal? minPrice = null;
+        decimal? maxPrice = null;
+
+        switch (product)
+        {
+            case RegularProduct r:
+                price = r.Price;
+                allowNegotiation = r.AllowNegotiation;
+                break;
+
+            case SwapProduct s:
+                wantedItem = s.WantedItemTitle;
+                wantedItemDesc = s.WantedItemDescription;
+                break;
+
+            case WantedProduct w:
+                minPrice = w.DesiredPriceMin;
+                maxPrice = w.DesiredPriceMax;
+                break;
+        }
+
+        return new ProductResponse(
+            Id: product.Id,
+            Type: product.ProductType,
+            Title: product.Title,
+            Description: product.Description,
+            CategoryId: product.CategoryId,
+            Condition: product.Condition,
+            LocationCity: product.LocationCity,
+            LocationCountry: product.LocationCountry,
+            OwnerUserId: product.OwnerUserId,
+            CreatedAt: product.CreatedAt,
+            Price: price,
+            AllowNegotiation: allowNegotiation,
+            WantedItem: wantedItem,
+            WantedItemDescription: wantedItemDesc,
+            MinPrice: minPrice,
+            MaxPrice: maxPrice,
+            Images: images,
+            CoverImageUrl: images.FirstOrDefault()?.Url ?? string.Empty
+        );
+    }
+
 
     private ProductResponse MapRegularProduct(RegularProduct product)
     {
@@ -247,6 +519,8 @@ public class ProductService : IProductService
             product.Description,
             product.CategoryId,
             product.Condition,
+            product.LocationCity,
+            product.LocationCountry,
             product.OwnerUserId,
             product.CreatedAt,
             product.Price,
@@ -271,6 +545,8 @@ public class ProductService : IProductService
             product.Description,
             product.CategoryId,
             product.Condition,
+            product.LocationCity,
+            product.LocationCountry,
             product.OwnerUserId,
             product.CreatedAt,
             null,
@@ -305,6 +581,8 @@ public class ProductService : IProductService
             product.Description,
             product.CategoryId,
             product.Condition,
+            product.LocationCity,
+            product.LocationCountry,
             product.OwnerUserId,
             product.CreatedAt,
             null,
@@ -324,4 +602,85 @@ public class ProductService : IProductService
             .Select(i => new UploadedImageResponse(i.Id, i.Url, i.PublicId))
             .ToList() ?? new List<UploadedImageResponse>();
     }
+
+    private static ProductDetailsResponse MapToDetails(Product product)
+    {
+        var images = product.ProductImages
+            .OrderBy(i => i.DisplayOrder)
+            .Select(i => i.Url)
+            .ToList();
+
+        // CategoryId = subcategory when present, root category otherwise
+        var categoryId = product.CategoryId;
+        var categoryName = product.Category.Name;
+
+        //  Type-specific fields 
+        decimal? price = null;
+        bool? allowNegotiation = null;
+        string? wantedItemTitle = null;
+        string? wantedItemDesc = null;
+        string? wantedCondition = null;
+        decimal? desiredPriceMin = null;
+        decimal? desiredPriceMax = null;
+
+        switch (product)
+        {
+            case RegularProduct r:
+                price = r.Price;
+                allowNegotiation = r.AllowNegotiation;
+                break;
+
+            case SwapProduct s:
+                wantedItemTitle = s.WantedItemTitle;
+                wantedItemDesc = s.WantedItemDescription;
+                wantedCondition = FormatCondition(s.WantedCondition);
+                break;
+
+            case WantedProduct w:
+                desiredPriceMin = w.DesiredPriceMin;
+                desiredPriceMax = w.DesiredPriceMax;
+                break;
+        }
+
+        return new ProductDetailsResponse(
+        Id: product.Id,
+        Title: product.Title,
+        Description: product.Description,
+        Type: product.ProductType.ToString(),
+        Condition: FormatCondition(product.Condition),
+        Status: product.Status.ToString().ToLower(),
+
+        LocationCity: product.LocationCity,
+        LocationCountry: product.LocationCountry,
+
+        Price: price,
+        AllowNegotiation: allowNegotiation,
+
+        WantedItemTitle: wantedItemTitle,
+        WantedItemDescription: wantedItemDesc,
+        WantedCondition: wantedCondition,
+
+        DesiredPriceMin: desiredPriceMin,
+        DesiredPriceMax: desiredPriceMax,
+
+        Images: images,
+        CreatedAt: product.CreatedAt,
+        CategoryId: categoryId,
+        CategoryName: categoryName,
+        OwnerUserId: product.OwnerUserId,
+        OwnerUserName: product.Owner.FullName,
+        MemberSince: product.Owner.CreatedAt.ToString("MMMM yyyy")
+);
+    }
+    // Formatter
+    private static string FormatCondition(ProductCondition? condition) => condition switch
+    {
+        ProductCondition.New => "New",
+        ProductCondition.LikeNew => "Like New",
+        ProductCondition.Used => "Used",
+        ProductCondition.Broken => "Broken",
+        _ => condition.ToString()
+    };
+
 }
+#endregion
