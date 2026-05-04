@@ -69,4 +69,21 @@ public class CloudinaryService : ICloudinaryService
         });
     }
     #endregion
+
+    #region DeleteMultiple
+    public async Task DeleteMultipleAsync(IEnumerable<string> publicIds)
+    {
+        if (publicIds is null || !publicIds.Any())
+            return;
+
+        var deleteTasks = publicIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => _cloudinary.DestroyAsync(new DeletionParams(id)
+            {
+                ResourceType = ResourceType.Image
+            }));
+
+        await Task.WhenAll(deleteTasks);
+    }
+    #endregion
 }
