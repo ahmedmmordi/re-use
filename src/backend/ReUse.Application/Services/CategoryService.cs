@@ -1,11 +1,16 @@
 using AutoMapper;
 
+using Microsoft.AspNetCore.Http;
+
 using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Categories;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
+using ReUse.Application.Interfaces.Services.External;
 using ReUse.Domain.Entities;
+
 
 namespace ReUse.Application.Services;
 
@@ -13,14 +18,19 @@ public class CategoryService : ICategoryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICloudinaryService _cloudinary;
+    private readonly IImageValidator _imageValidator;
 
 
     public CategoryService(
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper, ICloudinaryService cloudinary,       // add
+        IImageValidator imageValidator)       // add)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _cloudinary = cloudinary;
+        _imageValidator = imageValidator;
     }
 
     public async Task<PagedResult<CategoryResponse>> GetCategoriesAsync(CategoriesFilterParams filterParams)
@@ -156,6 +166,30 @@ public class CategoryService : ICategoryService
         _unitOfWork.Category.Remove(category);
 
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<CategoryResponse> UploadIconAsync(Guid id, IFormFile file)
+    {
+        var category = await _unitOfWork.Category.GetByIdAsync(id);
+        if (category == null)
+            throw new NotFoundException("Category not found");
+
+        _imageValidator.Validate(file);
+
+        // Delete old icon from Cloudinary if one exists
+        if (!string.IsNullOrWhiteSpace(category.IconPublicId))
+            await _cloudinary.DeleteAsync(category.IconPublicId);
+
+        var uploaded = await _cloudinary.UpdateAsync(file, $"categories/{id}");
+
+        category.IconUrl = uploaded.Url;
+        category.IconPublicId = uploaded.PublicId;
+        category.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.Category.Update(category);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<CategoryResponse>(category);
     }
 
 }

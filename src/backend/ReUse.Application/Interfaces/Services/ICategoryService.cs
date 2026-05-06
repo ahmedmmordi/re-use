@@ -1,4 +1,6 @@
 
+using Microsoft.AspNetCore.Http;
+
 using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Categories;
 
@@ -12,4 +14,6 @@ public interface ICategoryService
     Task<CategoryResponse> CreateAsync(CreateCategoryRequest request);
     Task<CategoryResponse> UpdateAsync(Guid id, UpdateCategoryRequest request);
     Task DeleteAsync(Guid id);
+
+    Task<CategoryResponse> UploadIconAsync(Guid id, IFormFile file);
 }

@@ -95,4 +95,14 @@ public class AdminCategoriesController : ControllerBase
         await _service.DeleteAsync(id);
         return Ok(new { message = "Category deleted successfully" });
     }
+
+    [HttpPatch("{id}/icon")]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadIcon(Guid id, IFormFile icon)
+    {
+        var category = await _service.UploadIconAsync(id, icon);
+        return Ok(category);
+    }
 }

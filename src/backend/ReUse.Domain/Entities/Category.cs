@@ -6,6 +6,8 @@ public class Category : BaseEntity
     public string Slug { get; set; } = null!;
     public string? Description { get; set; }
     public string? IconUrl { get; set; }
+
+    public string? IconPublicId { get; set; }  // added
     public bool IsActive { get; set; } = true;
 
     // Self-referencing relationship (Hierarchy)
