@@ -29,6 +29,9 @@ public static class AppExtensions
 
         RoleSeeder.SeedRolesAsync(services).GetAwaiter().GetResult();
         IdentitySeeder.SeedAdminAsync(services).GetAwaiter().GetResult();
+        UserSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        CategorySeeder.SeedAsync(services).GetAwaiter().GetResult();
+        ProductSeeder.SeedAsync(services).GetAwaiter().GetResult();
     }
 
     public static void UseSwaggerServices(this WebApplication app)
