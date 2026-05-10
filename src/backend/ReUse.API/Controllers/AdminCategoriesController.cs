@@ -102,7 +102,7 @@ public class AdminCategoriesController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UploadIcon(Guid id, IFormFile icon)
     {
-        var category = await _service.UploadIconAsyncon);
+        var category = await _service.UploadIconAsync(id, icon);
         return Ok(category);
     }
 }
