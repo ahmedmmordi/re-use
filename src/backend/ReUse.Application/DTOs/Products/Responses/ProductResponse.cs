@@ -16,6 +16,8 @@ public record ProductResponse
       string Description,
       Guid CategoryId,
       ProductCondition? Condition,
+      string? LocationCity,
+      string? LocationCountry,
       Guid OwnerUserId,
       DateTime CreatedAt,
       // Type-specific

@@ -19,6 +19,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Follow> Follows { get; set; }
 
+    public DbSet<CategoryFollow> CategoryFollows { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

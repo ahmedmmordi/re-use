@@ -8,11 +8,11 @@ using ReUse.Domain.Enums;
 
 namespace ReUse.Application.DTOs.Products.Requests;
 
-public record BasicInfoRequest(
-    string Title,
-    string Description,
+public record BasicInfoUpdateRequest(
+    string? Title,
+    string? Description,
     string? LocationCity,
     string? LocationCountry,
-    Guid CategoryId,
-    ProductCondition Condition
+    Guid? CategoryId,
+    ProductCondition? Condition
 );

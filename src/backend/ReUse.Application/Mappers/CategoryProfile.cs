@@ -28,5 +28,16 @@ public class CategoryProfile : Profile
             })
             .ForMember(d => d.ParentId, opt =>
                 opt.Condition(s => s.ParentId.HasValue));
+
+        // CategoryFollow Entity → DTO
+
+        CreateMap<CategoryFollow, CategoryFollowResponse>()
+            .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Category.Slug))
+            .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Category.IconUrl))
+            .ForMember(dest => dest.FollowedAt, opt => opt.MapFrom(src => src.CreatedAt));
+
+
     }
 }

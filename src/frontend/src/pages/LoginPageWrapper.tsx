@@ -1,19 +1,13 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { LoginPage } from "../components/LoginPage";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPageWrapper() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
-
-  // If already authenticated, skip to home
-  useEffect(() => {
-    if (isAuthenticated) navigate("/", { replace: true });
-  }, [isAuthenticated, navigate]);
+  const { login } = useAuth();
 
   const handleLoginSuccess = () => {
-    navigate("/login-success");
+    navigate("/");
   };
 
   return (

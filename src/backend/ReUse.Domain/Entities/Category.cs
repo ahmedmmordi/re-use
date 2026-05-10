@@ -14,4 +14,6 @@ public class Category : BaseEntity
     public Guid? ParentId { get; set; }
     public Category? Parent { get; set; }
     public ICollection<Category> Subcategories { get; set; } = new List<Category>();
+    public ICollection<CategoryFollow> Followers { get; set; } = new List<CategoryFollow>();
+
 }

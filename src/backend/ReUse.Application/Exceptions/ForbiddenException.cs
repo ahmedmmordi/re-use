@@ -11,4 +11,12 @@ public class ForbiddenException : AppException
             statusCode: 403)
     {
     }
+
+    public ForbiddenException(string message)
+       : base(
+           message: message,
+           errorCode: ErrorsCode.Forbidden,
+           statusCode: 403)
+    {
+    }
 }

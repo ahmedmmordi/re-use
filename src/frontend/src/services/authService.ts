@@ -1,5 +1,16 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+export interface SignUpRequest {
+  userName: string;
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface SignUpResponse {
+  email: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -8,12 +19,12 @@ export interface LoginRequest {
 export interface ApiError {
   code: string;
   message: string;
-  errors?: string;
+  errors?: Record<string, string[]> | string;
 }
 
 export class AuthError extends Error {
   code: string;
-  errors?: string;
+  errors?: Record<string, string[]> | string;
   status: number;
 
   constructor(status: number, payload: ApiError) {
@@ -54,6 +65,18 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export async function signUpApi(data: SignUpRequest): Promise<SignUpResponse> {
+  const res = await fetch(`${BASE_URL}/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return handleResponse<SignUpResponse>(res);
+}
+
 /** POST /api/Sessions — Login */
 export async function loginApi(credentials: LoginRequest): Promise<void> {
   const res = await fetch(`${BASE_URL}/Sessions`, {
@@ -69,33 +92,42 @@ export async function loginApi(credentials: LoginRequest): Promise<void> {
 
 //
 // /** DELETE /api/Sessions — Logout */
-// export async function logoutApi(accessToken: string): Promise<void> {
-//   const res = await fetch(`${BASE_URL}/Sessions`, {
-//     method: 'DELETE',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       Authorization: `Bearer ${accessToken}`,
-//     },
-//   });
+export async function logoutApi(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/Sessions`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  // 204 = success, no body
+  if (res.ok) return;
+
+  let payload: ApiError = { code: "UNKNOWN", message: "Logout failed." };
+  try {
+    payload = await res.json();
+  } catch {
+    // ignore
+  }
+  throw new AuthError(res.status, payload);
+}
+
 //
-//   // 204 = success, no body
-//   if (res.status === 204) return;
-//
-//   let payload: ApiError = { code: 'UNKNOWN', message: 'Logout failed.' };
-//   try {
-//     payload = await res.json();
-//   } catch {
-//     // ignore
-//   }
-//   throw new AuthError(res.status, payload);
-// }
-//
-// /** POST /api/Sessions/refresh — Refresh tokens */
-// export async function refreshApi(refreshToken: string): Promise<AuthResponse> {
-//   const res = await fetch(`${BASE_URL}/Sessions/refresh`, {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify({ refreshToken }),
-//   });
-//   return handleResponse<AuthResponse>(res);
-//}
+/** POST /api/Sessions/refresh — Refresh tokens */
+export async function refreshApi(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/Sessions/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (res.ok) return;
+
+  let payload: ApiError = { code: "UNKNOWN", message: "Logout failed." };
+  try {
+    payload = await res.json();
+  } catch {
+    // ignore
+  }
+  throw new AuthError(res.status, payload);
+}
