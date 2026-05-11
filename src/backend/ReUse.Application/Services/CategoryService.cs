@@ -29,6 +29,9 @@ public class CategoryService : ICategoryService
 
         var dtoList = _mapper.Map<List<CategoryResponse>>(categories.Data);
 
+        var counts = await _unitOfWork.Product.GetActiveCountsByCategoryAsync();
+        dtoList = dtoList.Select(d => d with { ProductCount = counts.GetValueOrDefault(d.Id, 0) }).ToList();
+
         return new PagedResult<CategoryResponse>
         {
             Data = dtoList,
@@ -43,6 +46,9 @@ public class CategoryService : ICategoryService
         var categories = await _unitOfWork.Category.GetAllAsync();
 
         var dtos = _mapper.Map<List<CategoryResponse>>(categories);
+
+        var counts = await _unitOfWork.Product.GetActiveCountsByCategoryAsync();
+        dtos = dtos.Select(d => d with { ProductCount = counts.GetValueOrDefault(d.Id, 0) }).ToList();
 
         var lookup = dtos.ToDictionary(c => c.Id);
 
@@ -72,8 +78,8 @@ public class CategoryService : ICategoryService
 
         var dto = _mapper.Map<CategoryResponse>(category);
 
-        // TODO: set real ProductCount once Products entity is linked
-        dto = dto with { ProductCount = 0 };
+        var count = await _unitOfWork.Product.GetActiveCountForCategoryAsync(id);
+        dto = dto with { ProductCount = count };
 
         return dto;
     }

@@ -14,4 +14,6 @@ public interface IProductRepository : IBaseRepository<Product>
 {
     Task<PagedResult<Product>> GetAllAsync(ProductFilterParams filterParams);
     Task<Product?> GetProductDetailsAsync(Guid productId);
+    Task<Dictionary<Guid, int>> GetActiveCountsByCategoryAsync();
+    Task<int> GetActiveCountForCategoryAsync(Guid categoryId);
 }

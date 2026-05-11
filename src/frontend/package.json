@@ -16,7 +16,7 @@
     "@radix-ui/react-label": "^2.1.8",
     "@tailwindcss/vite": "^4.2.2",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.8.0",
+    "lucide-react": "^0.460.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.0",

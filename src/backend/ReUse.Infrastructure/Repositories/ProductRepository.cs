@@ -53,4 +53,21 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
        filterParams.Pagination.PageNumber,
        filterParams.Pagination.PageSize);
     #endregion
+
+    #region GetActiveCountsByCategoryAsync
+    public async Task<Dictionary<Guid, int>> GetActiveCountsByCategoryAsync()
+        => await _context.Products
+            .AsNoTracking()
+            .Where(p => p.Status == ProductStatus.Active)
+            .GroupBy(p => p.CategoryId)
+            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
+    #endregion
+
+    #region GetActiveCountForCategoryAsync
+    public async Task<int> GetActiveCountForCategoryAsync(Guid categoryId)
+        => await _context.Products
+            .AsNoTracking()
+            .CountAsync(p => p.Status == ProductStatus.Active && p.CategoryId == categoryId);
+    #endregion
 }
