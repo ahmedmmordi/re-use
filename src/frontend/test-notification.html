@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SignalR Notification Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --surface2: #1a1a26;
+            --border: #2a2a3d;
+            --accent: #7c6dff;
+            --accent2: #ff6d6d;
+            --green: #4dffb4;
+            --yellow: #ffd166;
+            --text: #e8e8f0;
+            --muted: #6b6b8a;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Syne', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            grid-template-rows: auto 1fr;
+        }
+
+        /* ── Header ── */
+        header {
+            grid-column: 1 / -1;
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span { color: var(--accent); }
+
+        #status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            transition: all 0.3s;
+        }
+
+        #status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: background 0.3s;
+        }
+
+        #status-badge.connected { border-color: var(--green); color: var(--green); }
+        #status-badge.connected #status-dot { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+        #status-badge.error { border-color: var(--accent2); color: var(--accent2); }
+        #status-badge.error #status-dot { background: var(--accent2); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ── Left Panel ── */
+        .panel-left {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        label {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        input, select, textarea {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+        select option { background: var(--surface2); }
+        textarea { resize: vertical; min-height: 70px; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: #9084ff; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-send {
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6dab 100%);
+            color: #fff;
+        }
+
+        .btn-send:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Right Panel ── */
+        .panel-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-right-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-right-header h2 { font-size: 15px; font-weight: 700; }
+
+        #notif-count {
+            font-family: var(--mono);
+            font-size: 11px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 100px;
+            color: var(--muted);
+        }
+
+        #notifications-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 12px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+
+        .empty-state p { font-family: var(--mono); font-size: 13px; }
+
+        /* ── Notification Card ── */
+        .notif-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notif-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+        }
+
+        .notif-card.type-FollowActivity::before { background: var(--accent); }
+        .notif-card.type-NewMessage::before { background: var(--green); }
+        .notif-card.type-Custom::before { background: var(--yellow); }
+
+        .notif-card:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+            background: var(--surface2);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .notif-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .notif-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .notif-type-badge {
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .badge-FollowActivity { background: rgba(124,109,255,0.15); color: var(--accent); }
+        .badge-NewMessage     { background: rgba(77,255,180,0.12); color: var(--green); }
+        .badge-Custom         { background: rgba(255,209,102,0.12); color: var(--yellow); }
+
+        .notif-body {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .notif-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notif-time {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .notif-data {
+            font-family: var(--mono);
+            font-size: 11px;
+            background: var(--surface2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--muted);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── Log ── */
+        #log-container {
+            border-top: 1px solid var(--border);
+            height: 160px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            padding: 10px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .log-header span { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+        #log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 28px;
+            font-family: var(--mono);
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .log-entry { display: flex; gap: 12px; }
+        .log-time  { color: var(--muted); flex-shrink: 0; }
+        .log-info  { color: var(--text); }
+        .log-success { color: var(--green); }
+        .log-error   { color: var(--accent2); }
+        .log-warn    { color: var(--yellow); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* ── Toast ── */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        }
+
+        .toast {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 10px;
+            padding: 14px 18px;
+            min-width: 260px;
+            max-width: 340px;
+            animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .toast.success { border-left-color: var(--green); }
+        .toast.error   { border-left-color: var(--accent2); }
+
+        .toast-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .toast-body  { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(20px) scale(0.95); }
+            to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <div class="logo">Signal<span>R</span> Tester</div>
+    <div id="status-badge">
+        <div id="status-dot"></div>
+        <span id="status-text">Disconnected</span>
+    </div>
+</header>
+
+<!-- Left Panel: Controls -->
+<aside class="panel-left">
+
+    <!-- Connection -->
+    <div>
+        <div class="section-label">Connection</div>
+        <div class="field">
+            <label>Hub URL</label>
+            <input id="hub-url" type="text" value="http://localhost:5000/hubs/notifications"/>
+        </div>
+        <div class="field">
+            <label>User ID (for routing)</label>
+            <input id="user-id" type="text" placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"/>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" id="btn-connect" onclick="connect()">Connect</button>
+            <button class="btn btn-secondary" id="btn-disconnect" onclick="disconnect()" disabled>Disconnect</button>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Simulate Notification -->
+    <div>
+        <div class="section-label">Simulate Notification</div>
+        <div class="field">
+            <label>Title</label>
+            <input id="sim-title" type="text" value="New notification"/>
+        </div>
+        <div class="field">
+            <label>Body</label>
+            <textarea id="sim-body">Someone followed you!</textarea>
+        </div>
+        <div class="field">
+            <label>Type</label>
+            <select id="sim-type" onchange="updateDataPlaceholder()">
+                <option value="FollowActivity">FollowActivity</option>
+                <option value="NewMessage">NewMessage</option>
+                <option value="Custom">Custom</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Data (JSON)</label>
+            <textarea id="sim-data">{ "followerId": "abc-123" }</textarea>
+        </div>
+        <button class="btn btn-send" id="btn-simulate" onclick="simulateLocally()">
+            ⚡ Simulate Locally
+        </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Actions -->
+    <div>
+        <div class="section-label">Actions</div>
+        <button class="btn btn-secondary" onclick="clearAll()" style="margin-bottom:8px;">
+            Clear Notifications
+        </button>
+        <button class="btn btn-secondary" onclick="clearLog()">
+            Clear Log
+        </button>
+    </div>
+
+</aside>
+
+<!-- Right Panel: Notifications + Log -->
+<main class="panel-right">
+
+    <div class="panel-right-header">
+        <h2>Received Notifications</h2>
+        <span id="notif-count">0 notifications</span>
+    </div>
+
+    <div id="notifications-list">
+        <div class="empty-state" id="empty-state">
+            <div class="empty-icon">🔔</div>
+            <p>No notifications yet.</p>
+            <p style="font-size:11px;">Connect to hub or simulate locally.</p>
+        </div>
+    </div>
+
+    <div id="log-container">
+        <div class="log-header">
+            <span>// CONSOLE LOG</span>
+            <span id="log-count">0 entries</span>
+        </div>
+        <div id="log"></div>
+    </div>
+
+</main>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script>
+    let connection = null;
+    let notifCount = 0;
+    let logCount = 0;
+
+    // ── Logging ──────────────────────────────────────────────
+    function addLog(msg, type = 'info') {
+        const log = document.getElementById('log');
+        const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `<span class="log-time">${now}</span><span class="log-${type}">${msg}</span>`;
+        log.prepend(entry);
+        logCount++;
+        document.getElementById('log-count').textContent = `${logCount} entries`;
+    }
+
+    // ── Toast ─────────────────────────────────────────────────
+    function showToast(title, body, type = '') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`;
+        c.prepend(t);
+        setTimeout(() => {
+            t.style.animation = 'toastOut 0.3s forwards';
+            setTimeout(() => t.remove(), 300);
+        }, 3500);
+    }
+
+    // ── Status Badge ──────────────────────────────────────────
+    function setStatus(state, text) {
+        const badge = document.getElementById('status-badge');
+        badge.className = state;
+        document.getElementById('status-text').textContent = text;
+    }
+
+    // ── Render Notification Card ──────────────────────────────
+    function renderNotification(notif) {
+        const list = document.getElementById('notifications-list');
+        const empty = document.getElementById('empty-state');
+        if (empty) empty.remove();
+
+        notifCount++;
+        document.getElementById('notif-count').textContent = `${notifCount} notification${notifCount !== 1 ? 's' : ''}`;
+
+        const card = document.createElement('div');
+        card.className = `notif-card type-${notif.type}`;
+
+        const time = notif.createdAt
+            ? new Date(notif.createdAt).toLocaleTimeString()
+            : new Date().toLocaleTimeString();
+
+        const dataStr = notif.data
+            ? JSON.stringify(notif.data).substring(0, 40) + (JSON.stringify(notif.data).length > 40 ? '…' : '')
+            : '—';
+
+        card.innerHTML = `
+            <div class="notif-header">
+                <span class="notif-title">${escHtml(notif.title)}</span>
+                <span class="notif-type-badge badge-${notif.type}">${escHtml(notif.type)}</span>
+            </div>
+            <div class="notif-body">${escHtml(notif.body)}</div>
+            <div class="notif-footer">
+                <span class="notif-time">${time}</span>
+                <span class="notif-data" title="${escHtml(JSON.stringify(notif.data))}">${escHtml(dataStr)}</span>
+            </div>
+        `;
+
+        card.onclick = () => handleNotification(notif);
+        list.prepend(card);
+    }
+
+    function escHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Handle Navigation ─────────────────────────────────────
+    function handleNotification(notif) {
+        switch (notif.type) {
+            case 'FollowActivity': {
+                const followerId = notif.data?.followerId;
+                addLog(`→ Navigate to /profile/${followerId}`, 'info');
+                showToast('Navigation', `/profile/${followerId}`);
+                break;
+            }
+            case 'NewMessage': {
+                const chatId = notif.data?.chatId;
+                addLog(`→ Navigate to /chat/${chatId}`, 'info');
+                showToast('Navigation', `/chat/${chatId}`);
+                break;
+            }
+            default:
+                addLog(`Unknown notification type: ${notif.type}`, 'warn');
+        }
+    }
+
+    // ── Connect ───────────────────────────────────────────────
+    async function connect() {
+        if (connection) return;
+
+        const url = document.getElementById('hub-url').value.trim();
+        if (!url) { addLog('Hub URL is empty', 'error'); return; }
+
+        addLog(`Connecting to ${url} …`, 'info');
+        setStatus('', 'Connecting…');
+
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl(url, { withCredentials: true })
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+
+        connection.on('ReceiveNotification', (notif) => {
+            addLog(`Notification received: ${notif.type} — ${notif.title}`, 'success');
+            showToast(notif.title, notif.body, 'success');
+            renderNotification(notif);
+        });
+
+        connection.onreconnecting(() => {
+            setStatus('', 'Reconnecting…');
+            addLog('Reconnecting…', 'warn');
+        });
+
+        connection.onreconnected(() => {
+            setStatus('connected', 'Connected');
+            addLog('Reconnected!', 'success');
+        });
+
+        connection.onclose(() => {
+            setStatus('error', 'Disconnected');
+            addLog('Connection closed.', 'warn');
+            document.getElementById('btn-connect').disabled = false;
+            document.getElementById('btn-disconnect').disabled = true;
+            connection = null;
+        });
+
+        try {
+            await connection.start();
+            setStatus('connected', 'Connected');
+            addLog(`Connected! Connection ID: ${connection.connectionId}`, 'success');
+            showToast('Connected', 'SignalR hub connected successfully.', 'success');
+            document.getElementById('btn-connect').disabled = true;
+            document.getElementById('btn-disconnect').disabled = false;
+        } catch (err) {
+            setStatus('error', 'Error');
+            addLog(`Connection error: ${err.message}`, 'error');
+            showToast('Connection Failed', err.message, 'error');
+            connection = null;
+        }
+    }
+
+    // ── Disconnect ────────────────────────────────────────────
+    async function disconnect() {
+        if (!connection) return;
+        await connection.stop();
+    }
+
+    // ── Simulate Locally ──────────────────────────────────────
+    function simulateLocally() {
+        const title = document.getElementById('sim-title').value || 'Test Notification';
+        const body  = document.getElementById('sim-body').value  || 'This is a test.';
+        const type  = document.getElementById('sim-type').value;
+        let data = null;
+
+        try {
+            const raw = document.getElementById('sim-data').value.trim();
+            if (raw) data = JSON.parse(raw);
+        } catch {
+            addLog('Invalid JSON in Data field', 'error');
+            showToast('JSON Error', 'Data field has invalid JSON.', 'error');
+            return;
+        }
+
+        const notif = {
+            id: crypto.randomUUID(),
+            userId: document.getElementById('user-id').value || 'test-user',
+            title,
+            body,
+            type,
+            data,
+            isRead: false,
+            createdAt: new Date().toISOString(),
+        };
+
+        addLog(`[SIMULATED] ${type} — ${title}`, 'success');
+        showToast(title, body, 'success');
+        renderNotification(notif);
+    }
+
+    // ── Data Placeholder ──────────────────────────────────────
+    function updateDataPlaceholder() {
+        const type = document.getElementById('sim-type').value;
+        const presets = {
+            FollowActivity: '{ "followerId": "abc-123" }',
+            NewMessage:     '{ "chatId": "chat-456" }',
+            Custom:         '{ "key": "value" }',
+        };
+        document.getElementById('sim-data').value = presets[type] || '{}';
+    }
+
+    // ── Clear ─────────────────────────────────────────────────
+    function clearAll() {
+        const list = document.getElementById('notifications-list');
+        list.innerHTML = `
+            <div class="empty-state" id="empty-state">
+                <div class="empty-icon">🔔</div>
+                <p>No notifications yet.</p>
+                <p style="font-size:11px;">Connect to hub or simulate locally.</p>
+            </div>`;
+        notifCount = 0;
+        document.getElementById('notif-count').textContent = '0 notifications';
+        addLog('Notifications cleared.', 'info');
+    }
+
+    function clearLog() {
+        document.getElementById('log').innerHTML = '';
+        logCount = 0;
+        document.getElementById('log-count').textContent = '0 entries';
+    }
+
+    // ── Keyboard shortcut: Enter on simulate ─────────────────
+    window.addEventListener('beforeunload', () => connection?.stop());
+</script>
+</body>
+</html>

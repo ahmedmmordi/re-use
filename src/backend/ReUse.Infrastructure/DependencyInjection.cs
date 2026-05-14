@@ -18,6 +18,7 @@ using ReUse.Application.Services;
 using ReUse.Infrastructure.Identity;
 using ReUse.Infrastructure.Interfaces.Repositories;
 using ReUse.Infrastructure.Interfaces.Services;
+using ReUse.Infrastructure.Notifications;
 using ReUse.Infrastructure.Persistence;
 using ReUse.Infrastructure.Repositories;
 using ReUse.Infrastructure.Security.Authorization;
@@ -108,6 +109,10 @@ public static class DependencyInjection
         #endregion
 
         services.AddSignalR();
+
+        services.AddScoped<
+            INotificationChannelHandler,
+            SignalRNotificationChannelHandler>();
 
         return services;
     }

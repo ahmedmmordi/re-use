@@ -2,6 +2,7 @@
 
 using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Follows;
+using ReUse.Application.DTOs.Notification.NotificationData;
 using ReUse.Application.DTOs.Users;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
@@ -85,12 +86,16 @@ public class FollowService : IFollowService
         await _unitOfWork.SaveChangesAsync();
 
         // notification 
-        await _notificationPublisher.PublishAsync(
+        await _notificationPublisher.PublishAsync<FollowNotificationData>(
          userId: targetUserId,
          type: NotificationType.FollowActivity,
          title: "New Follow",
          body: "Someone followed you",
-          data: new { followerId = currentUserId }
+          data: new FollowNotificationData
+          {
+              FollowerId = currentUserId,
+              Username = (await _unitOfWork.User.GetByIdAsync(currentUserId))!.FullName
+          }
           );
 
         // Populate navigation property => AutoMapper can read FollowingUser

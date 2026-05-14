@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.SignalR;
@@ -11,6 +12,7 @@ using ReUse.Application.DTOs.Notification;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
 using ReUse.Domain.Entities;
+using ReUse.Infrastructure.Notifications;
 using ReUse.Infrastructure.Notifications.SignalR;
 
 namespace ReUse.Application.Services;
@@ -18,13 +20,13 @@ namespace ReUse.Application.Services;
 public class NotificationDispatcher : INotificationDispatcher
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly IEnumerable<INotificationChannelHandler> _handlers;
     private readonly ILogger<NotificationDispatcher> _logger;
 
-    public NotificationDispatcher(IUnitOfWork unitOfWork, IHubContext<NotificationHub> hubContext, ILogger<NotificationDispatcher> logger)
+    public NotificationDispatcher(IUnitOfWork unitOfWork, IEnumerable<INotificationChannelHandler> handlers, ILogger<NotificationDispatcher> logger)
     {
         _unitOfWork = unitOfWork;
-        _hubContext = hubContext;
+        _handlers = handlers;
         _logger = logger;
     }
 
@@ -33,29 +35,29 @@ public class NotificationDispatcher : INotificationDispatcher
         await _unitOfWork.Notifications.AddAsync(notification);
         await _unitOfWork.SaveChangesAsync();
 
-        // Real-time Push
-        var dto = MapToDto(notification);
-        await _hubContext.Clients.User(notification.UserId.ToString())
-                         .SendAsync("ReceiveNotification", dto);
-
-        _logger.LogInformation("Notification sent to user {UserId} - Type: {Type}",
-            notification.UserId, notification.Type);
-    }
-
-    private NotificationDto MapToDto(Notification n)
-    {
-        return new NotificationDto
+        foreach (var delivery in notification.Deliveries)
         {
-            Id = n.Id,
-            UserId = n.UserId,
-            Title = n.Title,
-            Body = n.Body,
-            Type = n.Type.ToString(),
-            Data = n.Data,
-            Metadata = n.Metadata,
-            IsRead = n.IsRead,
-            CreatedAt = n.CreatedAt,
-            ReadAt = n.ReadAt
-        };
+            var handler = _handlers.FirstOrDefault(x =>
+                x.Channel == delivery.Channel);
+
+            if (handler == null)
+            {
+                _logger.LogWarning(
+                    "No handler found for channel {Channel}",
+                    delivery.Channel);
+
+                continue;
+            }
+
+            await handler.SendAsync(notification);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+
+        _logger.LogInformation(
+            "Notification {NotificationId} dispatched to user {UserId}",
+            notification.Id,
+            notification.UserId);
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using ReUse.Application.DTOs.Notification.NotificationData;
 using ReUse.Application.Interfaces.Services;
 using ReUse.Domain.Entities;
 using ReUse.Domain.Enums;
@@ -13,7 +14,17 @@ namespace ReUse.Application.Services;
 
 public class NotificationFactory : INotificationFactory
 {
-    public Notification Create<T>(Guid userId, NotificationType type, string title, string body, T data, Guid? correlationId = null, Guid? causationId = null)
+    public Notification Create<T>(
+        Guid userId,
+        NotificationType type,
+        string title,
+        string body,
+        T data,
+        IEnumerable<NotificationChannel> channels,
+        Dictionary<string, string>? metadata = null,
+        Guid? correlationId = null,
+        Guid? causationId = null
+        ) where T : INotificationData
     {
         var notification = new Notification
         {
@@ -24,27 +35,22 @@ public class NotificationFactory : INotificationFactory
             CreatedAt = DateTime.UtcNow,
             CorrelationId = correlationId ?? Guid.NewGuid(),
             CausationId = causationId,
+            Data = JsonSerializer.Serialize(data),
+            Metadata = metadata == null
+                ? null
+                : JsonSerializer.Serialize(metadata),
             Deliveries = new List<NotificationDelivery>()
         };
 
-        // Convert data 
-        if (data != null)
+        foreach (var channel in channels)
         {
-            notification.Data = JsonSerializer.Serialize(data);
+            notification.Deliveries.Add(new NotificationDelivery
+            {
+                Channel = channel,
+                Status = DeliveryStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            });
         }
-
-        notification.Metadata = JsonSerializer.Serialize(new Dictionary<string, string>
-        {
-            ["source"] = "FollowService"
-        });
-
-        // In  App Delivery Record
-        notification.Deliveries.Add(new NotificationDelivery
-        {
-            Channel = NotificationChannel.InApp,
-            Status = DeliveryStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        });
 
         return notification;
     }

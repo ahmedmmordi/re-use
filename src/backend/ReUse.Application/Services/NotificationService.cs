@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using ReUse.Application.DTOs;
@@ -37,8 +38,7 @@ public class NotificationService : INotificationService
                 Title = n.Title,
                 Body = n.Body,
                 Type = n.Type.ToString(),
-                Data = n.Data,
-                Metadata = n.Metadata,
+                Data = JsonSerializer.Deserialize<object>(n.Data),
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt,
                 ReadAt = n.ReadAt

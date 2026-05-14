@@ -21,5 +21,10 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             .FirstOrDefaultAsync(u => u.IdentityUserId == identityUserId);
     }
 
+    public async Task<string?> GetIdentityUserIdAsync(Guid userId)
+    {
+        return await _context.Set<User>()
+            .Where(u => u.Id == userId).Select(u => u.IdentityUserId).FirstOrDefaultAsync();
+    }
 
 }

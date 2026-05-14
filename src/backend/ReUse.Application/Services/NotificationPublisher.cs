@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ReUse.Application.DTOs.Notification.NotificationData;
 using ReUse.Application.Interfaces.Services;
 using ReUse.Domain.Enums;
 
@@ -20,17 +21,37 @@ public class NotificationPublisher : INotificationPublisher
         _dispatcher = dispatcher;
     }
 
-    public async Task PublishAsync<T>(Guid userId, NotificationType type, string title, string body, T data, Guid? correlationId = null, Guid? causationId = null)
+    public async Task PublishAsync<T>(
+        Guid userId,
+        NotificationType type,
+        string title,
+        string body,
+        T data) where T : INotificationData
     {
-        var notification = _factory.Create(userId, type, title, body, data, correlationId, causationId);
+        var notification = _factory.Create(
+            userId,
+            type,
+            title,
+            body,
+            data,
+            new[]
+            {
+                NotificationChannel.InApp
+            });
+
         await _dispatcher.DispatchAsync(notification);
     }
 
-    public async Task PublishToMultipleAsync<T>(IEnumerable<Guid> userIds, NotificationType type, string title, string body, T data)
+    public async Task PublishToMultipleAsync<T>(
+        IEnumerable<Guid> userIds,
+        NotificationType type,
+        string title,
+        string body,
+        T data) where T : INotificationData
     {
-        foreach (var userId in userIds)
-        {
-            await PublishAsync(userId, type, title, body, data);
-        }
+        await Task.WhenAll(
+            userIds.Select(id =>
+                PublishAsync(id, type, title, body, data)
+            ));
     }
 }
