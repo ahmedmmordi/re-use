@@ -11,12 +11,17 @@ import { GuestRoute } from "./components/GuestRoute";
 import HomePage from "./pages/HomePage";
 import CategoriesPageWrapper from "./pages/CategoriesPageWrapper";
 import CategoryProductsPageWrapper from "./pages/CategoryProductsPageWrapper";
+import ProductsPageWrapper from "./pages/ProductsPageWrapper";
 
 export const router = createBrowserRouter([
   //public
   {
     path: "/",
     Component: HomePage,
+  },
+  {
+    path: "/products",
+    Component: ProductsPageWrapper,
   },
   {
     path: "/categories",

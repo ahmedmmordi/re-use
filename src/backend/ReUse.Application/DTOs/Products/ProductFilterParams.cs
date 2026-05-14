@@ -29,7 +29,7 @@ public class ProductFilterParams
 
     //  Category 
 
-    public Guid? CategoryId { get; set; }
+    public List<Guid>? CategoryIds { get; set; }
 
     // Price range 
     public decimal? MinPrice { get; set; }

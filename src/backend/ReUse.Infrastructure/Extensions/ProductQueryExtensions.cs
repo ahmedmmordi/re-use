@@ -14,7 +14,7 @@ public static class ProductQueryExtensions
 {
     // Search 
 
-    ///Case-insensitive search across Title and Description
+    ///Case-insensitive search across Title
     public static IQueryable<Product> Search(
         this IQueryable<Product> query,
         string? searchTerm)
@@ -24,9 +24,7 @@ public static class ProductQueryExtensions
 
         var term = searchTerm.Trim().ToLower();
 
-        return query.Where(p =>
-            p.Title.ToLower().Contains(term) ||
-            p.Description.ToLower().Contains(term));
+        return query.Where(p => p.Title.ToLower().Contains(term));
     }
 
     //  Filters 
@@ -54,16 +52,16 @@ public static class ProductQueryExtensions
     }
 
     /// Matches products whose Category OR Subcategory equals the given id
-    public static IQueryable<Product> FilterByCategory(
+    public static IQueryable<Product> FilterByCategories(
     this IQueryable<Product> query,
-    Guid? categoryId)
+    List<Guid>? categoryIds)
     {
-        if (!categoryId.HasValue)
+        if (categoryIds is null || categoryIds.Count == 0)
             return query;
 
         return query.Where(p =>
-            p.CategoryId == categoryId.Value ||                //subcategory
-            p.Category.ParentId == categoryId.Value            // parent
+            categoryIds.Contains(p.CategoryId) ||                // subcategory
+            (p.Category.ParentId.HasValue && categoryIds.Contains(p.Category.ParentId.Value)) // parent
         );
     }
 

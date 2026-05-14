@@ -23,6 +23,7 @@ import {
   Package,
   Search,
   ArrowLeft,
+  X,
 } from "lucide-react";
 import { loadCategories, rollupProductCount } from "./data/categories";
 import type { Category } from "./data/categories";
@@ -78,10 +79,10 @@ export function CategoriesPage() {
   const filteredCategories = searchQuery.trim()
     ? categories.filter(
         (cat) =>
-          cat.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          cat.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          cat.subcategories.some((sub) =>
-            sub.label.toLowerCase().includes(searchQuery.toLowerCase())
+          cat.label?.toLowerCase()?.includes(searchQuery.toLowerCase()) ||
+          cat.description?.toLowerCase()?.includes(searchQuery.toLowerCase()) ||
+          cat.subcategories?.some((sub) =>
+            sub.label?.toLowerCase()?.includes(searchQuery.toLowerCase())
           )
       )
     : categories;
@@ -130,8 +131,16 @@ export function CategoriesPage() {
               placeholder="Search categories..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 text-white placeholder-white/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all"
+              className="w-full pl-12 pr-12 py-3 rounded-xl bg-white/15 text-white placeholder-white/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

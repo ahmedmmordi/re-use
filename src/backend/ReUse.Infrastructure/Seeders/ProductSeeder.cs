@@ -169,7 +169,7 @@ public static class ProductSeeder
             ProductCondition.LikeNew, "Giza", "Egypt",
             new[]
             {
-                new SeedImage("https://images.unsplash.com/photo-1581147036324-c1c89c2c8b5c?w=800"),
+                new SeedImage("https://plus.unsplash.com/premium_photo-1683140705462-11ed388653cf"),
             }),
             55m, false),
         new(new SeedProductBase(

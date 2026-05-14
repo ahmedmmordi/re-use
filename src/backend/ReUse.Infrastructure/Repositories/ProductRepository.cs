@@ -44,7 +44,7 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
    .Search(filterParams.SearchTerm)
    .FilterByTypes(filterParams.Types)
    .FilterByConditions(filterParams.Conditions)
-   .FilterByCategory(filterParams.CategoryId)
+   .FilterByCategories(filterParams.CategoryIds)
    .FilterByPrice(filterParams.MinPrice, filterParams.MaxPrice)
    .FilterByLocation(filterParams.Location)
    //.FilterBySellerRating(filterParams.MinSellerRating)

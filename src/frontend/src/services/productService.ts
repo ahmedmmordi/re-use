@@ -37,7 +37,7 @@ export interface ProductsQuery {
   pageNumber?: number;
   pageSize?: number;
   searchTerm?: string;
-  categoryId?: string;
+  categoryIds?: string[];
   types?: ProductType[];
   conditions?: ProductCondition[];
   minPrice?: number;
@@ -62,7 +62,7 @@ export async function listProducts(
   if (query.pageNumber !== undefined) params.set("Pagination.PageNumber", String(query.pageNumber));
   if (query.pageSize !== undefined) params.set("Pagination.PageSize", String(query.pageSize));
   if (query.searchTerm) params.set("SearchTerm", query.searchTerm);
-  if (query.categoryId) params.set("CategoryId", query.categoryId);
+  if (query.categoryIds) query.categoryIds.forEach((id) => params.append("CategoryIds", id));
   if (query.types) query.types.forEach((t) => params.append("Types", t));
   if (query.conditions) query.conditions.forEach((c) => params.append("Conditions", c));
   if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));

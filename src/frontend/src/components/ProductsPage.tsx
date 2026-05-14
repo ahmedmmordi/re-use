@@ -1,25 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  Heart,
-  HeartOff,
-  SlidersHorizontal,
-  Grid3x3,
-  List,
-  Package,
-  TrendingUp,
-  X,
-} from "lucide-react";
-import { fetchCategoryBySlugOrId, getParentCategory, rollupProductCount } from "./data/categories";
-import type { Category } from "./data/categories";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { SlidersHorizontal, Grid3x3, List, Package, TrendingUp, X, Search } from "lucide-react";
+import { loadCategories, type Category } from "./data/categories";
+import { Pagination } from "./ui/Pagination";
 import { listProducts } from "../services/productService";
 import type { ProductResponse, ProductCondition } from "../services/productService";
-import {
-  getFollowedCategories,
-  followCategory,
-  unfollowCategory,
-} from "../services/categoryFollowService";
-import { useAuth } from "../context/AuthContext";
 
 const CONDITION_LABELS: Record<string, string> = {
   New: "New",
@@ -47,64 +32,67 @@ interface FilterState {
   minPrice: string;
   maxPrice: string;
   conditions: ProductCondition[];
+  categories: string[];
   location: string;
+  searchQuery: string;
 }
 
 const EMPTY_FILTERS: FilterState = {
   minPrice: "",
   maxPrice: "",
   conditions: [],
+  categories: [],
   location: "",
+  searchQuery: "",
 };
 
-export function CategoryProductsPage() {
-  const { categoryId: slugOrId } = useParams<{ categoryId: string }>();
+export function ProductsPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followBusy, setFollowBusy] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high">("newest");
   const [showFilters, setShowFilters] = useState(true);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
-  const [category, setCategory] = useState<Category | undefined>(undefined);
-  const [parent, setParent] = useState<Category | undefined>(undefined);
-  const [categoryLoading, setCategoryLoading] = useState(true);
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
 
-  const [draftFilters, setDraftFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!slugOrId) return;
-    fetchCategoryBySlugOrId(slugOrId)
-      .then((c) => {
-        if (!cancelled) {
-          setCategory(c);
-          setParent(c ? getParentCategory(c) : undefined);
-          setCategoryLoading(false);
-        }
+    loadCategories()
+      .then((cats) => {
+        if (!cancelled) setAvailableCategories(cats);
       })
-      .catch(() => {
-        if (!cancelled) {
-          setCategory(undefined);
-          setParent(undefined);
-          setCategoryLoading(false);
-        }
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [slugOrId]);
+  }, []);
+
+  const [draftFilters, setDraftFilters] = useState<FilterState>({
+    ...EMPTY_FILTERS,
+    searchQuery: initialSearch,
+  });
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
+    ...EMPTY_FILTERS,
+    searchQuery: initialSearch,
+  });
+
+  // Reset page to 1 when filters or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy, appliedFilters]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!category) return;
 
     const sortMap = {
       newest: { sortBy: "Newest" as const, sortDirection: "Desc" as const },
@@ -115,21 +103,27 @@ export function CategoryProductsPage() {
     const minPrice = appliedFilters.minPrice ? Number(appliedFilters.minPrice) : undefined;
     const maxPrice = appliedFilters.maxPrice ? Number(appliedFilters.maxPrice) : undefined;
     const conditions = appliedFilters.conditions.length > 0 ? appliedFilters.conditions : undefined;
+    const categoryIds =
+      appliedFilters.categories.length > 0 ? appliedFilters.categories : undefined;
     const location = appliedFilters.location.trim() || undefined;
+    const searchQuery = appliedFilters.searchQuery.trim() || undefined;
 
     listProducts({
-      categoryIds: [category.id],
+      pageNumber: currentPage,
       pageSize: 9,
       ...sortMap[sortBy],
       minPrice,
       maxPrice,
       conditions,
+      categoryIds,
       location,
+      searchTerm: searchQuery,
     })
       .then((page) => {
         if (!cancelled) {
           setProducts(page.data);
           setTotalRecords(page.totalRecords);
+          setTotalPages(page.totalPages);
           setProductsError(null);
           setProductsLoading(false);
         }
@@ -144,46 +138,39 @@ export function CategoryProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [category, sortBy, appliedFilters]);
+  }, [sortBy, appliedFilters, currentPage]);
 
+  // Update URL search params when applied search query changes
   useEffect(() => {
-    let cancelled = false;
-    if (!isAuthenticated || !category) return;
-    getFollowedCategories()
-      .then((page) => {
-        if (!cancelled) {
-          setIsFollowing(page.data.some((f) => f.categoryId === category.id));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setIsFollowing(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated, category]);
+    if (appliedFilters.searchQuery) {
+      setSearchParams({ search: appliedFilters.searchQuery }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [appliedFilters.searchQuery, setSearchParams]);
 
-  const toggleFollow = async () => {
-    if (!category || followBusy) return;
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
+  // Sync state if URL changes externally (e.g. back button or external navigation)
+  useEffect(() => {
+    const currentSearch = searchParams.get("search") || "";
+    if (currentSearch !== appliedFilters.searchQuery) {
+      setAppliedFilters((prev) => ({ ...prev, searchQuery: currentSearch }));
+      setDraftFilters((prev) => ({ ...prev, searchQuery: currentSearch }));
     }
-    setFollowBusy(true);
-    try {
-      if (isFollowing) {
-        await unfollowCategory(category.id);
-        setIsFollowing(false);
-      } else {
-        await followCategory(category.id);
-        setIsFollowing(true);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setFollowBusy(false);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Live search debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedFilters((prev) => {
+        if (prev.searchQuery !== draftFilters.searchQuery) {
+          return { ...prev, searchQuery: draftFilters.searchQuery };
+        }
+        return prev;
+      });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [draftFilters.searchQuery]);
 
   const applyFilters = () => setAppliedFilters(draftFilters);
   const resetFilters = () => {
@@ -199,52 +186,27 @@ export function CategoryProductsPage() {
     }));
   };
 
-  const categoryName = category?.label || "Category";
-  const categoryDescription = category?.description || "Discover unique, pre-loved items";
-  const productCount = category ? rollupProductCount(category) : 0;
+  const toggleCategory = (categoryId: string) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(categoryId)
+        ? prev.categories.filter((c) => c !== categoryId)
+        : [...prev.categories, categoryId],
+    }));
+  };
 
   const breadcrumbs = [
-    { label: "Categories", path: "/categories" },
-    ...(parent ? [{ label: parent.label, path: `/category/${parent.slug}` }] : []),
-    ...(category ? [{ label: category.label, path: "" }] : []),
+    { label: "Home", path: "/" },
+    { label: "All Products", path: "" },
   ];
-
-  if (categoryLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F3F4F6] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Loading category...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!category) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F3F4F6] flex items-center justify-center">
-        <div className="text-center">
-          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700 mb-2">Category not found</h2>
-          <p className="text-gray-500 mb-6">The category you're looking for doesn't exist.</p>
-          <button
-            onClick={() => navigate("/categories")}
-            className="px-6 py-3 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl font-medium hover:shadow-lg transition-all"
-          >
-            Browse All Categories
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F3F4F6]">
-      {/* Category Header */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-[#3d2e7c] to-[#4a3689] py-8 sm:py-10 md:py-12">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 w-full">
               {/* Breadcrumb */}
               <nav className="flex items-center gap-2 mb-3 flex-wrap">
                 {breadcrumbs.map((crumb, idx) => (
@@ -265,74 +227,52 @@ export function CategoryProductsPage() {
               </nav>
 
               <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 sm:mb-3">
-                {categoryName}
+                {appliedFilters.searchQuery
+                  ? `Search Results for "${appliedFilters.searchQuery}"`
+                  : "All Products"}
               </h1>
-              <p className="text-white/90 text-base sm:text-lg mb-4">{categoryDescription}</p>
+              <p className="text-white/90 text-base sm:text-lg mb-4">
+                Discover pre-loved items from all categories
+              </p>
+
+              {/* Search Bar for Header */}
+              <div className="relative max-w-xl mb-4">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={draftFilters.searchQuery}
+                  onChange={(e) =>
+                    setDraftFilters((prev) => ({ ...prev, searchQuery: e.target.value }))
+                  }
+                  onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+                  className="w-full pl-12 pr-12 py-3 rounded-xl bg-white/15 text-white placeholder-white/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all"
+                />
+                {draftFilters.searchQuery && (
+                  <button
+                    onClick={() => setDraftFilters((prev) => ({ ...prev, searchQuery: "" }))}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
 
               {/* Stats */}
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-white/80 text-sm">
                 <div className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  <span>{productCount.toLocaleString()} items</span>
+                  <span>{totalRecords.toLocaleString()} items found</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />
-                  <span>Trending category</span>
+                  <span>Constantly updated</span>
                 </div>
               </div>
             </div>
-
-            {/* Follow Button */}
-            <button
-              onClick={toggleFollow}
-              disabled={followBusy}
-              className={`flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-all duration-200 flex-shrink-0 ${
-                isFollowing
-                  ? "bg-white/20 text-white hover:bg-white/30"
-                  : "bg-white text-[#7C3AED] hover:shadow-lg hover:scale-105"
-              }`}
-            >
-              {isFollowing ? (
-                <>
-                  <HeartOff className="w-5 h-5" />
-                  <span className="hidden sm:inline">Unfollow</span>
-                </>
-              ) : (
-                <>
-                  <Heart className="w-5 h-5" />
-                  <span className="hidden sm:inline">Follow Category</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
-
-      {/* Subcategory Pills */}
-      {category.subcategories.length > 0 && (
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-3">
-            <div
-              className="flex items-center gap-2 overflow-x-auto"
-              style={{ scrollbarWidth: "none" }}
-            >
-              <span className="text-sm text-gray-500 flex-shrink-0 mr-1">Subcategories:</span>
-              {category.subcategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => navigate(`/category/${sub.slug}`)}
-                  className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium bg-[#F3E8FF] text-[#7C3AED] hover:bg-[#E8D5FF] transition-all whitespace-nowrap"
-                >
-                  {sub.label}
-                  <span className="ml-1.5 text-xs text-[#7C3AED]/70">
-                    {sub.productCount.toLocaleString()}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Filters and View Controls */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
@@ -422,8 +362,10 @@ export function CategoryProductsPage() {
 
               <FilterSidebar
                 filters={draftFilters}
+                availableCategories={availableCategories}
                 onChange={setDraftFilters}
                 onToggleCondition={toggleCondition}
+                onToggleCategory={toggleCategory}
               />
 
               <div className="flex gap-3 pt-4 border-t border-gray-200 mt-4">
@@ -454,32 +396,12 @@ export function CategoryProductsPage() {
           {showFilters && (
             <div className="w-72 xl:w-80 flex-shrink-0 hidden md:block">
               <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
-                {category.subcategories.length > 0 && (
-                  <div className="mb-6 pb-6 border-b border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                      Browse
-                    </h4>
-                    <div className="space-y-0.5">
-                      {category.subcategories.map((sub) => (
-                        <button
-                          key={sub.id}
-                          onClick={() => navigate(`/category/${sub.slug}`)}
-                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-all"
-                        >
-                          <span>{sub.label}</span>
-                          <span className="text-xs text-gray-400">
-                            {sub.productCount.toLocaleString()}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <FilterSidebar
                   filters={draftFilters}
+                  availableCategories={availableCategories}
                   onChange={setDraftFilters}
                   onToggleCondition={toggleCondition}
+                  onToggleCategory={toggleCategory}
                 />
 
                 <div className="flex gap-3 pt-4 border-t border-gray-200">
@@ -513,34 +435,60 @@ export function CategoryProductsPage() {
             ) : products.length === 0 ? (
               <div className="text-center py-20">
                 <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No products in this category yet.</p>
+                <p className="text-gray-500">No products found matching your criteria.</p>
+                <button
+                  onClick={resetFilters}
+                  className="mt-4 px-4 py-2 text-[#7C3AED] font-medium hover:underline"
+                >
+                  Clear all filters
+                </button>
               </div>
             ) : viewMode === "grid" ? (
-              <div
-                className={`grid gap-4 sm:gap-5 md:gap-6 ${
-                  showFilters
-                    ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-                    : "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                }`}
-              >
-                {products.map((product) => (
-                  <ProductGridCard
-                    key={product.id}
-                    product={product}
-                    onClick={() => navigate(`/product/${product.id}`)}
-                  />
-                ))}
-              </div>
+              <>
+                <div
+                  className={`grid gap-4 sm:gap-5 md:gap-6 ${
+                    showFilters
+                      ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                      : "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                  }`}
+                >
+                  {products.map((product) => (
+                    <ProductGridCard
+                      key={product.id}
+                      product={product}
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    />
+                  ))}
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </>
             ) : (
-              <div className="space-y-3 sm:space-y-4">
-                {products.map((product) => (
-                  <ProductListCard
-                    key={product.id}
-                    product={product}
-                    onClick={() => navigate(`/product/${product.id}`)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="space-y-3 sm:space-y-4">
+                  {products.map((product) => (
+                    <ProductListCard
+                      key={product.id}
+                      product={product}
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    />
+                  ))}
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </>
             )}
           </div>
         </div>
@@ -548,20 +496,40 @@ export function CategoryProductsPage() {
     </div>
   );
 }
-
 function FilterSidebar({
   filters,
+  availableCategories,
   onChange,
   onToggleCondition,
+  onToggleCategory,
 }: {
   filters: FilterState;
+  availableCategories: Category[];
   onChange: (next: FilterState) => void;
   onToggleCondition: (cond: ProductCondition) => void;
+  onToggleCategory: (categoryId: string) => void;
 }) {
   const conditions: ProductCondition[] = ["New", "LikeNew", "Used", "Broken"];
   return (
     <>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-3">Categories</label>
+        <div className="space-y-2">
+          {availableCategories.map((cat) => (
+            <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.categories.includes(cat.id)}
+                onChange={() => onToggleCategory(cat.id)}
+                className="rounded text-[#7C3AED] focus:ring-[#7C3AED] w-4 h-4"
+              />
+              <span className="text-sm text-gray-700">{cat.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-3">Price Range</label>
@@ -622,28 +590,12 @@ function ProductGridCard({ product, onClick }: { product: ProductResponse; onCli
       className="bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer border border-gray-100"
       onClick={onClick}
     >
-      <div className="relative aspect-square overflow-hidden">
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
         <img
           src={product.coverImageUrl}
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-
-        {/* TODO: persist favorites via backend. No product-favorite endpoint exists yet — hidden until then. */}
-        {/*
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleLike();
-          }}
-          className="absolute top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-all"
-        >
-          <Heart
-            className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
-          />
-        </button>
-        */}
-
         <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 flex flex-wrap gap-1">
           <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[#7C3AED] text-[10px] sm:text-xs font-medium rounded-md">
             {product.type}
@@ -679,27 +631,15 @@ function ProductListCard({ product, onClick }: { product: ProductResponse; onCli
       className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-3 sm:p-4 flex gap-3 sm:gap-4 cursor-pointer border border-gray-100"
       onClick={onClick}
     >
-      <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
+      <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
         <img
           src={product.coverImageUrl}
           alt={product.title}
-          className="w-full h-full object-cover rounded-lg"
+          className="w-full h-full object-cover"
         />
-        {/* TODO: persist favorites via backend. No product-favorite endpoint exists yet — hidden until then. */}
-        {/*
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleLike();
-          }}
-          className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow"
-        >
-          <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
-        </button>
-        */}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 line-clamp-1">
+        <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 line-clamp-1 group-hover:text-[#7C3AED] transition-colors">
           {product.title}
         </h3>
         <p className="text-xs sm:text-sm text-gray-600 mb-2">
@@ -715,6 +655,11 @@ function ProductListCard({ product, onClick }: { product: ProductResponse; onCli
           <span className="px-2 py-0.5 bg-[#F3E8FF] text-[#7C3AED] text-xs font-medium rounded-md">
             {product.type}
           </span>
+          {product.allowNegotiation && product.type === "Regular" && (
+            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">
+              Negotiable
+            </span>
+          )}
         </div>
       </div>
     </div>
