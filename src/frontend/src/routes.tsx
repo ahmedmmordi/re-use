@@ -2,6 +2,9 @@ import { createBrowserRouter } from "react-router-dom";
 import LoginPageWrapper from "./pages/LoginPageWrapper";
 import SignUpPageWrapper from "./pages/SignUpPageWrapper";
 import VerificationPageWrapper from "./pages/VerificationPageWrapper";
+import ForgotPasswordPageWrapper from "./pages/ForgotPasswordPageWrapper";
+import ResetPasswordVerificationPageWrapper from "./pages/ResetPasswordVerificationPageWrapper";
+import ResetPasswordPageWrapper from "./pages/ResetPasswordPageWrapper";
 import { GuestRoute } from "./components/GuestRoute";
 // import LoginSuccess from "./pages/LoginSuccess";
 // import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -28,6 +31,18 @@ export const router = createBrowserRouter([
       {
         path: "/verification",
         Component: VerificationPageWrapper,
+      },
+      {
+        path: "/forgot-password",
+        Component: ForgotPasswordPageWrapper,
+      },
+      {
+        path: "/reset-password/verify",
+        Component: ResetPasswordVerificationPageWrapper,
+      },
+      {
+        path: "/reset-password",
+        Component: ResetPasswordPageWrapper,
       },
     ],
   },
