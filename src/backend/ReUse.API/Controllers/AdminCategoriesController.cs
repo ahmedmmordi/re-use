@@ -100,7 +100,7 @@ public class AdminCategoriesController : ControllerBase
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UploadIcon(Guid id, IFormFile icon)
+    public async Task<IActionResult> UploadIcon(Guid id, [FromForm] IFormFile icon)
     {
         var category = await _service.UploadIconAsync(id, icon);
         return Ok(category);
