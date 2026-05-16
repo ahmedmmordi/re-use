@@ -7,11 +7,12 @@ import ResetPasswordVerificationPageWrapper from "./pages/ResetPasswordVerificat
 import ResetPasswordPageWrapper from "./pages/ResetPasswordPageWrapper";
 import { GuestRoute } from "./components/GuestRoute";
 // import LoginSuccess from "./pages/LoginSuccess";
-// import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import CategoriesPageWrapper from "./pages/CategoriesPageWrapper";
 import CategoryProductsPageWrapper from "./pages/CategoryProductsPageWrapper";
 import ProductsPageWrapper from "./pages/ProductsPageWrapper";
+import FollowersFollowingPageWrapper from "./pages/FollowersFollowingPageWrapper";
 
 export const router = createBrowserRouter([
   //public
@@ -62,13 +63,17 @@ export const router = createBrowserRouter([
     ],
   },
   // protected
-  // {
-  //   element: <ProtectedRoute />,
-  //   children: [
-  //     {
-  //       path: "/login-success",
-  //       Component: LoginSuccess,
-  //     },
-  //   ],
-  // },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        // path: "/login-success",
+        // Component: LoginSuccess,
+      },
+      {
+        path: "/followers-following",
+        Component: FollowersFollowingPageWrapper,
+      },
+    ],
+  },
 ]);

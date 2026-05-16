@@ -15,11 +15,6 @@ public class FollowProfile : Profile
 {
     public FollowProfile()
     {
-        // User -> FollowDto (for GetFollowers / GetFollowings)
-        CreateMap<User, FollowDto>()
-            .ForMember(d => d.FollowersCount,
-                opt => opt.MapFrom(s => s.Followers.Count()));
-
         // Follow -> FollowResultDto (for FollowUser endpoint)
         CreateMap<Follow, FollowResultDto>()
             .ConstructUsing(src => new FollowResultDto(

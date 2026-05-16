@@ -31,17 +31,7 @@ public class FollowService : IFollowService
 
         var followers = await _unitOfWork.Follow.GetFollowersAsync(userId, filterParams);
 
-
-        var dtoList = _mapper.Map<List<FollowDto>>(followers.Data);
-
-
-        return new PagedResult<FollowDto>
-        {
-            Data = dtoList,
-            PageNumber = followers.PageNumber,
-            PageSize = followers.PageSize,
-            TotalRecords = followers.TotalRecords
-        };
+        return followers;
     }
 
     public async Task<PagedResult<FollowDto>> GetFollowingsAsync(Guid userId, UserFilterParams filterParams)
@@ -51,15 +41,7 @@ public class FollowService : IFollowService
 
         var followings = await _unitOfWork.Follow.GetFollowingsAsync(userId, filterParams);
 
-        var dtoList = _mapper.Map<List<FollowDto>>(followings.Data);
-
-        return new PagedResult<FollowDto>
-        {
-            Data = dtoList,
-            PageNumber = followings.PageNumber,
-            PageSize = followings.PageSize,
-            TotalRecords = followings.TotalRecords
-        };
+        return followings;
     }
     public async Task<FollowResultDto> FollowAsync(Guid currentUserId, Guid targetUserId)
     {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 using ReUse.Application.DTOs;
+using ReUse.Application.DTOs.Follows;
 using ReUse.Application.DTOs.Users;
 using ReUse.Application.Interfaces.Repository;
 using ReUse.Domain.Entities;
@@ -16,7 +17,7 @@ public class FollowRepository : BaseRepository<Follow>, IFollowRepository
     {
         _context = context;
     }
-    public async Task<PagedResult<User>> GetFollowersAsync(Guid userId, UserFilterParams filterParams, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<FollowDto>> GetFollowersAsync(Guid userId, UserFilterParams filterParams, CancellationToken cancellationToken = default)
     {
         return await _context.Follows
             .AsNoTracking()
@@ -27,9 +28,16 @@ public class FollowRepository : BaseRepository<Follow>, IFollowRepository
             .FilterByCountry(filterParams.Country)
             .FilterByStateProvince(filterParams.StateProvince)
             .ApplySort(filterParams.SortBy, filterParams.SortOrder)
+            .Select(u => new FollowDto(
+                u.Id,
+                u.FullName,
+                u.ProfileImageUrl,
+                u.Bio,
+                u.Followers.Count()
+            ))
             .ToPagedListAsync(filterParams.Pagination.PageNumber, filterParams.Pagination.PageSize, cancellationToken);
     }
-    public async Task<PagedResult<User>> GetFollowingsAsync(Guid userId, UserFilterParams filterParams, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<FollowDto>> GetFollowingsAsync(Guid userId, UserFilterParams filterParams, CancellationToken cancellationToken = default)
     {
         return await _context.Follows
             .AsNoTracking()
@@ -40,6 +48,13 @@ public class FollowRepository : BaseRepository<Follow>, IFollowRepository
             .FilterByCountry(filterParams.Country)
             .FilterByStateProvince(filterParams.StateProvince)
             .ApplySort(filterParams.SortBy, filterParams.SortOrder)
+            .Select(u => new FollowDto(
+                u.Id,
+                u.FullName,
+                u.ProfileImageUrl,
+                u.Bio,
+                u.Followers.Count()
+            ))
             .ToPagedListAsync(filterParams.Pagination.PageNumber, filterParams.Pagination.PageSize, cancellationToken);
     }
     public async Task<bool> IsAlreadyFollowingAsync(Guid followerId, Guid followingId)

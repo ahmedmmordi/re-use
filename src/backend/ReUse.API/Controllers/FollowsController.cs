@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
+using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Follows;
 using ReUse.Application.DTOs.Users;
 using ReUse.Application.Interfaces.Services;
@@ -23,7 +24,7 @@ public class FollowsController : ControllerBase
     }
 
 
-    [ProducesResponseType(typeof(ICollection<FollowDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<FollowDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [HttpGet("followers")]
@@ -39,7 +40,7 @@ public class FollowsController : ControllerBase
 
 
     [HttpGet("following")]
-    [ProducesResponseType(typeof(ICollection<FollowDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<FollowDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetFollowing([FromQuery] UserFilterParams filter)
