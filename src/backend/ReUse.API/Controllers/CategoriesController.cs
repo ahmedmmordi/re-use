@@ -25,7 +25,7 @@ public class CategoriesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAllTree()
     {
-        var categories = await _service.GetCategoryTreeAsync();
+        var categories = await _service.GetCategoryTreeAsync(includeInactive: false);
         return Ok(categories);
     }
 

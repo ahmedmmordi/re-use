@@ -13,6 +13,8 @@ import CategoriesPageWrapper from "./pages/CategoriesPageWrapper";
 import CategoryProductsPageWrapper from "./pages/CategoryProductsPageWrapper";
 import ProductsPageWrapper from "./pages/ProductsPageWrapper";
 import FollowersFollowingPageWrapper from "./pages/FollowersFollowingPageWrapper";
+import CategoryManagementPageWrapper from "./pages/CategoryManagementPageWrapper";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
 
 export const router = createBrowserRouter([
   //public
@@ -31,6 +33,10 @@ export const router = createBrowserRouter([
   {
     path: "/category/:categoryId",
     Component: CategoryProductsPageWrapper,
+  },
+  {
+    path: "/unauthorized",
+    Component: UnauthorizedPage,
   },
   // ❌ Only for NON-auth users
   {
@@ -59,6 +65,16 @@ export const router = createBrowserRouter([
       {
         path: "/reset-password",
         Component: ResetPasswordPageWrapper,
+      },
+    ],
+  },
+  // protected (admin)
+  {
+    element: <ProtectedRoute allowedRoles={["Admin"]} />,
+    children: [
+      {
+        path: "/admin/categories",
+        Component: CategoryManagementPageWrapper,
       },
     ],
   },

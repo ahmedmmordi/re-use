@@ -24,6 +24,18 @@ public class AdminCategoriesController : ControllerBase
     }
 
     /// <summary>
+    /// Get the full category tree including inactive categories (Admin view)
+    /// </summary>
+    /// <response code="200">Category tree retrieved successfully</response>
+    [HttpGet("tree")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTree()
+    {
+        var categories = await _service.GetCategoryTreeAsync(includeInactive: true);
+        return Ok(categories);
+    }
+
+    /// <summary>
     /// Create a new category (root or subcategory)
     /// </summary>
     /// <param name="dto">Category creation data</param>

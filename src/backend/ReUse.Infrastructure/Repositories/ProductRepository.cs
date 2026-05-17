@@ -42,6 +42,7 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
    .Include(p => p.ProductImages.OrderBy(i => i.DisplayOrder))
    .Include(p => p.Owner)
    .Where(p => p.Status == ProductStatus.Active)
+   .Where(p => p.Category.IsActive && (p.Category.Parent == null || p.Category.Parent.IsActive))
    .Search(filterParams.SearchTerm)
    .FilterByTypes(filterParams.Types)
    .FilterByConditions(filterParams.Conditions)
@@ -60,6 +61,7 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
         => await _context.Products
             .AsNoTracking()
             .Where(p => p.Status == ProductStatus.Active)
+            .Where(p => p.Category.IsActive && (p.Category.Parent == null || p.Category.Parent.IsActive))
             .GroupBy(p => p.CategoryId)
             .Select(g => new { CategoryId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
@@ -69,7 +71,10 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
     public async Task<int> GetActiveCountForCategoryAsync(Guid categoryId)
         => await _context.Products
             .AsNoTracking()
-            .CountAsync(p => p.Status == ProductStatus.Active && p.CategoryId == categoryId);
+            .CountAsync(p => p.Status == ProductStatus.Active
+                          && p.CategoryId == categoryId
+                          && p.Category.IsActive
+                          && (p.Category.Parent == null || p.Category.Parent.IsActive));
     #endregion
 
     #region GetMyListingsAsync

@@ -51,9 +51,14 @@ public class CategoryService : ICategoryService
         };
     }
 
-    public async Task<List<CategoryResponse>> GetCategoryTreeAsync()
+    public async Task<List<CategoryResponse>> GetCategoryTreeAsync(bool includeInactive = false)
     {
         var categories = await _unitOfWork.Category.GetAllAsync();
+
+        if (!includeInactive)
+        {
+            categories = categories.Where(c => c.IsActive).ToList();
+        }
 
         var dtos = _mapper.Map<List<CategoryResponse>>(categories);
 

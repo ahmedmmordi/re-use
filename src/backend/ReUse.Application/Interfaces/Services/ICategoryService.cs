@@ -9,7 +9,7 @@ namespace ReUse.Application.Interfaces.Services;
 public interface ICategoryService
 {
     Task<PagedResult<CategoryResponse>> GetCategoriesAsync(CategoriesFilterParams filterParams);
-    Task<List<CategoryResponse>> GetCategoryTreeAsync();
+    Task<List<CategoryResponse>> GetCategoryTreeAsync(bool includeInactive = false);
     Task<CategoryResponse?> GetByIdAsync(Guid id);
     Task<CategoryResponse> CreateAsync(CreateCategoryRequest request);
     Task<CategoryResponse> UpdateAsync(Guid id, UpdateCategoryRequest request);

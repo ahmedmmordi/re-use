@@ -70,3 +70,78 @@ export async function getCategoryById(categoryId: string): Promise<CategoryRespo
   });
   return handleResponse<CategoryResponse>(res);
 }
+
+// ─── Admin endpoints ─────────────────────────────────────────────────────────
+
+export async function getAdminCategoryTree(): Promise<CategoryResponse[]> {
+  const res = await fetch(`${BASE_URL}/admin/categories/tree`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<CategoryResponse[]>(res);
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  slug: string;
+  description?: string | null;
+  parentId?: string | null;
+  isActive?: boolean;
+}
+
+export interface UpdateCategoryRequest {
+  name?: string | null;
+  slug?: string | null;
+  description?: string | null;
+  isActive?: boolean | null;
+  parentId?: string | null;
+}
+
+export async function createCategory(request: CreateCategoryRequest): Promise<CategoryResponse> {
+  const res = await fetch(`${BASE_URL}/admin/categories`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(request),
+  });
+  return handleResponse<CategoryResponse>(res);
+}
+
+export async function updateCategory(
+  categoryId: string,
+  request: UpdateCategoryRequest
+): Promise<CategoryResponse> {
+  const res = await fetch(`${BASE_URL}/admin/categories/${categoryId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(request),
+  });
+  return handleResponse<CategoryResponse>(res);
+}
+
+export async function deleteCategory(categoryId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/categories/${categoryId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: "Request failed" }));
+    throw new Error(errorData.message || "Request failed");
+  }
+}
+
+export async function uploadCategoryIcon(
+  categoryId: string,
+  icon: File
+): Promise<CategoryResponse> {
+  const form = new FormData();
+  form.append("icon", icon);
+
+  const res = await fetch(`${BASE_URL}/admin/categories/${categoryId}/icon`, {
+    method: "PATCH",
+    credentials: "include",
+    body: form,
+  });
+  return handleResponse<CategoryResponse>(res);
+}
