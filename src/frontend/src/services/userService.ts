@@ -65,6 +65,13 @@ export async function getMyProfile(): Promise<UserProfileResponse> {
   return handleResponse<UserProfileResponse>(res);
 }
 
+export async function getPublicProfile(userId: string): Promise<UserProfileResponse> {
+  const res = await fetch(`${BASE_URL}/profiles/${userId}`, {
+    method: "GET",
+  });
+  return handleResponse<UserProfileResponse>(res);
+}
+
 /** PATCH /api/me — update current user profile (partial) */
 export async function updateMyProfile(request: UpdateUserProfileRequest): Promise<void> {
   const res = await fetch(`${BASE_URL}/me`, {

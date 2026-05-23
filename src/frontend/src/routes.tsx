@@ -6,7 +6,6 @@ import ForgotPasswordPageWrapper from "./pages/ForgotPasswordPageWrapper";
 import ResetPasswordVerificationPageWrapper from "./pages/ResetPasswordVerificationPageWrapper";
 import ResetPasswordPageWrapper from "./pages/ResetPasswordPageWrapper";
 import { GuestRoute } from "./components/GuestRoute";
-// import LoginSuccess from "./pages/LoginSuccess";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import CategoriesPageWrapper from "./pages/CategoriesPageWrapper";
@@ -17,9 +16,10 @@ import CategoryManagementPageWrapper from "./pages/CategoryManagementPageWrapper
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import FavoritesPageWrapper from "./pages/FavoritesPageWrapper";
 import MyProfilePageWrapper from "./pages/MyProfilePageWrapper";
+import PublicUserProfilePageWrapper from "./pages/PublicUserProfilePageWrapper";
 
 export const router = createBrowserRouter([
-  //public
+  // Public
   {
     path: "/",
     Component: HomePage,
@@ -40,7 +40,11 @@ export const router = createBrowserRouter([
     path: "/unauthorized",
     Component: UnauthorizedPage,
   },
-  // ❌ Only for NON-auth users
+  {
+    path: "/profile/:userId",
+    Component: PublicUserProfilePageWrapper,
+  },
+  // Only for NON-auth users
   {
     element: <GuestRoute />,
     children: [
@@ -70,7 +74,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // protected (admin)
+  // Protected (admin)
   {
     element: <ProtectedRoute allowedRoles={["Admin"]} />,
     children: [
@@ -80,14 +84,10 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // protected
+  // Protected
   {
     element: <ProtectedRoute />,
     children: [
-      {
-        // path: "/login-success",
-        // Component: LoginSuccess,
-      },
       {
         path: "/followers-following",
         Component: FollowersFollowingPageWrapper,

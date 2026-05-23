@@ -102,6 +102,30 @@ export async function getProductById(productId: string): Promise<ProductResponse
   return handleResponse<ProductResponse>(res);
 }
 
+export async function getProductsByUser(
+  userId: string,
+  query: ProductsQuery = {}
+): Promise<PagedResult<ProductResponse>> {
+  const params = new URLSearchParams();
+  if (query.pageNumber !== undefined) params.set("Pagination.PageNumber", String(query.pageNumber));
+  if (query.pageSize !== undefined) params.set("Pagination.PageSize", String(query.pageSize));
+  if (query.searchTerm) params.set("SearchTerm", query.searchTerm);
+  if (query.categoryIds) query.categoryIds.forEach((id) => params.append("CategoryIds", id));
+  if (query.types) query.types.forEach((t) => params.append("Types", t));
+  if (query.conditions) query.conditions.forEach((c) => params.append("Conditions", c));
+  if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
+  if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
+  if (query.location) params.set("Location", query.location);
+  if (query.sortBy) params.set("SortBy", query.sortBy);
+  if (query.sortDirection) params.set("SortDirection", query.sortDirection);
+
+  const qs = params.toString();
+  const url = `${BASE_URL}/Product/${userId}/products${qs ? `?${qs}` : ""}`;
+
+  const res = await fetch(url, { method: "GET" });
+  return handleResponse<PagedResult<ProductResponse>>(res);
+}
+
 /** GET /api/Product/me — authenticated user's listings with seller summary. */
 export async function getMyListings(query: MyListingsQuery = {}): Promise<SellerDashboardResponse> {
   const params = new URLSearchParams();
