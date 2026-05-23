@@ -27,4 +27,12 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             .Where(u => u.Id == userId).Select(u => u.IdentityUserId).FirstOrDefaultAsync();
     }
 
+    public async Task<User?> GetProfileByIdAsync(Guid userId)
+    {
+        return await _context.Set<User>()
+            .Include(u => u.Followers)
+            .Include(u => u.Following)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
 }

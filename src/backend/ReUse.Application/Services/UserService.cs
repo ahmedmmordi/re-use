@@ -29,8 +29,8 @@ public class UserService : IUserService
     }
     public async Task<UserProfileResponse> GetUserProfileAsync(Guid userId)
     {
-        var user = await _unitOfWork.User.GetByIdAsync(userId);
-        // I don't need Check if user is null as iam sure user already Authenticated 
+        var user = await _unitOfWork.User.GetProfileByIdAsync(userId);
+        // I don't need Check if user is null as iam sure user already Authenticated
         return _mapper.Map<UserProfileResponse>(user);
 
     }

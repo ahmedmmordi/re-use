@@ -13,5 +13,6 @@ namespace ReUse.Application.Interfaces.Repository
     {
         Task<User?> GetByIdentityIdAsync(string identityUserId);
         Task<string?> GetIdentityUserIdAsync(Guid userId);
+        Task<User?> GetProfileByIdAsync(Guid userId);
     }
 }

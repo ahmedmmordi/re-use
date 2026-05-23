@@ -47,6 +47,23 @@ export interface ProductsQuery {
   sortDirection?: "Asc" | "Desc";
 }
 
+export type ProductStatus = "Active" | "Sold" | "Closed" | "Deleted" | "UnderReview";
+
+export interface MyListingsQuery extends ProductsQuery {
+  status?: ProductStatus;
+}
+
+export interface SellerSummaryResponse {
+  totalProducts: number;
+  activeCount: number;
+  soldCount: number;
+}
+
+export interface SellerDashboardResponse {
+  summary: SellerSummaryResponse;
+  products: ProductResponse[];
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: "Request failed" }));
@@ -83,4 +100,30 @@ export async function getProductById(productId: string): Promise<ProductResponse
     method: "GET",
   });
   return handleResponse<ProductResponse>(res);
+}
+
+/** GET /api/Product/me — authenticated user's listings with seller summary. */
+export async function getMyListings(query: MyListingsQuery = {}): Promise<SellerDashboardResponse> {
+  const params = new URLSearchParams();
+  if (query.pageNumber !== undefined) params.set("Pagination.PageNumber", String(query.pageNumber));
+  if (query.pageSize !== undefined) params.set("Pagination.PageSize", String(query.pageSize));
+  if (query.searchTerm) params.set("SearchTerm", query.searchTerm);
+  if (query.categoryIds) query.categoryIds.forEach((id) => params.append("CategoryIds", id));
+  if (query.types) query.types.forEach((t) => params.append("Types", t));
+  if (query.conditions) query.conditions.forEach((c) => params.append("Conditions", c));
+  if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
+  if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
+  if (query.location) params.set("Location", query.location);
+  if (query.sortBy) params.set("SortBy", query.sortBy);
+  if (query.sortDirection) params.set("SortDirection", query.sortDirection);
+  if (query.status) params.set("Status", query.status);
+
+  const qs = params.toString();
+  const url = `${BASE_URL}/Product/me${qs ? `?${qs}` : ""}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<SellerDashboardResponse>(res);
 }

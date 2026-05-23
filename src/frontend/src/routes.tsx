@@ -16,6 +16,7 @@ import FollowersFollowingPageWrapper from "./pages/FollowersFollowingPageWrapper
 import CategoryManagementPageWrapper from "./pages/CategoryManagementPageWrapper";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import FavoritesPageWrapper from "./pages/FavoritesPageWrapper";
+import MyProfilePageWrapper from "./pages/MyProfilePageWrapper";
 
 export const router = createBrowserRouter([
   //public
@@ -94,6 +95,10 @@ export const router = createBrowserRouter([
       {
         path: "/favorites",
         Component: FavoritesPageWrapper,
+      },
+      {
+        path: "/my-profile",
+        Component: MyProfilePageWrapper,
       },
     ],
   },
