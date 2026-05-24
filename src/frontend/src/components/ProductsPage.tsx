@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, Grid3x3, List, Package, TrendingUp, X, Search } from "lucide-react";
 import { loadCategories, type Category } from "./data/categories";
 import { Pagination } from "./ui/Pagination";
+import { FavoriteButton } from "./FavoriteButton";
 import { listProducts } from "../services/productService";
 import type { ProductResponse, ProductCondition } from "../services/productService";
 
@@ -596,6 +597,7 @@ function ProductGridCard({ product, onClick }: { product: ProductResponse; onCli
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
+        <FavoriteButton productId={product.id} />
         <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 flex flex-wrap gap-1">
           <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[#7C3AED] text-[10px] sm:text-xs font-medium rounded-md">
             {product.type}
@@ -637,6 +639,7 @@ function ProductListCard({ product, onClick }: { product: ProductResponse; onCli
           alt={product.title}
           className="w-full h-full object-cover"
         />
+        <FavoriteButton productId={product.id} size="sm" />
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 line-clamp-1 group-hover:text-[#7C3AED] transition-colors">

@@ -20,6 +20,7 @@ import {
   unfollowCategory,
 } from "../services/categoryFollowService";
 import { useAuth } from "../context/AuthContext";
+import { FavoriteButton } from "./FavoriteButton";
 
 const CONDITION_LABELS: Record<string, string> = {
   New: "New",
@@ -629,20 +630,7 @@ function ProductGridCard({ product, onClick }: { product: ProductResponse; onCli
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
 
-        {/* TODO: persist favorites via backend. No product-favorite endpoint exists yet — hidden until then. */}
-        {/*
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleLike();
-          }}
-          className="absolute top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-all"
-        >
-          <Heart
-            className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
-          />
-        </button>
-        */}
+        <FavoriteButton productId={product.id} />
 
         <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 flex flex-wrap gap-1">
           <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[#7C3AED] text-[10px] sm:text-xs font-medium rounded-md">
@@ -685,18 +673,7 @@ function ProductListCard({ product, onClick }: { product: ProductResponse; onCli
           alt={product.title}
           className="w-full h-full object-cover rounded-lg"
         />
-        {/* TODO: persist favorites via backend. No product-favorite endpoint exists yet — hidden until then. */}
-        {/*
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleLike();
-          }}
-          className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow"
-        >
-          <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
-        </button>
-        */}
+        <FavoriteButton productId={product.id} size="sm" />
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 line-clamp-1">
