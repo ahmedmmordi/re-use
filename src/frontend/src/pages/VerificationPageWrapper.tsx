@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { VerificationPage } from "../components/VerificationPage";
 
 export default function VerificationPageWrapper() {

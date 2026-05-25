@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { ForgotPasswordPage } from "../components/ForgotPasswordPage";
 
 export default function ForgotPasswordPageWrapper() {

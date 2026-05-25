@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { ResetPasswordPage } from "../components/ResetPasswordPage";
 
 export default function ResetPasswordPageWrapper() {

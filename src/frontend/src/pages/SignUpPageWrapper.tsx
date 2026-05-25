@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { SignUpPage } from "../components/SignUpPage";
 import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";

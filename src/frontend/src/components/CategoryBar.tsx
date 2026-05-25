@@ -134,7 +134,7 @@ export function CategoryBar() {
   );
 
   return (
-    <div className="bg-white border-b border-[#E5E7EB] w-full relative z-[999]">
+    <div className="bg-white border-b border-[#E5E7EB] w-full relative z-[40]">
       {/* Category Bar */}
       <div className="w-full relative">
         {/* Left scroll arrow */}
