@@ -54,7 +54,11 @@ services:
       - CloudinarySettings__CloudName=${CLOUDINARY__CLOUDNAME}
       - CloudinarySettings__ApiKey=${CLOUDINARY__APIKEY}
       - CloudinarySettings__ApiSecret=${CLOUDINARY__APISECRET}
-
+      - PAYMOB__PUBLICKEY=${PAYMOB__PUBLICKEY}
+      - PAYMOB__SECRETKEY=${PAYMOB__SECRETKEY}
+      - PAYMOB__HMAC=${PAYMOB__HMAC}
+      - Paymob__CardIntegrationId=${PAYMOB__CARD_INTEGRATION_ID}
+      - Paymob__CallbackUrl=${PAYMOB__CALLBACK_URL}
   frontend:
     build:
       context: ./src/frontend
