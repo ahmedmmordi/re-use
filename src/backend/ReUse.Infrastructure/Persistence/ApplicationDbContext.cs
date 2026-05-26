@@ -13,7 +13,6 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<Category> Categories { get; set; }
-    // public DbSet<Order> Orders { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<ProductComment> ProductComments { get; set; }
@@ -23,6 +22,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<CategoryFollow> CategoryFollows { get; set; }
 
     public DbSet<Favorite> Favorites { get; set; }
+
+    public DbSet<Payment> Payments { get; set; }
 
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationDelivery> NotificationDeliveries { get; set; }

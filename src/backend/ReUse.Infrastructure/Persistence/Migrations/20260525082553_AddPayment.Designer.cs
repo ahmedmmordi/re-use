@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReUse.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using ReUse.Infrastructure.Persistence;
 namespace ReUse.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260525082553_AddPayment")]
+    partial class AddPayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -466,52 +469,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("ReUse.Domain.Entities.ProductComment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<Guid?>("ParentCommentId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentCommentId")
-                        .HasFilter("\"ParentCommentId\" IS NOT NULL");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("ProductId", "CreatedAt")
-                        .HasFilter("\"IsDeleted\" = false");
-
-                    b.ToTable("product_comments", (string)null);
-                });
-
             modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -882,32 +839,6 @@ namespace ReUse.Infrastructure.Persistence.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("ReUse.Domain.Entities.ProductComment", b =>
-                {
-                    b.HasOne("ReUse.Domain.Entities.ProductComment", "ParentComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentCommentId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("ReUse.Domain.Entities.Product", "Product")
-                        .WithMany("Comments")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ReUse.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ParentComment");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ReUse.Domain.Entities.ProductImage", b =>
                 {
                     b.HasOne("ReUse.Domain.Entities.Product", "Product")
@@ -944,16 +875,9 @@ namespace ReUse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ReUse.Domain.Entities.Product", b =>
                 {
-                    b.Navigation("Comments");
-
                     b.Navigation("Favorites");
 
                     b.Navigation("ProductImages");
-                });
-
-            modelBuilder.Entity("ReUse.Domain.Entities.ProductComment", b =>
-                {
-                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("ReUse.Domain.Entities.User", b =>

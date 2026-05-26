@@ -43,5 +43,5 @@ public class User : BaseEntity
     public ICollection<CategoryFollow> CategoryFollows { get; set; } = new List<CategoryFollow>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
-
+    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }
