@@ -158,4 +158,44 @@ public static class ProductQueryExtensions
 
         return query.Where(p => p.Status == status.Value);
     }
+
+    /// <summary>Filters by owner user id. No-ops when ownerId is null.</summary>
+    public static IQueryable<Product> FilterByOwner(
+        this IQueryable<Product> query,
+        Guid? ownerId)
+    {
+        if (!ownerId.HasValue || ownerId.Value == Guid.Empty)
+            return query;
+
+        return query.Where(p => p.OwnerUserId == ownerId.Value);
+    }
+
+    /// <summary>Multi-select status filter. No-ops when list is null or empty.</summary>
+    public static IQueryable<Product> FilterByStatuses(
+        this IQueryable<Product> query,
+        List<ProductStatus>? statuses)
+    {
+        if (statuses is null || statuses.Count == 0)
+            return query;
+
+        return query.Where(p => statuses.Contains(p.Status));
+    }
+
+    /// <summary>Filters by CreatedAt date range (inclusive). No-ops when both bounds are null.</summary>
+    public static IQueryable<Product> FilterByDateRange(
+        this IQueryable<Product> query,
+        DateTime? from,
+        DateTime? to)
+    {
+        if (!from.HasValue && !to.HasValue)
+            return query;
+
+        if (from.HasValue)
+            query = query.Where(p => p.CreatedAt >= from.Value);
+
+        if (to.HasValue)
+            query = query.Where(p => p.CreatedAt <= to.Value);
+
+        return query;
+    }
 }

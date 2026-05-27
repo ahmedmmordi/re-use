@@ -10,6 +10,7 @@ using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
+using ReUse.Domain.Enums;
 
 namespace ReUse.Application.Interfaces.Services;
 
@@ -19,9 +20,9 @@ public interface IProductService
     public Task<ProductResponse> CreateSwapProductAsync(CreateSwapProductRequest request, Guid sellerId);
     public Task<ProductResponse> CreateWantedProductAsync(CreateWantedProductRequest request, Guid sellerId);
 
-    Task UpdateRegularProductAsync(Guid productId, UpdateRegularProductRequest request, Guid userId);
-    Task UpdateSwapProductAsync(Guid productId, UpdateSwapProductRequest request, Guid userId);
-    Task UpdateWantedProductAsync(Guid productId, UpdateWantedProductRequest request, Guid userId);
+    Task UpdateRegularProductAsync(Guid productId, UpdateRegularProductRequest request, Guid userId, bool isAdmin = false);
+    Task UpdateSwapProductAsync(Guid productId, UpdateSwapProductRequest request, Guid userId, bool isAdmin = false);
+    Task UpdateWantedProductAsync(Guid productId, UpdateWantedProductRequest request, Guid userId, bool isAdmin = false);
 
 
     Task<ProductDetailsResponse> GetByIdAsync(Guid productId);
@@ -32,8 +33,13 @@ public interface IProductService
 
     Task<PagedResult<ProductResponse>> GetPublicProductsByUserAsync(Guid ownerId, ProductFilterParams filter);
 
-    Task DeleteProductAsync(Guid productId, Guid userId);
+    Task DeleteProductAsync(Guid productId, Guid userId, bool isAdmin = false);
 
+    // Admin
+    Task<PagedResult<ProductResponse>> GetAllForAdminAsync(AdminProductFilterParams filterParams);
+    Task<ProductDetailsResponse> GetForAdminByIdAsync(Guid productId);
+    Task<AdminProductsSummaryResponse> GetAdminSummaryAsync();
 
-
+    Task ChangeProductStatusByAdminAsync(Guid productId, ProductStatus status);
+    Task RestoreProductByAdminAsync(Guid productId);
 }

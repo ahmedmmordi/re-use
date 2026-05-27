@@ -137,4 +137,54 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
                 filterParams.Pagination.PageNumber,
                 filterParams.Pagination.PageSize);
     #endregion
+
+    #region GetAllForAdminAsync
+    public async Task<PagedResult<Product>> GetAllForAdminAsync(AdminProductFilterParams filterParams)
+        => await _context.Products
+            .AsNoTracking()
+            .Include(p => p.ProductImages.OrderBy(i => i.DisplayOrder))
+            .Include(p => p.Category)
+            .Include(p => p.Owner)
+            .FilterByStatuses(filterParams.Statuses)
+            .FilterByOwner(filterParams.OwnerUserId)
+            .FilterByDateRange(filterParams.CreatedFrom, filterParams.CreatedTo)
+            .Search(filterParams.SearchTerm)
+            .FilterByTypes(filterParams.Types)
+            .FilterByConditions(filterParams.Conditions)
+            .FilterByCategories(filterParams.CategoryIds)
+            .FilterByPrice(filterParams.MinPrice, filterParams.MaxPrice)
+            .FilterByLocation(filterParams.Location)
+            .ApplySort(filterParams.SortBy, filterParams.SortDirection)
+            .ToPagedListAsync(
+                filterParams.Pagination.PageNumber,
+                filterParams.Pagination.PageSize);
+    #endregion
+
+    #region GetForAdminByIdAsync
+    public async Task<Product?> GetForAdminByIdAsync(Guid productId)
+        => await _context.Products
+            .Include(p => p.ProductImages.OrderBy(i => i.DisplayOrder))
+            .Include(p => p.Category)
+            .Include(p => p.Owner)
+            .FirstOrDefaultAsync(p => p.Id == productId);
+    #endregion
+
+    #region GetAdminSummaryAsync
+    public async Task<AdminProductsSummary> GetAdminSummaryAsync()
+    {
+        var counts = await _context.Products
+            .AsNoTracking()
+            .GroupBy(_ => 1)                     // single-pass aggregation
+            .Select(g => new AdminProductsSummary(
+                g.Count(),
+                g.Count(p => p.Status == ProductStatus.Active),
+                g.Count(p => p.Status == ProductStatus.Sold),
+                g.Count(p => p.Status == ProductStatus.Closed),
+                g.Count(p => p.Status == ProductStatus.Deleted),
+                g.Count(p => p.Status == ProductStatus.UnderReview)))
+            .FirstOrDefaultAsync();
+
+        return counts ?? new AdminProductsSummary(0, 0, 0, 0, 0, 0);
+    }
+    #endregion
 }

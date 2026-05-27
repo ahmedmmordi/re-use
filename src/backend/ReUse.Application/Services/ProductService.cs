@@ -164,13 +164,14 @@ public class ProductService : IProductService
     public async Task UpdateRegularProductAsync(
         Guid productId,
         UpdateRegularProductRequest request,
-        Guid userId)
+        Guid userId,
+        bool isAdmin = false)
     {
         var product = await _unitOfWork.Product.GetByIdAsync(productId)
             ?? throw new NotFoundException("Product");
 
         // Business Rules
-        if (product.OwnerUserId != userId)
+        if (!isAdmin && product.OwnerUserId != userId)
             throw new ForbiddenException("You don't own this product");
 
         if (product.ProductType != ProductType.Regular)
@@ -198,12 +199,13 @@ public class ProductService : IProductService
     public async Task UpdateSwapProductAsync(
         Guid productId,
         UpdateSwapProductRequest request,
-        Guid userId)
+        Guid userId,
+        bool isAdmin = false)
     {
         var product = await _unitOfWork.Product.GetByIdAsync(productId)
             ?? throw new NotFoundException("Product");
 
-        if (product.OwnerUserId != userId)
+        if (!isAdmin && product.OwnerUserId != userId)
             throw new ForbiddenException("You don't own this product");
 
         if (product.ProductType != ProductType.Swap)
@@ -231,12 +233,13 @@ public class ProductService : IProductService
     public async Task UpdateWantedProductAsync(
         Guid productId,
         UpdateWantedProductRequest request,
-        Guid userId)
+        Guid userId,
+        bool isAdmin = false)
     {
         var product = await _unitOfWork.Product.GetByIdAsync(productId)
             ?? throw new NotFoundException("Product");
 
-        if (product.OwnerUserId != userId)
+        if (!isAdmin && product.OwnerUserId != userId)
             throw new ForbiddenException("You don't own this product");
 
         if (product.ProductType != ProductType.Wanted)
@@ -265,7 +268,7 @@ public class ProductService : IProductService
     #endregion
 
     #region Delete
-    public async Task DeleteProductAsync(Guid productId, Guid userId)
+    public async Task DeleteProductAsync(Guid productId, Guid userId, bool isAdmin = false)
     {
         if (productId == Guid.Empty)
             throw new BadRequestException("Invalid product id");
@@ -273,6 +276,9 @@ public class ProductService : IProductService
 
         var product = await _unitOfWork.Product.GetByIdAsync(productId)
             ?? throw new NotFoundException("Product");
+
+        if (!isAdmin && product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
 
         EnsureNotDeleted(product);
 
@@ -288,6 +294,72 @@ public class ProductService : IProductService
         if (product.Status == ProductStatus.Deleted)
             throw new NotFoundException("Product");
     }
+    #endregion
+
+    #region Admin
+
+    public async Task<PagedResult<ProductResponse>> GetAllForAdminAsync(AdminProductFilterParams filterParams)
+    {
+        var pagedProducts = await _unitOfWork.Product.GetAllForAdminAsync(filterParams);
+
+        return new PagedResult<ProductResponse>
+        {
+            Data = pagedProducts.Data.Select(p => _mapper.Map<ProductResponse>(p)).ToList(),
+            PageNumber = pagedProducts.PageNumber,
+            PageSize = pagedProducts.PageSize,
+            TotalRecords = pagedProducts.TotalRecords
+        };
+    }
+
+    public async Task<ProductDetailsResponse> GetForAdminByIdAsync(Guid productId)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+        var product = await _unitOfWork.Product.GetForAdminByIdAsync(productId)
+            ?? throw new NotFoundException("Product");
+
+        return _mapper.Map<ProductDetailsResponse>(product);
+    }
+
+    public async Task<AdminProductsSummaryResponse> GetAdminSummaryAsync()
+    {
+        var summary = await _unitOfWork.Product.GetAdminSummaryAsync();
+        return _mapper.Map<AdminProductsSummaryResponse>(summary);
+    }
+
+    public async Task ChangeProductStatusByAdminAsync(Guid productId, ProductStatus status)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product");
+
+        if (product.Status == status)
+            return;
+
+        product.Status = status;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task RestoreProductByAdminAsync(Guid productId)
+    {
+        if (productId == Guid.Empty)
+            throw new BadRequestException("Invalid product id");
+
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product");
+
+        if (product.Status != ProductStatus.Deleted)
+            throw new BadRequestException("Only deleted products can be restored");
+
+        product.Status = ProductStatus.Active;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     #endregion
 
     #region Monitor
