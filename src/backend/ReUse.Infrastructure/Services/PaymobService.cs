@@ -8,8 +8,10 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 
 using ReUse.Application.DTOs.Payment;
+using ReUse.Application.DTOs.Products.Responses;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
+using ReUse.Application.Interfaces.Services;
 using ReUse.Application.Interfaces.Services.External;
 using ReUse.Domain.Entities;
 using ReUse.Domain.Enums;
@@ -45,17 +47,18 @@ public class PaymobService : IPaymentService
                        throw new ArgumentException("Paymob Callback Url not configured");
     }
 
-    public async Task<string> Pay(List<ItemDto> items, BillingDataDto billingData, Guid userId)
+    public async Task<string> Pay(List<ItemDto> items, BillingDataDto billingData, Guid userId, object? extras = null)
     {
-        var paymentIntentionResponse = await Intention(items, billingData);
+        var paymentIntentionResponse = await Intention(items, billingData, extras);
 
         var payment = new Payment
         {
             Amount = paymentIntentionResponse.IntentionDetail.Amount,
-            PaymentMethod = paymentIntentionResponse.PaymentMethods.FirstOrDefault()!.Name,
+            PaymentMethod = paymentIntentionResponse.PaymentMethods?.FirstOrDefault()?.Name
+                            ?? throw new Exception("Paymob intention returned no payment methods"),
             Status = PaymentStatus.Pending,
             TransactionId = paymentIntentionResponse.SpecialReference,
-            PaymentDate = DateTime.Now,
+            PaymentDate = DateTime.UtcNow,
             UserId = userId,
         };
 
@@ -67,99 +70,71 @@ public class PaymobService : IPaymentService
         return payUrl;
     }
 
-    public async Task Callback(string receivedHmac, JsonElement data)
+    public async Task<PaymentCallbackDto> HandleCallback(string receivedHmac, object rawPayload)
     {
-        if (!data.TryGetProperty("obj", out var obj))
-            throw new BadRequestException("Missing 'obj' in payload.");
+        var request = rawPayload as PaymobCallbackRequest
+                      ?? throw new BadRequestException("Invalid payload type.");
+
+        var obj = request.Obj ?? throw new BadRequestException("Missing 'obj' in payload.");
 
         if (!ValidateHmac(receivedHmac, obj))
-        {
             throw new UnauthorizedException();
-        }
 
-        string merchantOrderId = null;
-        if (obj.TryGetProperty("order", out var order) &&
-            order.TryGetProperty("merchant_order_id", out var merchantOrderIdElement) &&
-            merchantOrderIdElement.ValueKind != JsonValueKind.Null)
-        {
-            merchantOrderId = merchantOrderIdElement.ToString();
-        }
-
-        bool isSuccess = obj.TryGetProperty("success", out var successElement) && successElement.GetBoolean();
-
-        if (!string.IsNullOrEmpty(merchantOrderId))
-        {
-            if (isSuccess)
-                await Success(merchantOrderId);
-            else
-                await Failed(merchantOrderId);
-        }
-        else
-        {
+        var merchantOrderId = obj.Order?.MerchantOrderId;
+        if (string.IsNullOrEmpty(merchantOrderId))
             throw new BadRequestException("Missing 'merchant_order_id' in payload.");
+
+        if (!obj.Success)
+        {
+            await Failed(merchantOrderId);
+            return new PaymentCallbackDto(false, merchantOrderId);
         }
+
+
+        var alreadyProcessed = !(await Success(merchantOrderId));
+        return new PaymentCallbackDto(true, merchantOrderId, alreadyProcessed, obj.PaymentKeyClaims?.Extra);
     }
 
-    private bool ValidateHmac(string receivedHmac, JsonElement data)
+    private bool ValidateHmac(string receivedHmac, PaymobCallbackObj obj)
     {
-        string[] fields =
-        [
-            "amount_cents",
-            "created_at",
-            "currency",
-            "error_occured",
-            "has_parent_transaction",
-            "id",
-            "integration_id",
-            "is_3d_secure",
-            "is_auth",
-            "is_capture",
-            "is_refunded",
-            "is_standalone_payment",
-            "is_voided",
-            "order.id",
-            "owner",
-            "pending",
-            "source_data.pan",
-            "source_data.sub_type",
-            "source_data.type",
-            "success"
-        ];
-
         var concatenated = new StringBuilder();
-        foreach (var field in fields)
-        {
-            string[] parts = field.Split('.');
-            JsonElement current = data;
-            bool found = true;
-            foreach (var part in parts)
-            {
-                if (current.ValueKind == JsonValueKind.Object && current.TryGetProperty(part, out var next))
-                    current = next;
-                else
-                {
-                    found = false;
-                    break;
-                }
-            }
 
-            if (!found || current.ValueKind == JsonValueKind.Null)
-            {
-                concatenated.Append(""); // Use empty string for missing/null fields
-            }
-            else if (current.ValueKind == JsonValueKind.True || current.ValueKind == JsonValueKind.False)
-            {
-                concatenated.Append(current.GetBoolean() ? "true" : "false"); // Lowercase boolean
-            }
-            else
-            {
-                concatenated.Append(current.ToString());
-            }
-        }
+        concatenated.Append(obj.AmountCents);
+        concatenated.Append(obj.CreatedAt);
+        concatenated.Append(obj.Currency);
+        concatenated.Append(obj.ErrorOccured.ToString().ToLower());
+        concatenated.Append(obj.HasParentTransaction.ToString().ToLower());
+        concatenated.Append(obj.Id);
+        concatenated.Append(obj.IntegrationId);
+        concatenated.Append(obj.Is3dSecure.ToString().ToLower());
+        concatenated.Append(obj.IsAuth.ToString().ToLower());
+        concatenated.Append(obj.IsCapture.ToString().ToLower());
+        concatenated.Append(obj.IsRefunded.ToString().ToLower());
+        concatenated.Append(obj.IsStandalonePayment.ToString().ToLower());
+        concatenated.Append(obj.IsVoided.ToString().ToLower());
+        concatenated.Append(obj.Order?.Id);
+        concatenated.Append(obj.Owner);
+        concatenated.Append(obj.Pending.ToString().ToLower());
+        concatenated.Append(obj.SourceData?.Pan);
+        concatenated.Append(obj.SourceData?.SubType);
+        concatenated.Append(obj.SourceData?.Type);
+        concatenated.Append(obj.Success.ToString().ToLower());
 
         var computedHmac = ComputeHmacSHA512(concatenated.ToString(), _hmac);
 
-        return receivedHmac.Equals(computedHmac, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            var receivedBytes = Convert.FromHexString(receivedHmac);
+            var computedBytes = Convert.FromHexString(computedHmac);
+
+            return CryptographicOperations.FixedTimeEquals(
+                receivedBytes,
+                computedBytes);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     private string ComputeHmacSHA512(string data, string secret)
@@ -174,7 +149,7 @@ public class PaymobService : IPaymentService
         }
     }
 
-    private async Task Success(string transactionId)
+    private async Task<bool> Success(string transactionId)
     {
         var payment = await _uow.Payments.GetByTransactionId(transactionId);
         if (payment == null)
@@ -182,8 +157,11 @@ public class PaymobService : IPaymentService
             throw new NotFoundException($"Payment with transaction ID {transactionId} not found.");
         }
 
+        if (payment.Status == PaymentStatus.Success) return false;
+
         payment.Status = PaymentStatus.Success;
         await _uow.SaveChangesAsync();
+        return true;
     }
 
     private async Task Failed(string transactionId)
@@ -222,7 +200,6 @@ public class PaymobService : IPaymentService
 
         var request = new HttpRequestMessage(HttpMethod.Post, "https://accept.paymob.com/v1/intention/");
         request.Headers.Authorization = new AuthenticationHeaderValue("Token", _secretKey);
-        Console.WriteLine(_secretKey);
         request.Content = JsonContent.Create(payload,
             options: new JsonSerializerOptions
             {
@@ -246,7 +223,7 @@ public class PaymobService : IPaymentService
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
             }) ?? throw new Exception(
             "Failed to deserialize Paymob response");
-        Console.WriteLine(paymentIntentionResponse.PaymentMethods.Count);
+
         return paymentIntentionResponse;
     }
 

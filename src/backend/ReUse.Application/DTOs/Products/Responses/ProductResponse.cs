@@ -31,4 +31,6 @@ public record ProductResponse
 
     public List<UploadedImageResponse> Images { get; init; } = [];
     public string CoverImageUrl { get; init; } = string.Empty;
+    public bool IsPremium { get; set; }
+    public DateTime? PremiumExpiresAt { get; set; }
 }

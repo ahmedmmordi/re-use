@@ -16,11 +16,6 @@ public class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedNever();
 
-        // TPH Discriminator
-        builder.HasDiscriminator(p => p.ProductType)
-            .HasValue<RegularProduct>(ProductType.Regular)
-            .HasValue<WantedProduct>(ProductType.Wanted);
-
         // Core properties
         builder.Property(p => p.Title)
             .HasMaxLength(255)
@@ -44,6 +39,12 @@ public class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasDefaultValue(ProductStatus.Active);
 
+        // Premium
+        builder.Property(p => p.IsPremium)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.PremiumExpiresAt);
 
         // Location
         builder.Property(p => p.LocationCity)

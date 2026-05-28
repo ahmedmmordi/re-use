@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Text.Json;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ReUse.API.Extensions;
@@ -7,6 +9,8 @@ using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
 using ReUse.Application.Interfaces.Services;
+using ReUse.Infrastructure.Models.Paymob;
+
 namespace ReUse.API.Controllers;
 
 [Route("api/[controller]")]
@@ -15,10 +19,12 @@ public class ProductController : ControllerBase
 {
     private readonly IProductImageService _productImageService;
     private readonly IProductService _productService;
-    public ProductController(IProductImageService productImageService, IProductService productService)
+    private readonly IPromotionService _promotionService;
+    public ProductController(IProductImageService productImageService, IProductService productService, IPromotionService promotionService)
     {
         _productImageService = productImageService;
         _productService = productService;
+        _promotionService = promotionService;
     }
 
     [HttpPost("regular")]
@@ -173,6 +179,45 @@ public class ProductController : ControllerBase
         await _productService.DeleteProductAsync(productId, userId);
 
         return NoContent();
+    }
+
+    [HttpGet("premium/price")]
+    public IActionResult GetPremiumPrice(
+        [FromQuery] PremiumRequest request)
+    {
+        var amount =
+            _promotionService.CalculatePremiumAmount(
+                request.DurationDays);
+
+        return Ok(new
+        {
+            request.DurationDays,
+            amount,
+            currency = "EGP"
+        });
+    }
+
+    [HttpPost("{productId:guid}/premium")]
+    public async Task<IActionResult> MakePremium(Guid productId, PremiumRequest dto)
+    {
+        var userId = User.GetBusinessId();
+
+        var payUrl = await _promotionService.CreateProductPremiumPayment(productId, userId, dto.DurationDays);
+
+        return Ok(new
+        {
+            paymentUrl = payUrl
+        });
+    }
+
+    [HttpPost("premium/callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> PremiumCallback([FromBody] PaymobCallbackRequest payload)
+    {
+        string receivedHmac = Request.Query["hmac"];
+        await _promotionService.PayCallback(receivedHmac, payload);
+
+        return Ok();
     }
 
 }

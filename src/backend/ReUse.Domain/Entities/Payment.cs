@@ -16,7 +16,7 @@ public class Payment : BaseEntity
 
     public decimal Amount { get; set; }
 
-    public DateTime PaymentDate { get; set; } = DateTime.Now;
+    public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
 
     public string PaymentMethod { get; set; }
 

@@ -92,7 +92,6 @@ public static class DependencyInjection
         ActiveUserHandler>();
         services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
         services.AddScoped<IAdminUserService, AdminUserService>();
-        services.AddScoped<IPaymentService, PaymobService>();
         services.AddHttpClient<IPaymentService, PaymobService>();
         #endregion
 

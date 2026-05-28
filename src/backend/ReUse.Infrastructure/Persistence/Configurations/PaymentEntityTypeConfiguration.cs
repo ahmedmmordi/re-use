@@ -18,7 +18,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .IsRequired();
 
         builder.Property(x => x.PaymentDate)
-            .HasColumnType("timestamp")
             .IsRequired();
 
         builder.Property(x => x.PaymentMethod)

@@ -25,8 +25,10 @@ public abstract class Product : BaseEntity
     // Lifecycle
     public ProductStatus Status { get; set; } = ProductStatus.Active;
 
-    // TODO: IsShippable, ShippingCost, IsPremium, PremiumExpiresAt, ViewCount, PublishedAt
+    // TODO: IsShippable, ShippingCost, ViewCount, PublishedAt
 
+    public bool IsPremium { get; set; }
+    public DateTime? PremiumExpiresAt { get; set; }
     public List<ProductImage> ProductImages { get; set; } = [];
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
     public ICollection<ProductComment> Comments { get; set; } = new List<ProductComment>();

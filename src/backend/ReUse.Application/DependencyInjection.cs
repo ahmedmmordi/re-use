@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICategoryFollowService, CategoryFollowService>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<IFavoriteService, FavoriteService>();
         services.AddScoped<INotificationPublisher, NotificationPublisher>();
         services.AddScoped<INotificationFactory, NotificationFactory>();
