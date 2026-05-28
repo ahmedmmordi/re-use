@@ -21,6 +21,8 @@ public interface IUnitOfWork : IDisposable
 
     ICommentRepository Comments { get; }
 
+    IRatingRepository Ratings { get; }
+
     Task<int> SaveChangesAsync();
     void Dispose();
 }

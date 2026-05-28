@@ -28,6 +28,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<NotificationDelivery> NotificationDeliveries { get; set; }
     public DbSet<UserNotificationSetting> UserNotificationSettings { get; set; }
 
+    public DbSet<UserRating> UserRatings { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
