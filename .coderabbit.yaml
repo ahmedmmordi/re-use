@@ -1,0 +1,57 @@
+# CodeRabbit Configuration for ReUse
+reviews:
+  auto_review:
+    enabled: true
+  request_changes: false
+
+  # Review rules
+  rules:
+    - base_branches: ['main']
+      files:
+        include:
+          - 'src/backend/**/*.cs'
+          - 'src/backend/**/*.csproj'
+          - '.github/workflows/**'
+          - 'src/frontend/**/*.tsx'
+          - 'src/frontend/**/*.ts'
+          - 'src/frontend/package.json'
+
+        exclude:
+          - '*.md'
+          - 'docs/**'
+          - '**/obj/**'
+          - '**/bin/**'
+          - '**/dist/**'
+          - '**/node_modules/**'
+
+# Code Review Focus Areas
+tool_settings:
+  csharp:
+    complexity: high
+    patterns: true
+
+  typescript:
+    complexity: medium
+    patterns: true
+
+  focus_areas:
+    - 'security'
+    - 'potential_bugs'
+    - 'performance'
+    - 'maintainability'
+    - 'scalability'
+
+  max_files_to_review: 100
+  max_diff_length: 50000
+
+review_profile: CHILL
+
+github:
+  create_check_runs: true
+  request_changes: false
+  add_summary: true
+  add_suggestion_count: true
+
+summary:
+  enabled: true
+  description: 'auto'
