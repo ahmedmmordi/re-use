@@ -747,6 +747,13 @@ export function MyProfilePage() {
                   >
                     View My Products
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/create-product")}
+                    className="w-full mt-2 bg-[#4B0082] text-white hover:opacity-90 font-medium px-4 py-2 rounded-lg transition-colors text-sm"
+                  >
+                    + Create New Listing
+                  </button>
                 </div>
               </div>
             </div>

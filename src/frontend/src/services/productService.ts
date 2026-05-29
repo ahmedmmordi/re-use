@@ -151,3 +151,107 @@ export async function getMyListings(query: MyListingsQuery = {}): Promise<Seller
   });
   return handleResponse<SellerDashboardResponse>(res);
 }
+
+// ─── Create endpoints ──────────────────────────────────────────────────────
+
+export interface CreateRegularProductRequest {
+  title: string;
+  description: string;
+  categoryId: string;
+  condition: ProductCondition;
+  locationCity?: string;
+  locationCountry?: string;
+  price: number;
+  allowNegotiation: boolean;
+  images: File[];
+}
+
+export interface CreateWantedProductRequest {
+  title: string;
+  description: string;
+  categoryId: string;
+  condition: ProductCondition;
+  locationCity?: string;
+  locationCountry?: string;
+  desiredPriceMin: number;
+  desiredPriceMax: number;
+  images: File[];
+}
+
+export interface CreateSwapProductRequest {
+  title: string;
+  description: string;
+  categoryId: string;
+  condition: ProductCondition;
+  locationCity?: string;
+  locationCountry?: string;
+  wantedItemTitle: string;
+  wantedItemDescription: string;
+  offerImages: File[];
+  wantedImages?: File[];
+}
+
+export async function createRegularProduct(
+  req: CreateRegularProductRequest
+): Promise<ProductResponse> {
+  const form = new FormData();
+  form.append("BasicInfo.Title", req.title);
+  form.append("BasicInfo.Description", req.description);
+  form.append("BasicInfo.CategoryId", req.categoryId);
+  form.append("BasicInfo.Condition", req.condition);
+  if (req.locationCity) form.append("BasicInfo.LocationCity", req.locationCity);
+  if (req.locationCountry) form.append("BasicInfo.LocationCountry", req.locationCountry);
+  form.append("Price", String(req.price));
+  form.append("AllowNegotiation", String(req.allowNegotiation));
+  req.images.forEach((f) => form.append("Images", f));
+
+  const res = await fetch(`${BASE_URL}/Product/regular`, {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+  return handleResponse<ProductResponse>(res);
+}
+
+export async function createWantedProduct(
+  req: CreateWantedProductRequest
+): Promise<ProductResponse> {
+  const form = new FormData();
+  form.append("BasicInfo.Title", req.title);
+  form.append("BasicInfo.Description", req.description);
+  form.append("BasicInfo.CategoryId", req.categoryId);
+  form.append("BasicInfo.Condition", req.condition);
+  if (req.locationCity) form.append("BasicInfo.LocationCity", req.locationCity);
+  if (req.locationCountry) form.append("BasicInfo.LocationCountry", req.locationCountry);
+  form.append("DesiredPriceMin", String(req.desiredPriceMin));
+  form.append("DesiredPriceMax", String(req.desiredPriceMax));
+  req.images.forEach((f) => form.append("Images", f));
+
+  const res = await fetch(`${BASE_URL}/Product/wanted`, {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+  return handleResponse<ProductResponse>(res);
+}
+
+export async function createSwapProduct(req: CreateSwapProductRequest): Promise<ProductResponse> {
+  const form = new FormData();
+  form.append("BasicInfo.Title", req.title);
+  form.append("BasicInfo.Description", req.description);
+  form.append("BasicInfo.CategoryId", req.categoryId);
+  form.append("BasicInfo.Condition", req.condition);
+  if (req.locationCity) form.append("BasicInfo.LocationCity", req.locationCity);
+  if (req.locationCountry) form.append("BasicInfo.LocationCountry", req.locationCountry);
+  form.append("WantedItemTitle", req.wantedItemTitle);
+  form.append("WantedItemDescription", req.wantedItemDescription);
+  req.offerImages.forEach((f) => form.append("OfferImages", f));
+  req.wantedImages?.forEach((f) => form.append("WantedImages", f));
+
+  const res = await fetch(`${BASE_URL}/Product/swap`, {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+  return handleResponse<ProductResponse>(res);
+}

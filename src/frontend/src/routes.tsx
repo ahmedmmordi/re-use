@@ -17,6 +17,7 @@ import UnauthorizedPage from "./pages/UnauthorizedPage";
 import FavoritesPageWrapper from "./pages/FavoritesPageWrapper";
 import MyProfilePageWrapper from "./pages/MyProfilePageWrapper";
 import PublicUserProfilePageWrapper from "./pages/PublicUserProfilePageWrapper";
+import CreateProductPageWrapper from "./pages/CreateProductPageWrapper";
 
 export const router = createBrowserRouter([
   // Public
@@ -99,6 +100,10 @@ export const router = createBrowserRouter([
       {
         path: "/my-profile",
         Component: MyProfilePageWrapper,
+      },
+      {
+        path: "/create-product",
+        Component: CreateProductPageWrapper,
       },
     ],
   },

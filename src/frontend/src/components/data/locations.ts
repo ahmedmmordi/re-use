@@ -1,0 +1,28 @@
+export const EGYPT_COUNTRY = "Egypt";
+
+export const EGYPT_CITIES = [
+  "Menoufia",
+  "Cairo",
+  "Giza",
+  "Alexandria",
+  "Shubra El Kheima",
+  "Port Said",
+  "Suez",
+  "Mansoura",
+  "Tanta",
+  "Asyut",
+  "Ismailia",
+  "Faiyum",
+  "Zagazig",
+  "Damietta",
+  "Aswan",
+  "Minya",
+  "Damanhur",
+  "Beni Suef",
+  "Qena",
+  "Sohag",
+  "Hurghada",
+  "Luxor",
+  "6th of October",
+  "New Cairo",
+];
