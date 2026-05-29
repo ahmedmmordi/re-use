@@ -16,4 +16,6 @@ public record UserProfileResponse
     public string? Country { get; init; }
     public int FollowersCount { get; init; }
     public int FollowingCount { get; init; }
+    public decimal RatingsAverage { get; init; }
+    public int RatingsCount { get; init; }
 }

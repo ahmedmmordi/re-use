@@ -61,6 +61,16 @@ public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Country)
                .HasMaxLength(100);
 
+        // Ratings aggregates
+        builder.Property(x => x.RatingsAverage)
+               .HasPrecision(2, 1)
+               .IsRequired()
+               .HasDefaultValue(0m);
+
+        builder.Property(x => x.RatingsCount)
+               .IsRequired()
+               .HasDefaultValue(0);
+
         //Audit
 
         builder.Property(o => o.CreatedAt)

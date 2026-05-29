@@ -38,10 +38,15 @@ public class User : BaseEntity
     public string? PostalCode { get; set; }
     public string? Country { get; set; }
 
+    // Ratings aggregates
+    public decimal RatingsAverage { get; set; } = 0m;
+    public int RatingsCount { get; set; } = 0;
+
     public ICollection<Follow> Followers { get; set; } = new List<Follow>();
     public ICollection<Follow> Following { get; set; } = new List<Follow>();
     public ICollection<CategoryFollow> CategoryFollows { get; set; } = new List<CategoryFollow>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public ICollection<Feedback> FeedbackReceived { get; set; } = new List<Feedback>();
+    public ICollection<Feedback> FeedbackGiven { get; set; } = new List<Feedback>();
 }
