@@ -40,6 +40,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     () => "webkitSpeechRecognition" in window || "SpeechRecognition" in window
   );
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const finalTranscriptRef = useRef("");
   const [micHover, setMicHover] = useState(false);
 
   // Check for voice support on mount
@@ -54,12 +55,12 @@ export function SearchBar({ onSearch }: SearchBarProps) {
         recognitionRef.current.lang = "en-US";
 
         recognitionRef.current.onresult = (event: SpeechResultEvent) => {
-          const transcript = Array.from(event.results)
-            .map((result) => result[0])
-            .map((result) => result.transcript)
-            .join("");
-
-          setQuery(transcript);
+          const results = Array.from(event.results);
+          const raw = results.map((r) => r[0].transcript).join("");
+          setQuery(raw);
+          if (results[results.length - 1].isFinal) {
+            finalTranscriptRef.current = raw;
+          }
         };
 
         recognitionRef.current.onerror = (event: Event & { error: string }) => {
@@ -69,10 +70,16 @@ export function SearchBar({ onSearch }: SearchBarProps) {
 
         recognitionRef.current.onend = () => {
           setIsListening(false);
+          const q = finalTranscriptRef.current;
+          if (q.trim()) {
+            navigate(`/search?q=${encodeURIComponent(q)}`);
+            onSearch?.(q);
+          }
+          finalTranscriptRef.current = "";
         };
       }
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (searchQuery: string) => {
     if (searchQuery.trim()) {
@@ -97,7 +104,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <div className="relative flex-1 max-w-[600px]">
+    <div className="relative flex-1 max-w-150">
       {/* Search Input */}
       <div className="relative">
         <input
@@ -112,7 +119,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
             }
           }}
           placeholder={isListening ? "" : "Search for products, categories, or sellers..."}
-          className={`w-full bg-white text-gray-900 placeholder-gray-400 px-4 py-2.5 pr-24 rounded-lg border transition-all ${
+          className={`w-full bg-white text-gray-900 placeholder-gray-400 ${isListening ? "pl-32" : "px-4"} py-2.5 pr-24 rounded-lg border transition-all ${
             isListening
               ? "border-[#4B0082] ring-2 ring-[#4B0082]/30"
               : "border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
