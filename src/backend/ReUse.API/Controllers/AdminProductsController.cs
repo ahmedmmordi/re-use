@@ -20,10 +20,12 @@ namespace ReUse.API.Controllers;
 public class AdminProductsController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly IPromotionService _promotionService;
 
-    public AdminProductsController(IProductService productService)
+    public AdminProductsController(IProductService productService, IPromotionService promotionService)
     {
         _productService = productService;
+        _promotionService = promotionService;
     }
 
     /// <summary>
@@ -158,6 +160,37 @@ public class AdminProductsController : ControllerBase
     public async Task<IActionResult> Restore(Guid productId)
     {
         await _productService.RestoreProductByAdminAsync(productId);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Promote a product to premium (Admin). Bypasses payment and sets the expiry
+    /// based on the requested duration in days.
+    /// </summary>
+    /// <response code="204">Product promoted to premium successfully</response>
+    /// <response code="400">Invalid duration</response>
+    /// <response code="404">Product not found</response>
+    [HttpPatch("{productId:guid}/premium")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetPremium(Guid productId, [FromBody] PremiumRequest request)
+    {
+        await _promotionService.SetPremiumAsync(productId, request.DurationDays);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Remove premium status from a product (Admin).
+    /// </summary>
+    /// <response code="204">Premium status removed successfully</response>
+    /// <response code="404">Product not found</response>
+    [HttpDelete("{productId:guid}/premium")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemovePremium(Guid productId)
+    {
+        await _promotionService.RemovePremiumAsync(productId);
         return NoContent();
     }
 }

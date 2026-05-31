@@ -164,7 +164,15 @@ public class ProductProfile : Profile
                        .OrderBy(i => i.DisplayOrder)
                        .Select(i => i.Url)
                        .FirstOrDefault() ?? string.Empty))
-            // Type-specific fields 
+            .ForMember(dest => dest.SellerName,
+                opt => opt.MapFrom(src => src.Owner != null ? src.Owner.FullName : string.Empty))
+            .ForMember(dest => dest.SellerAvatarUrl,
+                opt => opt.MapFrom(src => src.Owner != null ? src.Owner.ProfileImageUrl : null))
+            .ForMember(dest => dest.CategoryName,
+                opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty))
+            .ForMember(dest => dest.FavoritesCount,
+                opt => opt.MapFrom(src => src.Favorites != null ? src.Favorites.Count : 0))
+            // Type-specific fields
             .ForMember(dest => dest.Price, opt => opt.Ignore())
             .ForMember(dest => dest.AllowNegotiation, opt => opt.Ignore())
             .ForMember(dest => dest.WantedItem, opt => opt.Ignore())

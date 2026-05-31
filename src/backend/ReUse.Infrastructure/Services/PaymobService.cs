@@ -24,27 +24,25 @@ public class PaymobService : IPaymentService
     private readonly IConfiguration _configuration;
     private readonly HttpClient _http;
     private readonly IUnitOfWork _uow;
-    private readonly string _publicKey;
-    private readonly string _secretKey;
-    private readonly string _hmac;
-    private readonly string _cardIntegrationId;
-    private readonly string _callbackUrl;
+
+    // Resolved lazily so a missing Paymob configuration does not break the
+    // construction of unrelated controllers that merely depend on this service.
+    private string _publicKey => _configuration["Paymob:PublicKey"] ??
+        throw new ArgumentException("Paymob public key not configured");
+    private string _secretKey => _configuration["Paymob:SecretKey"] ??
+        throw new ArgumentException("Paymob secret key not configured");
+    private string _hmac => _configuration["Paymob:HMAC"] ??
+        throw new ArgumentException("Paymob HMAC not configured");
+    private string _cardIntegrationId => _configuration["Paymob:CardIntegrationId"] ??
+        throw new ArgumentException("Paymob Card Integration ID not configured");
+    private string _callbackUrl => _configuration["Paymob:CallbackUrl"] ??
+        throw new ArgumentException("Paymob Callback Url not configured");
 
     public PaymobService(HttpClient http, IUnitOfWork uow, IConfiguration configuration)
     {
         _configuration = configuration;
         _uow = uow;
         _http = http;
-        _publicKey = _configuration["Paymob:PublicKey"] ??
-                    throw new ArgumentException("Paymob public key not configured");
-        _secretKey = _configuration["Paymob:SecretKey"] ??
-                     throw new ArgumentException("Paymob secret key not configured");
-        _hmac = _configuration["Paymob:HMAC"] ??
-                throw new ArgumentException("Paymob HMAC not configured");
-        _cardIntegrationId = _configuration["Paymob:CardIntegrationId"] ??
-                             throw new ArgumentException("Paymob Card Integration ID not configured");
-        _callbackUrl = _configuration["Paymob:CallbackUrl"] ??
-                       throw new ArgumentException("Paymob Callback Url not configured");
     }
 
     public async Task<string> Pay(List<ItemDto> items, BillingDataDto billingData, Guid userId, object? extras = null)

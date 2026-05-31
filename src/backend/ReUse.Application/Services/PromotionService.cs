@@ -106,11 +106,33 @@ public class PromotionService : IPromotionService
         if (extra.ProductId is null || extra.DurationDays is null)
             throw new BadRequestException("Missing premium metadata");
 
-        var product = await _unitOfWork.Product.GetByIdAsync(extra.ProductId.Value)
-                     ?? throw new NotFoundException("Product");
+        await SetPremiumAsync(extra.ProductId.Value, extra.DurationDays.Value);
+    }
 
-        product.PremiumExpiresAt = DateTime.UtcNow.AddDays(extra.DurationDays.Value);
+    public async Task SetPremiumAsync(Guid productId, int durationDays)
+    {
+        // Validates the duration against the supported tiers (throws on <= 0 or > 365).
+        CalculatePremiumAmount(durationDays);
+
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product");
+
+        if (product.Status == ProductStatus.Deleted)
+            throw new NotFoundException("Product");
+
         product.IsPremium = true;
+        product.PremiumExpiresAt = DateTime.UtcNow.AddDays(durationDays);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task RemovePremiumAsync(Guid productId)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+            ?? throw new NotFoundException("Product");
+
+        product.IsPremium = false;
+        product.PremiumExpiresAt = null;
 
         await _unitOfWork.SaveChangesAsync();
     }

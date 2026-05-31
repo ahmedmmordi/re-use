@@ -19,6 +19,7 @@ public record ProductResponse
     public string? LocationCity { get; init; }
     public string? LocationCountry { get; init; }
     public Guid OwnerUserId { get; init; }
+    public ProductStatus Status { get; init; }
     public DateTime CreatedAt { get; init; }
 
     // Type-specific
@@ -33,4 +34,10 @@ public record ProductResponse
     public string CoverImageUrl { get; init; } = string.Empty;
     public bool IsPremium { get; set; }
     public DateTime? PremiumExpiresAt { get; set; }
+
+    // Seller / category / engagement (Admin list view)
+    public string SellerName { get; init; } = string.Empty;
+    public string? SellerAvatarUrl { get; init; }
+    public int FavoritesCount { get; init; }
+    public string CategoryName { get; init; } = string.Empty;
 }

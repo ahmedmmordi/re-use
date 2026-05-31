@@ -22,6 +22,7 @@ export interface ProductResponse {
   locationCity: string | null;
   locationCountry: string | null;
   ownerUserId: string;
+  status: ProductStatus;
   createdAt: string;
   price: number | null;
   allowNegotiation: boolean;
@@ -31,6 +32,12 @@ export interface ProductResponse {
   maxPrice: number | null;
   images: ProductImage[];
   coverImageUrl: string;
+  isPremium: boolean;
+  premiumExpiresAt: string | null;
+  sellerName: string;
+  sellerAvatarUrl: string | null;
+  favoritesCount: number;
+  categoryName: string;
 }
 
 export interface ProductsQuery {
@@ -254,4 +261,118 @@ export async function createSwapProduct(req: CreateSwapProductRequest): Promise<
     body: form,
   });
   return handleResponse<ProductResponse>(res);
+}
+
+// ─── Admin endpoints ─────────────────────────────────────────────────────────
+
+export interface AdminProductsQuery {
+  pageNumber?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  categoryIds?: string[];
+  statuses?: ProductStatus[];
+  types?: ProductType[];
+  conditions?: ProductCondition[];
+  minPrice?: number;
+  maxPrice?: number;
+  location?: string;
+  sortBy?: "Newest" | "Price";
+  sortDirection?: "Asc" | "Desc";
+}
+
+export interface AdminProductsSummaryResponse {
+  totalProducts: number;
+  activeCount: number;
+  soldCount: number;
+  closedCount: number;
+  deletedCount: number;
+  underReviewCount: number;
+}
+
+export async function getAdminProducts(
+  query: AdminProductsQuery = {}
+): Promise<PagedResult<ProductResponse>> {
+  const params = new URLSearchParams();
+  if (query.pageNumber !== undefined) params.set("Pagination.PageNumber", String(query.pageNumber));
+  if (query.pageSize !== undefined) params.set("Pagination.PageSize", String(query.pageSize));
+  if (query.searchTerm) params.set("SearchTerm", query.searchTerm);
+  if (query.categoryIds) query.categoryIds.forEach((id) => params.append("CategoryIds", id));
+  if (query.statuses) query.statuses.forEach((s) => params.append("Statuses", s));
+  if (query.types) query.types.forEach((t) => params.append("Types", t));
+  if (query.conditions) query.conditions.forEach((c) => params.append("Conditions", c));
+  if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
+  if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
+  if (query.location) params.set("Location", query.location);
+  if (query.sortBy) params.set("SortBy", query.sortBy);
+  if (query.sortDirection) params.set("SortDirection", query.sortDirection);
+
+  const qs = params.toString();
+  const url = `${BASE_URL}/admin/products${qs ? `?${qs}` : ""}`;
+
+  const res = await fetch(url, { method: "GET", credentials: "include" });
+  return handleResponse<PagedResult<ProductResponse>>(res);
+}
+
+export async function getAdminProductsSummary(): Promise<AdminProductsSummaryResponse> {
+  const res = await fetch(`${BASE_URL}/admin/products/summary`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<AdminProductsSummaryResponse>(res);
+}
+
+async function handleEmptyResponse(res: Response): Promise<void> {
+  if (res.ok) return;
+  const errorData = await res.json().catch(() => ({ message: "Request failed" }));
+  throw new Error(errorData.message || "Request failed");
+}
+
+export async function deleteAdminProduct(productId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/products/${productId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await handleEmptyResponse(res);
+}
+
+export async function restoreAdminProduct(productId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/products/${productId}/restore`, {
+    method: "PATCH",
+    credentials: "include",
+  });
+  await handleEmptyResponse(res);
+}
+
+export async function changeAdminProductStatus(
+  productId: string,
+  status: ProductStatus
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/products/${productId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ status }),
+  });
+  await handleEmptyResponse(res);
+}
+
+export async function setAdminProductPremium(
+  productId: string,
+  durationDays: number
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/products/${productId}/premium`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ durationDays }),
+  });
+  await handleEmptyResponse(res);
+}
+
+export async function removeAdminProductPremium(productId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/products/${productId}/premium`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await handleEmptyResponse(res);
 }

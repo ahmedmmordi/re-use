@@ -142,9 +142,11 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
     public async Task<PagedResult<Product>> GetAllForAdminAsync(AdminProductFilterParams filterParams)
         => await _context.Products
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.ProductImages.OrderBy(i => i.DisplayOrder))
             .Include(p => p.Category)
             .Include(p => p.Owner)
+            .Include(p => p.Favorites)
             .FilterByStatuses(filterParams.Statuses)
             .FilterByOwner(filterParams.OwnerUserId)
             .FilterByDateRange(filterParams.CreatedFrom, filterParams.CreatedTo)

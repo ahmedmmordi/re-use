@@ -18,6 +18,7 @@ import FavoritesPageWrapper from "./pages/FavoritesPageWrapper";
 import MyProfilePageWrapper from "./pages/MyProfilePageWrapper";
 import PublicUserProfilePageWrapper from "./pages/PublicUserProfilePageWrapper";
 import CreateProductPageWrapper from "./pages/CreateProductPageWrapper";
+import ProductManagementPageWrapper from "./pages/ProductManagementPageWrapper";
 
 export const router = createBrowserRouter([
   // Public
@@ -82,6 +83,10 @@ export const router = createBrowserRouter([
       {
         path: "/admin/categories",
         Component: CategoryManagementPageWrapper,
+      },
+      {
+        path: "/admin/products",
+        Component: ProductManagementPageWrapper,
       },
     ],
   },
