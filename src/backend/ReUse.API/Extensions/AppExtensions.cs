@@ -32,8 +32,10 @@ public static class AppExtensions
         UserSeeder.SeedAsync(services).GetAwaiter().GetResult();
         CategorySeeder.SeedAsync(services).GetAwaiter().GetResult();
         ProductSeeder.SeedAsync(services).GetAwaiter().GetResult();
-        RecommendationSeeder.SeedAsync(services).GetAwaiter().GetResult();
-
+        FollowSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        CategoryFollowSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        FavoriteSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        CommentSeeder.SeedAsync(services).GetAwaiter().GetResult();
     }
 
     public static void UseSwaggerServices(this WebApplication app)

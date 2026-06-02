@@ -37,8 +37,8 @@ public class CommentRepository : BaseRepository<ProductComment>, ICommentReposit
                      && c.ParentCommentId == null);
 
         query = sortDirection == SortDirection.Asc
-            ? query.OrderBy(c => c.CreatedAt)
-            : query.OrderByDescending(c => c.CreatedAt);
+            ? query.OrderBy(c => c.CreatedAt).ThenBy(c => c.Id)
+            : query.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id);
 
         return await query
             .Select(c => new CommentResponse
@@ -94,8 +94,8 @@ public class CommentRepository : BaseRepository<ProductComment>, ICommentReposit
             .Where(c => c.ParentCommentId == parentCommentId && !c.IsDeleted);
 
         query = sortDirection == SortDirection.Asc
-            ? query.OrderBy(c => c.CreatedAt)
-            : query.OrderByDescending(c => c.CreatedAt);
+            ? query.OrderBy(c => c.CreatedAt).ThenBy(c => c.Id)
+            : query.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id);
 
         return await query
             .Select(c => new CommentResponse
