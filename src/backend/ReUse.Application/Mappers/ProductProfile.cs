@@ -122,6 +122,11 @@ public class ProductProfile : Profile
               opt => opt.MapFrom(src => src.Owner.FullName))
           .ForMember(dest => dest.MemberSince,
               opt => opt.MapFrom(src => src.Owner.CreatedAt.ToString("MMMM yyyy")))
+          .ForMember(dest => dest.OwnerRatingsAverage,
+              opt => opt.MapFrom(src => src.Owner.RatingsAverage))
+          .ForMember(dest => dest.OwnerRatingsCount,
+              opt => opt.MapFrom(src => src.Owner.RatingsCount))
+          .ForMember(dest => dest.OwnerIsVerified, opt => opt.Ignore())
           .ForMember(dest => dest.WantedCondition, opt => opt.Ignore());
 
 

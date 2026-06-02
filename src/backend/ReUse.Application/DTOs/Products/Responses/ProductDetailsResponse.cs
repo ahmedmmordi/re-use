@@ -32,6 +32,9 @@ public record ProductDetailsResponse
     public Guid OwnerUserId { get; init; }
     public string OwnerUserName { get; init; } = string.Empty;
     public string MemberSince { get; init; } = string.Empty;
+    public decimal OwnerRatingsAverage { get; init; }
+    public int OwnerRatingsCount { get; init; }
+    public bool OwnerIsVerified { get; set; }
     public bool IsPremium { get; set; }
     public DateTime? PremiumExpiresAt { get; set; }
 }

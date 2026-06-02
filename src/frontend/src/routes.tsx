@@ -22,6 +22,7 @@ import ProductManagementPageWrapper from "./pages/ProductManagementPageWrapper";
 import AccountSettingsPageWrapper from "./pages/AccountSettingsPageWrapper";
 import UserManagementPageWrapper from "./pages/UserManagementPageWrapper";
 import MyProductsPageWrapper from "./pages/MyProductsPageWrapper";
+import ProductDetailsPageWrapper from "./pages/ProductDetailsPageWrapper";
 
 export const router = createBrowserRouter([
   // Public
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
   {
     path: "/products",
     Component: ProductsPageWrapper,
+  },
+  {
+    path: "/product/:productId",
+    Component: ProductDetailsPageWrapper,
   },
   {
     path: "/categories",

@@ -10,6 +10,7 @@ using ReUse.Application.Enums;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
 using ReUse.Domain.Entities;
 using ReUse.Domain.Enums;
 
@@ -22,14 +23,21 @@ public class ProductService : IProductService
     public readonly IActivityService _activityService;
     private readonly IMapper _mapper;
     private readonly IRecommendationService _recommendationService;
-
-    public ProductService(IUnitOfWork unitOfWork, IProductImageService productImageService, IMapper mapper, IActivityService activityService, IRecommendationService recommendationService)
+    private readonly IEmailConfirmationService _emailConfirmationService;
+    public ProductService(
+        IUnitOfWork unitOfWork,
+        IProductImageService productImageService,
+        IMapper mapper,
+        IActivityService activityService,
+        IRecommendationService recommendationService,
+        IEmailConfirmationService emailConfirmationService)
     {
         _unitOfWork = unitOfWork;
         _productImageService = productImageService;
         _mapper = mapper;
         _activityService = activityService;
         _recommendationService = recommendationService;
+        _emailConfirmationService = emailConfirmationService;
     }
 
     #region Create
@@ -114,7 +122,11 @@ public class ProductService : IProductService
         if (product is null)
             throw new NotFoundException("Product");
 
-        return _mapper.Map<ProductDetailsResponse>(product);
+        var response = _mapper.Map<ProductDetailsResponse>(product);
+        response.OwnerIsVerified =
+            await _emailConfirmationService.IsEmailConfirmedAsync(product.Owner.IdentityUserId);
+
+        return response;
     }
     #endregion
 

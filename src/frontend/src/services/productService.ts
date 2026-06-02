@@ -40,6 +40,36 @@ export interface ProductResponse {
   categoryName: string;
 }
 
+export interface ProductDetailsResponse {
+  id: string;
+  title: string;
+  description: string;
+  type: ProductType;
+  condition: string | null;
+  status: string;
+  locationCity: string | null;
+  locationCountry: string | null;
+  price: number | null;
+  allowNegotiation: boolean | null;
+  wantedItemTitle: string | null;
+  wantedItemDescription: string | null;
+  wantedCondition: string | null;
+  desiredPriceMin: number | null;
+  desiredPriceMax: number | null;
+  images: string[];
+  createdAt: string;
+  categoryId: string;
+  categoryName: string;
+  ownerUserId: string;
+  ownerUserName: string;
+  memberSince: string;
+  ownerRatingsAverage: number;
+  ownerRatingsCount: number;
+  ownerIsVerified: boolean;
+  isPremium: boolean;
+  premiumExpiresAt: string | null;
+}
+
 export interface ProductsQuery {
   pageNumber?: number;
   pageSize?: number;
@@ -102,11 +132,11 @@ export async function listProducts(
   return handleResponse<PagedResult<ProductResponse>>(res);
 }
 
-export async function getProductById(productId: string): Promise<ProductResponse> {
+export async function getProductDetails(productId: string): Promise<ProductDetailsResponse> {
   const res = await fetch(`${BASE_URL}/Product/${productId}`, {
     method: "GET",
   });
-  return handleResponse<ProductResponse>(res);
+  return handleResponse<ProductDetailsResponse>(res);
 }
 
 export async function getProductsByUser(

@@ -62,4 +62,10 @@ public class EmailConfirmationService : IEmailConfirmationService
 
         await _otp.RemoveOtpAsync(key);
     }
+
+    public async Task<bool> IsEmailConfirmedAsync(string identityUserId)
+    {
+        var user = await _identityUserRepo.GetByIdAsync(identityUserId);
+        return user?.EmailConfirmed ?? false;
+    }
 }

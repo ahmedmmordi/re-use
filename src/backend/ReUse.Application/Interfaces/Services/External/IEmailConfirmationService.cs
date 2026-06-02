@@ -7,4 +7,5 @@ public interface IEmailConfirmationService
 {
     Task SendAsync(SendEmailConfirmationRequest request);
     Task ConfirmAsync(ConfirmEmailRequest request);
+    Task<bool> IsEmailConfirmedAsync(string identityUserId);
 }
