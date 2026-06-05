@@ -181,12 +181,10 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
                 g.Count(),
                 g.Count(p => p.Status == ProductStatus.Active),
                 g.Count(p => p.Status == ProductStatus.Sold),
-                g.Count(p => p.Status == ProductStatus.Closed),
-                g.Count(p => p.Status == ProductStatus.Deleted),
-                g.Count(p => p.Status == ProductStatus.UnderReview)))
+                g.Count(p => p.Status == ProductStatus.Deleted)))
             .FirstOrDefaultAsync();
 
-        return counts ?? new AdminProductsSummary(0, 0, 0, 0, 0, 0);
+        return counts ?? new AdminProductsSummary(0, 0, 0, 0);
     }
     #endregion
 }

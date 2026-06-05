@@ -4,7 +4,6 @@ public enum ProductStatus
 {
     Active,
     Sold,
-    Closed,
+    Archived,
     Deleted,
-    UnderReview
 }

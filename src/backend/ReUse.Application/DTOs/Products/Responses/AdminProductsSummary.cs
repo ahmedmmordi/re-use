@@ -4,6 +4,4 @@ public record AdminProductsSummary(
     int Total,
     int Active,
     int Sold,
-    int Closed,
-    int Deleted,
-    int UnderReview);
+    int Deleted);

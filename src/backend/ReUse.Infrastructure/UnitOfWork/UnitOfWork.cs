@@ -28,6 +28,8 @@ public class UnitOfWork : IUnitOfWork
         activities = new ActivityRepository(_context);
         Recommendations = new RecommendationRepository(_context);
         Feedback = new FeedbackRepository(_context);
+        PurchaseRequests = new PurchaseRequestRepository(_context);
+        ProductSales = new ProductSaleRepository(_context);
     }
     public IUserRepository User { get; private set; }
 
@@ -49,6 +51,9 @@ public class UnitOfWork : IUnitOfWork
     public IActivityRepository activities { get; private set; }
 
     public IRecommendationRepository Recommendations { get; private set; }
+    public IPurchaseRequestRepository PurchaseRequests { get; private set; }
+    public IProductSaleRepository ProductSales { get; private set; }
+
 
     public async Task CommitTransactionAsync()
     {

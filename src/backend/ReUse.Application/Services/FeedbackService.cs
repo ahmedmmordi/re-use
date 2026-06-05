@@ -219,8 +219,8 @@ public class FeedbackService : IFeedbackService
         if (product is null || product.Status == ProductStatus.Deleted)
             throw new NotFoundException("Product");
 
-        if (product.Status != ProductStatus.Closed)
-            throw new BadRequestException("You can only leave feedback after the product is closed.");
+        // if (product.Status != ProductStatus.Closed)
+        //     throw new BadRequestException("You can only leave feedback after the product is closed.");
 
         return product;
     }

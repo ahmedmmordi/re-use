@@ -31,6 +31,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserNotificationSetting> UserNotificationSettings { get; set; }
 
     public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<PurchaseRequest> PurchaseRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

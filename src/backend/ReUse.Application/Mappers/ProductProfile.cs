@@ -215,9 +215,7 @@ public class ProductProfile : Profile
           .ForMember(dest => dest.TotalProducts, opt => opt.MapFrom(src => src.Total))
           .ForMember(dest => dest.ActiveCount, opt => opt.MapFrom(src => src.Active))
           .ForMember(dest => dest.SoldCount, opt => opt.MapFrom(src => src.Sold))
-          .ForMember(dest => dest.ClosedCount, opt => opt.MapFrom(src => src.Closed))
-          .ForMember(dest => dest.DeletedCount, opt => opt.MapFrom(src => src.Deleted))
-          .ForMember(dest => dest.UnderReviewCount, opt => opt.MapFrom(src => src.UnderReview));
+          .ForMember(dest => dest.DeletedCount, opt => opt.MapFrom(src => src.Deleted));
         #endregion
 
         #endregion

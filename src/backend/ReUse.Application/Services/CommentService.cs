@@ -178,7 +178,7 @@ public class CommentService : ICommentService
     private async Task<Product> RequireActiveProductAsync(Guid productId)
     {
         var product = await _unitOfWork.Product.GetByIdAsync(productId);
-        if (product is null || product.Status == ProductStatus.Deleted || product.Status == ProductStatus.Closed)
+        if (product is null || product.Status != ProductStatus.Active)
             throw new NotFoundException("Product");
 
         return product;
