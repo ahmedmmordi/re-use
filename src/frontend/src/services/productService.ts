@@ -159,6 +159,44 @@ export async function getMyListings(query: MyListingsQuery = {}): Promise<Seller
   return handleResponse<SellerDashboardResponse>(res);
 }
 
+export interface PremiumPriceResponse {
+  durationDays: number;
+  amount: number;
+  currency: string;
+}
+
+/** GET /api/Product/premium/price — price quote for a premium duration. */
+export async function getPremiumPrice(durationDays: number): Promise<PremiumPriceResponse> {
+  const res = await fetch(`${BASE_URL}/Product/premium/price?DurationDays=${durationDays}`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<PremiumPriceResponse>(res);
+}
+
+/** POST /api/Product/{productId}/premium — start premium payment, returns Paymob payment URL. */
+export async function makePremium(
+  productId: string,
+  durationDays: number
+): Promise<{ paymentUrl: string }> {
+  const res = await fetch(`${BASE_URL}/Product/${productId}/premium`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ durationDays }),
+  });
+  return handleResponse<{ paymentUrl: string }>(res);
+}
+
+/** DELETE /api/Product/{productId} — delete own listing. */
+export async function deleteProduct(productId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/Product/${productId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await handleEmptyResponse(res);
+}
+
 // ─── Create endpoints ──────────────────────────────────────────────────────
 
 export interface CreateRegularProductRequest {
