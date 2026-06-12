@@ -5,6 +5,8 @@ import { Footer } from "../components/Footer";
 import { CategoryBar } from "../components/CategoryBar.tsx";
 import { AdminNavbar } from "../components/AdminNavbar.tsx";
 import { HeroSection } from "../components/HeroSection.tsx";
+import { RecommendedSection } from "../components/RecommendedSection.tsx";
+import { PopularCategoriesSection } from "../components/PopularCategoriesSection.tsx";
 
 export default function HomePage() {
   const { isLoading, user } = useAuth();
@@ -22,8 +24,9 @@ export default function HomePage() {
       {user?.role === "Admin" ? <AdminNavbar /> : user ? <LoggedInNavbar /> : <Navbar />}
       <CategoryBar />
       <HeroSection />
-      <div className="flex-1 flex items-center justify-center">
-        <h1 className="text-3xl font-bold">Home</h1>
+      <div className="flex-1">
+        <RecommendedSection />
+        <PopularCategoriesSection />
       </div>
       <Footer />
     </div>
