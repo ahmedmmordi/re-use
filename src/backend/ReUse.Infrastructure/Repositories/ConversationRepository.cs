@@ -29,6 +29,16 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
                 c.SellerId == sellerId);
     }
 
+    public async Task<List<Conversation>> GetByProductIdAsync(Guid productId)
+    {
+        return await _context.Conversations
+            .Where(c =>
+                c.IsActive &&
+                c.Status == ConversationStatus.Active &&
+                c.ProductId == productId)
+            .ToListAsync();
+    }
+
     public async Task<Conversation?> GetWithDetailsAsync(Guid conversationId)
     {
         return await _context.Conversations

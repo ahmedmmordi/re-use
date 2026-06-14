@@ -26,4 +26,6 @@ public interface IConversationRepository : IBaseRepository<Conversation>
     Task<bool> HasPendingOfferAsync(Guid conversationId, Guid sellerId);
 
     Task<List<Conversation>> GetInactiveConversationsAsync(DateTime cutoff);
+
+    Task<List<Conversation>> GetByProductIdAsync(Guid productId);
 }

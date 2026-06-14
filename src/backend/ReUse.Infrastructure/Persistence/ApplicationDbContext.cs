@@ -33,6 +33,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserNotificationSetting> UserNotificationSettings { get; set; }
 
     public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<ProductDeal> ProductDeals { get; set; }
 
     public DbSet<Report> Reports { get; set; }
 

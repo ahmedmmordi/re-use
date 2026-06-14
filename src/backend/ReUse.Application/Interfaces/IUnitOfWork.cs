@@ -33,6 +33,7 @@ public interface IUnitOfWork : IDisposable
     IFeedbackRepository Feedback { get; }
 
     IReportRepository Reports { get; }
+    IProductDealRepository ProductDeal { get; }
 
     Task<int> SaveChangesAsync();
     void Dispose();

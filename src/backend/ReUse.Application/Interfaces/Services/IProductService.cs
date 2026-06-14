@@ -10,6 +10,7 @@ using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Products;
 using ReUse.Application.DTOs.Products.Requests;
 using ReUse.Application.DTOs.Products.Responses;
+using ReUse.Domain.Entities;
 using ReUse.Domain.Enums;
 
 namespace ReUse.Application.Interfaces.Services;
@@ -42,4 +43,12 @@ public interface IProductService
 
     Task ChangeProductStatusByAdminAsync(Guid productId, ProductStatus status);
     Task RestoreProductByAdminAsync(Guid productId);
+
+    Task CloseProductAsync(Guid productId, Guid userId, CloseProductRequest request);
+
+    Task ConfirmDealAsync(Guid dealId, Guid userId);
+
+    Task RejectDealAsync(Guid dealId, Guid userId);
+
+    Task<List<ProductDeal>> GetMyDealsAsync(Guid userId);
 }

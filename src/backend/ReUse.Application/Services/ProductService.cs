@@ -519,4 +519,122 @@ public class ProductService : IProductService
 
     #endregion
 
+    public async Task CloseProductAsync(
+        Guid productId,
+        Guid userId,
+        CloseProductRequest request)
+    {
+        var product = await _unitOfWork.Product.GetByIdAsync(productId)
+                      ?? throw new NotFoundException("Product");
+
+        if (product.OwnerUserId != userId)
+            throw new ForbiddenException("You don't own this product");
+
+        if (product.Status != ProductStatus.Active)
+            throw new BadRequestException("Product isn't active");
+
+        var conversation = await _unitOfWork.Conversation.GetByIdAsync(request.ConversationId)
+                           ?? throw new NotFoundException("Conversation");
+
+        if (conversation.ProductId != productId)
+            throw new BadRequestException("Conversation doesn't belong to this product");
+
+        bool exists = await _unitOfWork.ProductDeal
+            .ExistsByConversationIdAsync(conversation.Id);
+
+        if (exists)
+            throw new BadRequestException("Deal already exists");
+
+        var deal = new ProductDeal
+        {
+            ProductId = product.Id,
+            ConversationId = conversation.Id,
+
+            SellerId = conversation.SellerId,
+            BuyerId = conversation.BuyerId,
+
+            DealType = request.ClosureType switch
+            {
+                ProductClosureType.Sold => DealType.DirectPurchase,
+                ProductClosureType.Swapped => DealType.Swap,
+                ProductClosureType.WantedFulfilled => DealType.WantedOffer,
+                _ => throw new BadRequestException("Unsupported closure type")
+            },
+
+            AgreedPrice = request.FinalPrice,
+            Notes = request.Notes,
+
+            SellerConfirmed = true,
+            BuyerConfirmed = false
+        };
+
+        _unitOfWork.ProductDeal.Add(deal);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task ConfirmDealAsync(Guid dealId, Guid userId)
+    {
+        var deal = await _unitOfWork.ProductDeal.GetByIdAsync(dealId)
+            ?? throw new NotFoundException("Deal");
+
+        if (deal.BuyerId != userId)
+            throw new ForbiddenException("You aren't the buyer");
+
+        if (deal.BuyerConfirmed)
+            return;
+
+        var product = await _unitOfWork.Product.GetByIdAsync(deal.ProductId)
+            ?? throw new NotFoundException("Product");
+
+        if (product.Status != ProductStatus.Active)
+            throw new BadRequestException("Deal can only be confirmed while product is active");
+
+        deal.BuyerConfirmed = true;
+        deal.CompletedAt = DateTime.UtcNow;
+
+        product.Status = ProductStatus.Closed;
+
+        var winningConversation =
+            await _unitOfWork.Conversation.GetByIdAsync(deal.ConversationId);
+
+        winningConversation!.Status = ConversationStatus.Closed;
+        winningConversation.IsActive = false;
+
+        var conversations =
+            await _unitOfWork.Conversation.GetByProductIdAsync(product.Id);
+
+        foreach (var conversation in conversations)
+        {
+            if (conversation.Id == winningConversation.Id)
+                continue;
+
+            conversation.Status = ConversationStatus.Closed;
+            conversation.IsActive = false;
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task RejectDealAsync(Guid dealId, Guid userId)
+    {
+        var deal = await _unitOfWork.ProductDeal.GetByIdAsync(dealId)
+                   ?? throw new NotFoundException("Deal");
+
+        if (deal.BuyerId != userId)
+            throw new ForbiddenException("You aren't the buyer");
+
+        if (deal.BuyerConfirmed)
+            throw new BadRequestException("Confirmed deal cannot be rejected");
+
+        _unitOfWork.ProductDeal.Remove(deal);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<List<ProductDeal>> GetMyDealsAsync(Guid userId)
+    {
+        var deals = await _unitOfWork.ProductDeal.GetByUserIdAsync(userId);
+        return deals;
+    }
 }
