@@ -9,6 +9,7 @@ public record ReportDetailsResponse
     public Guid TargetId { get; init; }
     public ReportReason Reason { get; init; }
     public string? Notes { get; init; }
+    public string? TargetCommentBody { get; init; }
     public ReportStatus Status { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime? UpdatedAt { get; init; }

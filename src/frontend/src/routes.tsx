@@ -29,6 +29,7 @@ import LegalPage from "./pages/LegalPage";
 import SearchRedirectPage from "./pages/SearchRedirectPage";
 import MyProductsPageWrapper from "./pages/MyProductsPageWrapper";
 import ProductDetailsPageWrapper from "./pages/ProductDetailsPageWrapper";
+import AdminReportsPageWrapper from "./pages/AdminReportsPageWrapper";
 
 const routeErrorElement = <GlobalErrorPage />;
 
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
       {
         path: "/product/:productId",
         Component: ProductDetailsPageWrapper,
+        errorElement: routeErrorElement,
       },
       {
         path: "/categories",
@@ -144,6 +146,10 @@ export const router = createBrowserRouter([
           {
             path: "/admin/payments",
             Component: AdminPaymentsPageWrapper,
+          },
+          {
+            path: "/admin/reports",
+            Component: AdminReportsPageWrapper,
           },
         ],
       },
