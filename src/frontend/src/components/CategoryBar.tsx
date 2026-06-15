@@ -170,7 +170,7 @@ export function CategoryBar() {
                 <button
                   key={category.id}
                   onClick={() => handleCategoryClick(category.id)}
-                  className={`flex flex-col items-center justify-center gap-1.5 px-2 py-1.5 min-w-[60px] max-w-[70px] cursor-pointer transition-all duration-200 rounded-lg group flex-shrink-0 ${
+                  className={`flex flex-col items-center justify-center gap-1.5 px-2 py-1.5 min-w-[60px] cursor-pointer transition-all duration-200 rounded-lg group flex-shrink-0 ${
                     isActive ? "text-[#7C3AED] bg-[#F3E8FF]" : "text-[#374151] hover:bg-[#F3F4F6]"
                   }`}
                 >
@@ -195,7 +195,7 @@ export function CategoryBar() {
             {/* View All button */}
             <button
               onClick={() => navigate("/categories")}
-              className="flex flex-col items-center justify-center gap-1.5 px-2 py-1.5 min-w-[60px] max-w-[70px] cursor-pointer transition-all duration-200 rounded-lg group flex-shrink-0 text-[#374151] hover:bg-[#F3F4F6] border border-[#D1D5DB]"
+              className="flex flex-col items-center justify-center gap-1.5 px-2 py-1.5 min-w-[60px] cursor-pointer transition-all duration-200 rounded-lg group flex-shrink-0 text-[#374151] hover:bg-[#F3F4F6] border border-[#D1D5DB]"
             >
               <div className="transition-colors duration-200 text-[#374151] group-hover:text-[#1F2937]">
                 <Grid3x3 className="w-6 h-6" />

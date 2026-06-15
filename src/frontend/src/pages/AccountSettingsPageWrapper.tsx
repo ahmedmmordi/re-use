@@ -3,6 +3,7 @@ import { CategoryBar } from "../components/CategoryBar";
 import { AccountSettingsPage } from "../components/AccountSettingsPage";
 import { LoggedInNavbar } from "../components/LoggedInNavbar";
 import { AdminNavbar } from "../components/AdminNavbar";
+import { Footer } from "../components/Footer";
 
 export default function AccountSettingsPageWrapper() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export default function AccountSettingsPageWrapper() {
       <div className="flex-1">
         <AccountSettingsPage />
       </div>
+      <Footer />
     </div>
   );
 }

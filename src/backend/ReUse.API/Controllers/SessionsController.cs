@@ -4,8 +4,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using ReUse.API.Extensions;
 using ReUse.API.Responses;
 using ReUse.Application.DTOs.Auth;
+using ReUse.Application.Interfaces.Services;
 using ReUse.Application.Interfaces.Services.External;
 
 namespace ReUse.API.Controllers;
@@ -22,15 +24,17 @@ namespace ReUse.API.Controllers;
 public class SessionsController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IUserService _userService;
 
-    public SessionsController(IAuthService authService)
+    public SessionsController(IAuthService authService, IUserService userService)
     {
         _authService = authService;
+        _userService = userService;
     }
 
     [HttpGet("me")]
     [Authorize]
-    public IActionResult GetMe()
+    public async Task<IActionResult> GetMe()
     {
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -38,10 +42,16 @@ public class SessionsController : ControllerBase
         if (email == null)
             return Unauthorized();
 
+        var profile = await _userService.GetUserProfileAsync(User.GetBusinessId());
+        if (profile is null)
+            return Unauthorized();
+
         return Ok(new
         {
             email,
-            role
+            role,
+            fullName = profile.FullName,
+            profileImageUrl = profile.ProfileImageUrl
         });
     }
 

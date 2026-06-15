@@ -433,8 +433,16 @@ export function ProductDetailsPage() {
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
               <h3 className="text-[18px] font-semibold text-gray-900 mb-4">Seller Information</h3>
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-[20px] font-bold">
-                  {product.ownerUserName.charAt(0).toUpperCase()}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-[20px] font-bold overflow-hidden">
+                  {product.ownerProfileImageUrl ? (
+                    <img
+                      src={product.ownerProfileImageUrl}
+                      alt={product.ownerUserName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    product.ownerUserName.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

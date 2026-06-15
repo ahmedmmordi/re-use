@@ -34,7 +34,7 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-5">
               {/* Sell Now Button */}
               <button
-                onClick={() => navigate("/sell")}
+                onClick={() => navigate("/create-product")}
                 className="bg-[#4169E1] text-white text-[15px] sm:text-[16px] md:text-[17px] font-semibold px-8 sm:px-10 md:px-12 py-4 sm:py-4.5 md:py-5 rounded-xl hover:bg-[#3557c7] hover:shadow-2xl transition-all duration-200 hover:scale-[1.03] hover:-translate-y-0.5"
               >
                 Sell Now

@@ -30,9 +30,9 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
   const notificationCount = 0; // TODO: wire up when implemented
   const chatCount = 0; // TODO: wire up when implemented
 
-  // TODO: One of the next two email should be the fullName of the user
-  const displayName = user?.email ?? "User";
-  const displayAvatar = (user?.email?.[0] ?? "U").toUpperCase();
+  const displayName = user?.fullName || user?.email || "User";
+  const displayAvatar = (user?.fullName?.[0] ?? user?.email?.[0] ?? "U").toUpperCase();
+  const avatarUrl = user?.profileImageUrl ?? null;
   const isAdmin = user?.role === "Admin";
 
   const handleSearch = (query: string) => {
@@ -135,8 +135,12 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2 lg:gap-3 text-white p-2 pr-3 rounded-lg hover:bg-white/10 transition-all duration-200"
               >
-                <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center font-semibold text-white text-sm">
-                  {displayAvatar}
+                <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center font-semibold text-white text-sm overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    displayAvatar
+                  )}
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-200 ${isProfileOpen ? "rotate-180" : ""}`}
@@ -157,8 +161,16 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
                     {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center font-semibold text-white text-base">
-                          {displayAvatar}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center font-semibold text-white text-base overflow-hidden">
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={displayName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            displayAvatar
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 text-[15px]">{displayName}</p>

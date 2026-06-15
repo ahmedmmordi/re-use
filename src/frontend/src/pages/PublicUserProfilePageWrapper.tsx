@@ -4,6 +4,7 @@ import { PublicUserProfilePage } from "../components/PublicUserProfilePage";
 import { Navbar } from "../components/Navbar";
 import { AdminNavbar } from "../components/AdminNavbar";
 import { LoggedInNavbar } from "../components/LoggedInNavbar";
+import { Footer } from "../components/Footer";
 
 export default function PublicUserProfilePageWrapper() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function PublicUserProfilePageWrapper() {
       <div className="flex-1">
         <PublicUserProfilePage />
       </div>
+      <Footer />
     </div>
   );
 }

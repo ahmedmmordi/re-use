@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, ChevronLeft, Mail, MapPin, Phone, Save, Settings, Trash2, X } from "lucide-react";
+import {
+  Camera,
+  Check,
+  ChevronLeft,
+  Copy,
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+  Settings,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   getMyProfile,
   updateMyProfile,
@@ -73,6 +85,10 @@ function diffForm(initial: FormState, current: FormState): UpdateUserProfileRequ
   return diff;
 }
 
+function shortId(id: string): string {
+  return id.split("-")[0] ?? id.slice(0, 8);
+}
+
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
@@ -111,6 +127,7 @@ export function MyProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [idCopied, setIdCopied] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
 
@@ -580,9 +597,29 @@ export function MyProfilePage() {
           {/* Profile body */}
           <div className="pt-20 px-6 sm:px-8 pb-8">
             <div className="mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {formData.fullName || profile.fullName}
-              </h1>
+              <div className="flex items-center flex-wrap gap-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {formData.fullName || profile.fullName}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(profile.id).then(() => {
+                      setIdCopied(true);
+                      setTimeout(() => setIdCopied(false), 2000);
+                    });
+                  }}
+                  className="flex items-center gap-1 text-xs font-mono text-gray-500 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
+                  title="Copy full ID"
+                >
+                  #{shortId(profile.id)}
+                  {idCopied ? (
+                    <Check className="w-3 h-3 text-green-500" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
               {profile.email && (
                 <p className="text-gray-500 text-sm mt-1 flex items-center gap-1.5">
                   <Mail className="w-4 h-4" />

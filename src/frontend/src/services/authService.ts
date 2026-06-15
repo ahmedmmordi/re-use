@@ -41,6 +41,8 @@ export type UserRole = "User" | "Admin";
 export interface AuthUser {
   email: string;
   role: UserRole;
+  fullName: string;
+  profileImageUrl: string | null;
 }
 
 export async function getMe(): Promise<AuthUser> {

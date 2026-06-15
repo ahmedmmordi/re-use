@@ -120,6 +120,8 @@ public class ProductProfile : Profile
                      .ToList()))
           .ForMember(dest => dest.OwnerUserName,
               opt => opt.MapFrom(src => src.Owner.FullName))
+          .ForMember(dest => dest.OwnerProfileImageUrl,
+              opt => opt.MapFrom(src => src.Owner.ProfileImageUrl))
           .ForMember(dest => dest.MemberSince,
               opt => opt.MapFrom(src => src.Owner.CreatedAt.ToString("MMMM yyyy")))
           .ForMember(dest => dest.OwnerRatingsAverage,

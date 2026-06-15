@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { RootLayout } from "./components/RootLayout";
 import LoginPageWrapper from "./pages/LoginPageWrapper";
 import SignUpPageWrapper from "./pages/SignUpPageWrapper";
 import VerificationPageWrapper from "./pages/VerificationPageWrapper";
@@ -25,97 +26,160 @@ import NotFoundPage from "./pages/NotFoundPage";
 import GlobalErrorPage from "./pages/GlobalErrorPage";
 import LegalPage from "./pages/LegalPage";
 import SearchRedirectPage from "./pages/SearchRedirectPage";
-
-const routeErrorElement = <GlobalErrorPage />;
 import MyProductsPageWrapper from "./pages/MyProductsPageWrapper";
 import ProductDetailsPageWrapper from "./pages/ProductDetailsPageWrapper";
 
+const routeErrorElement = <GlobalErrorPage />;
+
 export const router = createBrowserRouter([
-  // Public
   {
-    path: "/",
-    Component: HomePage,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/products",
-    Component: ProductsPageWrapper,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/search",
-    Component: SearchRedirectPage,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/product/:productId",
-    Component: ProductDetailsPageWrapper,
-  },
-  {
-    path: "/categories",
-    Component: CategoriesPageWrapper,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/category/:categoryId",
-    Component: CategoryProductsPageWrapper,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/unauthorized",
-    Component: UnauthorizedPage,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/profile/:userId",
-    Component: PublicUserProfilePageWrapper,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/error",
-    Component: GlobalErrorPage,
-  },
-  {
-    path: "/legal",
-    Component: LegalPage,
-    errorElement: routeErrorElement,
-  },
-  {
-    path: "/terms",
-    element: <Navigate to="/legal?tab=terms" replace />,
-  },
-  {
-    path: "/privacy",
-    element: <Navigate to="/legal?tab=privacy" replace />,
-  },
-  // Only for NON-auth users
-  {
-    element: <GuestRoute />,
-    errorElement: routeErrorElement,
+    Component: RootLayout,
     children: [
+      // Public
       {
-        path: "/login",
-        Component: LoginPageWrapper,
+        path: "/",
+        Component: HomePage,
+        errorElement: routeErrorElement,
       },
       {
-        path: "/signup",
-        Component: SignUpPageWrapper,
+        path: "/products",
+        Component: ProductsPageWrapper,
+        errorElement: routeErrorElement,
       },
       {
-        path: "/verification",
-        Component: VerificationPageWrapper,
+        path: "/search",
+        Component: SearchRedirectPage,
+        errorElement: routeErrorElement,
       },
       {
-        path: "/forgot-password",
-        Component: ForgotPasswordPageWrapper,
+        path: "/product/:productId",
+        Component: ProductDetailsPageWrapper,
       },
       {
-        path: "/reset-password/verify",
-        Component: ResetPasswordVerificationPageWrapper,
+        path: "/categories",
+        Component: CategoriesPageWrapper,
+        errorElement: routeErrorElement,
       },
       {
-        path: "/reset-password",
-        Component: ResetPasswordPageWrapper,
+        path: "/category/:categoryId",
+        Component: CategoryProductsPageWrapper,
+        errorElement: routeErrorElement,
+      },
+      {
+        path: "/unauthorized",
+        Component: UnauthorizedPage,
+        errorElement: routeErrorElement,
+      },
+      {
+        path: "/profile/:userId",
+        Component: PublicUserProfilePageWrapper,
+        errorElement: routeErrorElement,
+      },
+      {
+        path: "/error",
+        Component: GlobalErrorPage,
+      },
+      {
+        path: "/legal",
+        Component: LegalPage,
+        errorElement: routeErrorElement,
+      },
+      {
+        path: "/terms",
+        element: <Navigate to="/legal?tab=terms" replace />,
+      },
+      {
+        path: "/privacy",
+        element: <Navigate to="/legal?tab=privacy" replace />,
+      },
+      // Only for NON-auth users
+      {
+        element: <GuestRoute />,
+        errorElement: routeErrorElement,
+        children: [
+          {
+            path: "/login",
+            Component: LoginPageWrapper,
+          },
+          {
+            path: "/signup",
+            Component: SignUpPageWrapper,
+          },
+          {
+            path: "/verification",
+            Component: VerificationPageWrapper,
+          },
+          {
+            path: "/forgot-password",
+            Component: ForgotPasswordPageWrapper,
+          },
+          {
+            path: "/reset-password/verify",
+            Component: ResetPasswordVerificationPageWrapper,
+          },
+          {
+            path: "/reset-password",
+            Component: ResetPasswordPageWrapper,
+          },
+        ],
+      },
+      // Protected (admin)
+      {
+        element: <ProtectedRoute allowedRoles={["Admin"]} />,
+        errorElement: routeErrorElement,
+        children: [
+          {
+            path: "/admin/categories",
+            Component: CategoryManagementPageWrapper,
+          },
+          {
+            path: "/admin/products",
+            Component: ProductManagementPageWrapper,
+          },
+          {
+            path: "/admin/users",
+            Component: UserManagementPageWrapper,
+          },
+        ],
+      },
+      // Protected
+      {
+        element: <ProtectedRoute />,
+        errorElement: routeErrorElement,
+        children: [
+          {
+            path: "/followers-following",
+            Component: FollowersFollowingPageWrapper,
+          },
+          {
+            path: "/favorites",
+            Component: FavoritesPageWrapper,
+          },
+          {
+            path: "/my-profile",
+            Component: MyProfilePageWrapper,
+          },
+          {
+            path: "/create-product",
+            Component: CreateProductPageWrapper,
+          },
+          {
+            path: "/account-settings",
+            Component: AccountSettingsPageWrapper,
+          },
+          {
+            path: "/admin/settings",
+            element: <Navigate to="/account-settings" replace />,
+          },
+          {
+            path: "/my-products",
+            Component: MyProductsPageWrapper,
+          },
+        ],
+      },
+      {
+        path: "*",
+        Component: NotFoundPage,
       },
     ],
   },

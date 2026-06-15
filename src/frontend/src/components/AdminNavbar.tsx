@@ -77,9 +77,9 @@ export function AdminNavbar() {
     };
   }, []);
 
-  // TODO: One of the next two should be the fullName of the user once the backend returns it
-  const displayName = user?.email ?? "User";
-  const displayAvatar = (user?.email?.[0] ?? "U").toUpperCase();
+  const displayName = user?.fullName || user?.email || "User";
+  const displayAvatar = (user?.fullName?.[0] ?? user?.email?.[0] ?? "U").toUpperCase();
+  const avatarUrl = user?.profileImageUrl ?? null;
 
   const navGroups = [
     {
@@ -246,8 +246,12 @@ export function AdminNavbar() {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">{displayAvatar}</span>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white text-sm font-bold">{displayAvatar}</span>
+                  )}
                 </div>
                 <div className="hidden md:block text-left">
                   <div className="text-white text-sm font-medium leading-tight">{displayName}</div>
@@ -263,13 +267,19 @@ export function AdminNavbar() {
                 <div className="absolute right-0 mt-2 w-95 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
                   <div className="p-4 bg-gradient-to-r from-[#3d2e7c] to-[#4a3689]">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <span className="text-white text-lg font-bold">
-                          {(user?.email?.[0] ?? "A").toUpperCase()}
-                        </span>
+                      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={displayName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-white text-lg font-bold">{displayAvatar}</span>
+                        )}
                       </div>
                       <div>
-                        <div className="text-white font-semibold">{user?.email ?? "Admin"}</div>
+                        <div className="text-white font-semibold">{displayName}</div>
                         <div className="text-white/80 text-xs">
                           {user?.email || "admin@reuse.com"}
                         </div>

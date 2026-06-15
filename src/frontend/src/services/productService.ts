@@ -62,6 +62,7 @@ export interface ProductDetailsResponse {
   categoryName: string;
   ownerUserId: string;
   ownerUserName: string;
+  ownerProfileImageUrl: string | null;
   memberSince: string;
   ownerRatingsAverage: number;
   ownerRatingsCount: number;

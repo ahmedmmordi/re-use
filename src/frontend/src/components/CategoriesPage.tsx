@@ -163,19 +163,19 @@ export function CategoriesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
             {filteredCategories.map((category) => {
               const isExpanded = expandedCategory === category.id;
 
               return (
                 <div
                   key={category.id}
-                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group hover:bg-gradient-to-br hover:from-[#F3E8FF] hover:to-[#EDE9FE]"
                 >
                   {/* Category Header */}
                   <div
                     onClick={() => toggleCategory(category.id)}
-                    className="p-5 sm:p-6 cursor-pointer hover:bg-gradient-to-br hover:from-[#F3E8FF] hover:to-[#EDE9FE] transition-all duration-300 group"
+                    className="p-5 sm:p-6 cursor-pointer transition-all duration-300"
                   >
                     <div className="flex items-start gap-4 sm:gap-5">
                       {/* Cover / Icon */}
