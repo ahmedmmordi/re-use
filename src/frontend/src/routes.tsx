@@ -22,6 +22,7 @@ import CreateProductPageWrapper from "./pages/CreateProductPageWrapper";
 import ProductManagementPageWrapper from "./pages/ProductManagementPageWrapper";
 import AccountSettingsPageWrapper from "./pages/AccountSettingsPageWrapper";
 import UserManagementPageWrapper from "./pages/UserManagementPageWrapper";
+import AdminPaymentsPageWrapper from "./pages/AdminPaymentsPageWrapper";
 import NotFoundPage from "./pages/NotFoundPage";
 import GlobalErrorPage from "./pages/GlobalErrorPage";
 import LegalPage from "./pages/LegalPage";
@@ -140,6 +141,10 @@ export const router = createBrowserRouter([
             path: "/admin/users",
             Component: UserManagementPageWrapper,
           },
+          {
+            path: "/admin/payments",
+            Component: AdminPaymentsPageWrapper,
+          },
         ],
       },
       // Protected
@@ -182,63 +187,5 @@ export const router = createBrowserRouter([
         Component: NotFoundPage,
       },
     ],
-  },
-  // Protected (admin)
-  {
-    element: <ProtectedRoute allowedRoles={["Admin"]} />,
-    errorElement: routeErrorElement,
-    children: [
-      {
-        path: "/admin/categories",
-        Component: CategoryManagementPageWrapper,
-      },
-      {
-        path: "/admin/products",
-        Component: ProductManagementPageWrapper,
-      },
-      {
-        path: "/admin/users",
-        Component: UserManagementPageWrapper,
-      },
-    ],
-  },
-  // Protected
-  {
-    element: <ProtectedRoute />,
-    errorElement: routeErrorElement,
-    children: [
-      {
-        path: "/followers-following",
-        Component: FollowersFollowingPageWrapper,
-      },
-      {
-        path: "/favorites",
-        Component: FavoritesPageWrapper,
-      },
-      {
-        path: "/my-profile",
-        Component: MyProfilePageWrapper,
-      },
-      {
-        path: "/create-product",
-        Component: CreateProductPageWrapper,
-      },
-      {
-        path: "/account-settings",
-        Component: AccountSettingsPageWrapper,
-      },
-      {
-        path: "/admin/settings",
-        element: <Navigate to="/account-settings" replace />,
-      },
-      {
-        path: "/my-products",
-        Component: MyProductsPageWrapper,
-      },
-    ],
-  },
-  {
-    path: "*",
-    Component: NotFoundPage,
   },
 ]);
