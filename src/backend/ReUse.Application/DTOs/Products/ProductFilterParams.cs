@@ -38,6 +38,9 @@ public class ProductFilterParams
     // Location
     public string? Location { get; set; }   // maps to Product.LocationCity
 
+    // Premium-only filter. Null shows all, true shows premium only.
+    public bool? IsPremium { get; set; }
+
 
     // public double? MinSellerRating { get; set; }
 }

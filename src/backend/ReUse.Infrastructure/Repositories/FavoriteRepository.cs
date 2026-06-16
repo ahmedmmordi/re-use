@@ -43,6 +43,7 @@ public class FavoriteRepository : BaseRepository<Favorite>, IFavoriteRepository
             .Search(filterParams.SearchTerm)
             .FilterByTypes(filterParams.Types)
             .FilterByConditions(filterParams.Conditions)
+            .FilterByPremium(filterParams.IsPremium)
             .FilterByCategories(filterParams.CategoryIds)
             .FilterByPrice(filterParams.MinPrice, filterParams.MaxPrice)
             .FilterByLocation(filterParams.Location)

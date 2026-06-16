@@ -556,10 +556,15 @@ function ProductTile({ product, onClick }: { product: ProductResponse; onClick: 
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute bottom-2 left-2">
+        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
           <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[#7C3AED] text-[10px] sm:text-xs font-medium rounded-md">
             {product.type}
           </span>
+          {product.isPremium && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] sm:text-xs font-medium rounded-md">
+              ⭐ Premium
+            </span>
+          )}
         </div>
       </div>
       <div className="p-3 sm:p-4">

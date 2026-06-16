@@ -107,6 +107,7 @@ export function ProductManagementPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [isPremiumFilter, setIsPremiumFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [pageNumber, setPageNumber] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -187,6 +188,7 @@ export function ProductManagementPage() {
         searchTerm: searchTerm || undefined,
         categoryIds: categoryFilter !== "all" ? [categoryFilter] : undefined,
         statuses: statusFilter !== "all" ? [statusFilter as ProductStatus] : undefined,
+        isPremium: isPremiumFilter !== "all" ? isPremiumFilter === "true" : undefined,
         sortBy: "Newest",
         sortDirection: "Desc",
       });
@@ -211,7 +213,7 @@ export function ProductManagementPage() {
   useEffect(() => {
     loadProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageNumber, searchTerm, categoryFilter, statusFilter]);
+  }, [pageNumber, searchTerm, categoryFilter, statusFilter, isPremiumFilter]);
 
   useEffect(() => {
     loadSummary();
@@ -495,6 +497,19 @@ export function ProductManagementPage() {
                   {STATUS_LABELS[s]}
                 </option>
               ))}
+            </select>
+
+            <select
+              value={isPremiumFilter}
+              onChange={(e) => {
+                setIsPremiumFilter(e.target.value);
+                setPageNumber(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+            >
+              <option value="all">All listings</option>
+              <option value="true">Premium only</option>
+              <option value="false">Non-premium only</option>
             </select>
           </div>
         </div>

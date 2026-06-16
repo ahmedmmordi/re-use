@@ -282,6 +282,11 @@ function FavoriteCard({
           <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[#7C3AED] text-[10px] sm:text-xs font-medium rounded-md">
             {product.type}
           </span>
+          {product.isPremium && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] sm:text-xs font-medium rounded-md">
+              ⭐ Premium
+            </span>
+          )}
         </div>
 
         {/* Remove (unfavorite) button */}

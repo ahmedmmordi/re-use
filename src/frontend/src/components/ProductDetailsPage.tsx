@@ -339,6 +339,11 @@ export function ProductDetailsPage() {
                   {conditionLabel.toUpperCase()}
                 </div>
               )}
+              {product.isPremium && (
+                <div className="absolute bottom-4 left-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold px-4 py-2 rounded-full">
+                  ⭐ PREMIUM
+                </div>
+              )}
             </div>
 
             {/* Description */}

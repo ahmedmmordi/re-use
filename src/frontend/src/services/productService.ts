@@ -81,6 +81,7 @@ export interface ProductsQuery {
   minPrice?: number;
   maxPrice?: number;
   location?: string;
+  isPremium?: boolean;
   sortBy?: "Relevance" | "Newest" | "Price";
   sortDirection?: "Asc" | "Desc";
 }
@@ -123,6 +124,7 @@ export async function listProducts(
   if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
   if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
   if (query.location) params.set("Location", query.location);
+  if (query.isPremium !== undefined) params.set("IsPremium", String(query.isPremium));
   if (query.sortBy) params.set("SortBy", query.sortBy);
   if (query.sortDirection) params.set("SortDirection", query.sortDirection);
 
@@ -154,6 +156,7 @@ export async function getProductsByUser(
   if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
   if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
   if (query.location) params.set("Location", query.location);
+  if (query.isPremium !== undefined) params.set("IsPremium", String(query.isPremium));
   if (query.sortBy) params.set("SortBy", query.sortBy);
   if (query.sortDirection) params.set("SortDirection", query.sortDirection);
 
@@ -176,6 +179,7 @@ export async function getMyListings(query: MyListingsQuery = {}): Promise<Seller
   if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
   if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
   if (query.location) params.set("Location", query.location);
+  if (query.isPremium !== undefined) params.set("IsPremium", String(query.isPremium));
   if (query.sortBy) params.set("SortBy", query.sortBy);
   if (query.sortDirection) params.set("SortDirection", query.sortDirection);
   if (query.status) params.set("Status", query.status);
@@ -345,6 +349,7 @@ export interface AdminProductsQuery {
   minPrice?: number;
   maxPrice?: number;
   location?: string;
+  isPremium?: boolean;
   sortBy?: "Newest" | "Price";
   sortDirection?: "Asc" | "Desc";
 }
@@ -372,6 +377,7 @@ export async function getAdminProducts(
   if (query.minPrice !== undefined) params.set("MinPrice", String(query.minPrice));
   if (query.maxPrice !== undefined) params.set("MaxPrice", String(query.maxPrice));
   if (query.location) params.set("Location", query.location);
+  if (query.isPremium !== undefined) params.set("IsPremium", String(query.isPremium));
   if (query.sortBy) params.set("SortBy", query.sortBy);
   if (query.sortDirection) params.set("SortDirection", query.sortDirection);
 

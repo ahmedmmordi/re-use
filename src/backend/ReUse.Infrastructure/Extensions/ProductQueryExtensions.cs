@@ -53,6 +53,17 @@ public static class ProductQueryExtensions
         return query.Where(p => p.Condition.HasValue && conditions.Contains(p.Condition.Value));
     }
 
+    /// Premium-only filter. No-ops when value is null.
+    public static IQueryable<Product> FilterByPremium(
+        this IQueryable<Product> query,
+        bool? isPremium)
+    {
+        if (!isPremium.HasValue)
+            return query;
+
+        return query.Where(p => p.IsPremium == isPremium.Value);
+    }
+
     /// Matches products whose Category OR Subcategory equals the given id
     public static IQueryable<Product> FilterByCategories(
         this IQueryable<Product> query,

@@ -37,6 +37,7 @@ interface FilterState {
   types: ProductType[];
   location: string;
   searchQuery: string;
+  isPremium: boolean | null;
 }
 
 type ViewMode = "grid" | "list";
@@ -50,6 +51,7 @@ const EMPTY_FILTERS: FilterState = {
   types: [],
   location: "",
   searchQuery: "",
+  isPremium: null,
 };
 
 const PRODUCT_TYPES: ProductType[] = ["Regular", "Wanted", "Swap"];
@@ -70,6 +72,8 @@ function getUrlState(searchParams: URLSearchParams) {
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
   const viewParam = searchParams.get("view");
   const sortParam = searchParams.get("sort");
+  const isPremiumParam = searchParams.get("isPremium");
+  const isPremium = isPremiumParam === "true" ? true : isPremiumParam === "false" ? false : null;
 
   const sortBy: SortOption =
     sortParam === "price-low" || sortParam === "price-high" || sortParam === "newest"
@@ -89,6 +93,7 @@ function getUrlState(searchParams: URLSearchParams) {
       types: getValidValues(searchParams, "types", PRODUCT_TYPES),
       location: searchParams.get("location") || "",
       searchQuery,
+      isPremium,
     },
     page,
     viewMode: viewParam === "list" ? "list" : ("grid" as ViewMode),
@@ -120,6 +125,7 @@ function writeUrlState(
   filters.types.forEach((type) => next.append("types", type));
   filters.conditions.forEach((condition) => next.append("conditions", condition));
   if (filters.location.trim()) next.set("location", filters.location.trim());
+  if (filters.isPremium !== null) next.set("isPremium", String(filters.isPremium));
 
   setSearchParams(next, { replace });
 }
@@ -184,6 +190,7 @@ export function ProductsPage() {
     const types = appliedFilters.types.length > 0 ? appliedFilters.types : undefined;
     const location = appliedFilters.location.trim() || undefined;
     const searchQuery = appliedFilters.searchQuery.trim() || undefined;
+    const isPremium = appliedFilters.isPremium ?? undefined;
 
     listProducts({
       pageNumber: currentPage,
@@ -196,6 +203,7 @@ export function ProductsPage() {
       types,
       location,
       searchTerm: searchQuery,
+      isPremium,
     })
       .then((page) => {
         if (!cancelled) {
@@ -675,6 +683,20 @@ function FilterSidebar({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
         />
       </div>
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-3">Listing Status</label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={filters.isPremium === true}
+            onChange={() =>
+              onChange({ ...filters, isPremium: filters.isPremium === true ? null : true })
+            }
+            className="rounded text-[#7C3AED] focus:ring-[#7C3AED] w-4 h-4"
+          />
+          <span className="text-sm text-gray-700">Premium only</span>
+        </label>
+      </div>
     </>
   );
 }
@@ -697,6 +719,11 @@ function ProductGridCard({ product, onClick }: { product: ProductResponse; onCli
           <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[#7C3AED] text-[10px] sm:text-xs font-medium rounded-md">
             {product.type}
           </span>
+          {product.isPremium && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] sm:text-xs font-medium rounded-md">
+              ⭐ Premium
+            </span>
+          )}
         </div>
       </div>
 
@@ -753,6 +780,11 @@ function ProductListCard({ product, onClick }: { product: ProductResponse; onCli
           <span className="px-2 py-0.5 bg-[#F3E8FF] text-[#7C3AED] text-xs font-medium rounded-md">
             {product.type}
           </span>
+          {product.isPremium && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-medium rounded-md">
+              ⭐ Premium
+            </span>
+          )}
           {product.allowNegotiation && product.type === "Regular" && (
             <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">
               Negotiable
