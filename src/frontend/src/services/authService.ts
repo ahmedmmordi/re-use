@@ -39,6 +39,7 @@ export class AuthError extends Error {
 export type UserRole = "User" | "Admin";
 
 export interface AuthUser {
+  id: string;
   email: string;
   role: UserRole;
   fullName: string;

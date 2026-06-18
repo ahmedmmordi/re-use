@@ -51,7 +51,8 @@ public class SessionsController : ControllerBase
             email,
             role,
             fullName = profile.FullName,
-            profileImageUrl = profile.ProfileImageUrl
+            profileImageUrl = profile.ProfileImageUrl,
+            id = User.GetBusinessId()
         });
     }
 

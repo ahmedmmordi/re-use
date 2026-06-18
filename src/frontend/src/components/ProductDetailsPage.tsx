@@ -10,6 +10,7 @@ import {
   Send,
   ShieldCheck,
   Star,
+  Loader2,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -25,6 +26,7 @@ import type { CommentResponse } from "../services/commentService";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { trackActivity } from "../services/activityService";
+import { startConversation } from "../services/conversationService";
 
 function formatPrice(p: ProductDetailsResponse): string {
   if (p.type === "Wanted") {
@@ -70,13 +72,17 @@ function formatDate(value: string): string {
 export function ProductDetailsPage() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { isFavorited, add, remove } = useFavorites();
 
   const [product, setProduct] = useState<ProductDetailsResponse | null>(null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Contact / offer conversation state
+  const [startingConv, setStartingConv] = useState(false);
+  const [convError, setConvError] = useState<string | null>(null);
 
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -90,6 +96,55 @@ export function ProductDetailsPage() {
   const [commentError, setCommentError] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
+
+  // ── Contact seller: start a conversation, navigate to chat ──────────────
+  const handleContactSeller = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!productId || !product) return;
+    if (product.ownerUserId === user?.id) return; // own product
+    setStartingConv(true);
+    setConvError(null);
+    try {
+      const conv = await startConversation(productId, { initialMessage: null });
+      navigate("/chat?id=" + conv.id);
+    } catch (err) {
+      // 409 = conversation already exists, try to find it in chat
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("409") || msg.includes("Conflict") || msg.toLowerCase().includes("exists")) {
+        navigate("/chat");
+      } else {
+        setConvError(msg || "Could not start conversation. Please try again.");
+      }
+    } finally {
+      setStartingConv(false);
+    }
+  };
+
+  const handleMakeOffer = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!productId || !product) return;
+    setStartingConv(true);
+    setConvError(null);
+    try {
+      const conv = await startConversation(productId, { initialMessage: null });
+      navigate("/deals?conversationId=" + conv.id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("409") || msg.includes("Conflict") || msg.toLowerCase().includes("exists")) {
+        navigate("/chat");
+      } else {
+        setConvError(msg || "Could not start conversation.");
+      }
+    } finally {
+      setStartingConv(false);
+    }
+  };
 
   const loadReplies = async (commentId: string) => {
     if (repliesMap[commentId] || !productId) return;
@@ -425,18 +480,28 @@ export function ProductDetailsPage() {
                 <span className="text-[48px] font-bold text-white">{formatPrice(product)}</span>
               </div>
               <div className="flex flex-col gap-3">
+                {convError && <p className="text-xs text-red-300 text-center">{convError}</p>}
                 <Button
                   size="lg"
-                  className="w-full bg-white text-[#4B0082] hover:bg-gray-100 text-[16px] font-semibold py-6 rounded-xl"
+                  onClick={handleContactSeller}
+                  disabled={startingConv || product?.ownerUserId === user?.id}
+                  className="w-full bg-white text-[#4B0082] hover:bg-gray-100 text-[16px] font-semibold py-6 rounded-xl disabled:opacity-60"
                 >
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  Contact Seller
+                  {startingConv ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                  )}
+                  {product?.ownerUserId === user?.id ? "Your listing" : "Contact Seller"}
                 </Button>
-                {product.allowNegotiation && (
+                {product.allowNegotiation && product.ownerUserId !== user?.id && (
                   <Button
                     size="lg"
-                    className="w-full border-2 border-white text-white bg-transparent hover:bg-white/10 hover:text-white text-[16px] font-semibold py-6 rounded-xl"
+                    onClick={handleMakeOffer}
+                    disabled={startingConv}
+                    className="w-full border-2 border-white text-white bg-transparent hover:bg-white/10 hover:text-white text-[16px] font-semibold py-6 rounded-xl disabled:opacity-60"
                   >
+                    {startingConv ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : null}
                     Make an Offer
                   </Button>
                 )}

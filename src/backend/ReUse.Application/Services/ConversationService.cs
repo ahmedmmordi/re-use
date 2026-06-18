@@ -333,10 +333,13 @@ public class ConversationService : IConversationService
 
         EnsureParticipant(conversation, callerId);
 
-        if (callerId == message.SenderId)
-            message.IsDeletedBySender = true;
-        else
-            message.IsDeletedByReceiver = true;
+        if (callerId != message.SenderId)
+            throw new ForbiddenException("Only the sender can delete a message.");
+
+        // Soft-delete for both participants: the content is removed but a
+        // "Message deleted" placeholder remains visible on both sides.
+        message.IsDeletedBySender = true;
+        message.IsDeletedByReceiver = true;
 
         _unitOfWork.Message.Update(message);
         await _unitOfWork.SaveChangesAsync();

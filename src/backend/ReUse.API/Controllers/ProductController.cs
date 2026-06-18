@@ -243,7 +243,7 @@ public class ProductController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("/api/me/deals")]
+    [HttpGet("/api/me/deals")]
     [Authorize]
     public async Task<IActionResult> GetMyDeals()
     {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFavorites } from "../context/FavoritesContext";
+import { useChatUnread } from "../context/ChatUnreadContext";
 import {
   Heart,
   Bell,
@@ -28,8 +29,9 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
 
   const { favoriteIds } = useFavorites();
   const favoriteCount = favoriteIds.size;
+  const { unreadConversations } = useChatUnread();
   const notificationCount = 0; // TODO: wire up when implemented
-  const chatCount = 0; // TODO: wire up when implemented
+  const chatCount = unreadConversations;
 
   const displayName = user?.fullName || user?.email || "User";
   const displayAvatar = (user?.fullName?.[0] ?? user?.email?.[0] ?? "U").toUpperCase();
