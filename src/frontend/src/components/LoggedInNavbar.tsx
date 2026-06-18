@@ -158,7 +158,7 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
                   ></div>
 
                   {/* Menu */}
-                  <div className="absolute top-full right-0 mt-3 w-75 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full right-0 mt-3 w-72 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="flex items-center gap-3">

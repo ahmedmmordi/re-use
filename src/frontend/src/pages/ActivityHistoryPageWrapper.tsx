@@ -3,6 +3,7 @@ import { CategoryBar } from "../components/CategoryBar";
 import { ActivityHistoryPage } from "../components/ActivityHistoryPage";
 import { LoggedInNavbar } from "../components/LoggedInNavbar";
 import { AdminNavbar } from "../components/AdminNavbar";
+import { Footer } from "../components/Footer";
 
 export default function ActivityHistoryPageWrapper() {
   const { user } = useAuth();
@@ -13,6 +14,7 @@ export default function ActivityHistoryPageWrapper() {
       <div className="flex-1">
         <ActivityHistoryPage />
       </div>
+      <Footer />
     </div>
   );
 }

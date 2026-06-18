@@ -25,7 +25,7 @@ export function Footer() {
       {/* Main Footer Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16">
         {/* Top Section - Main Columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 md:gap-12 mb-2 sm:mb-4 md:mb-2">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 md:gap-12 mb-2 sm:mb-4 md:mb-2">
           {/* SHOP Column */}
           <div>
             <h3 className="text-[16px] sm:text-[17px] md:text-[18px] font-bold mb-4 sm:mb-5 md:mb-6 tracking-wide">
@@ -49,13 +49,15 @@ export function Footer() {
 
           {/* SELL Column */}
           <div>
-            <h3 className="text-[18px] font-bold mb-6 tracking-wide">SELL</h3>
+            <h3 className="text-[16px] sm:text-[17px] md:text-[18px] font-bold mb-4 sm:mb-5 md:mb-6 tracking-wide">
+              SELL
+            </h3>
             <ul className="space-y-3">
               {sellLinks.map((link) => (
                 <li key={link}>
                   <a
                     href="#"
-                    className={`text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200 ${
+                    className={`text-[13px] sm:text-[14px] md:text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200 ${
                       link === "How to sell" ? "font-semibold text-white" : ""
                     }`}
                   >
@@ -68,13 +70,15 @@ export function Footer() {
 
           {/* SUPPORT Column */}
           <div>
-            <h3 className="text-[18px] font-bold mb-6 tracking-wide">SUPPORT</h3>
+            <h3 className="text-[16px] sm:text-[17px] md:text-[18px] font-bold mb-4 sm:mb-5 md:mb-6 tracking-wide">
+              SUPPORT
+            </h3>
             <ul className="space-y-3">
               {supportLinks.map((link) => (
                 <li key={link}>
                   <a
                     href="#"
-                    className={`text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200 ${
+                    className={`text-[13px] sm:text-[14px] md:text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200 ${
                       link === "Contact Us" ? "font-semibold text-white" : ""
                     }`}
                   >
@@ -87,12 +91,14 @@ export function Footer() {
 
           {/* COMPANY & POLICIES Column */}
           <div>
-            <h3 className="text-[18px] font-bold mb-6 tracking-wide">COMPANY & POLICIES</h3>
+            <h3 className="text-[16px] sm:text-[17px] md:text-[18px] font-bold mb-4 sm:mb-5 md:mb-6 tracking-wide">
+              COMPANY & POLICIES
+            </h3>
             <ul className="space-y-3">
               <li>
                 <a
                   href="/about"
-                  className="text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200"
+                  className="text-[13px] sm:text-[14px] md:text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   About Us
                 </a>
@@ -100,7 +106,7 @@ export function Footer() {
               <li>
                 <a
                   href="/legal"
-                  className="text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200"
+                  className="text-[13px] sm:text-[14px] md:text-[15px] text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   Policy Center
                 </a>
@@ -109,10 +115,12 @@ export function Footer() {
           </div>
 
           {/* Payment & Social Column */}
-          <div>
+          <div className="col-span-2 lg:col-span-1">
             {/* We Accept */}
             <div className="mb-8">
-              <h3 className="text-[18px] font-bold mb-6 tracking-wide">WE ACCEPT</h3>
+              <h3 className="text-[16px] sm:text-[17px] md:text-[18px] font-bold mb-4 sm:mb-5 md:mb-6 tracking-wide">
+                WE ACCEPT
+              </h3>
               <div className="grid grid-cols-4 gap-2">
                 {/* Visa */}
                 <div className="bg-white rounded-lg p-2.5 h-11 flex items-center justify-center shadow-sm">
@@ -244,7 +252,9 @@ export function Footer() {
 
             {/* Find Us On */}
             <div className="mb-8">
-              <h3 className="text-[18px] font-bold mb-6 tracking-wide">FIND US ON</h3>
+              <h3 className="text-[16px] sm:text-[17px] md:text-[18px] font-bold mb-4 sm:mb-5 md:mb-6 tracking-wide">
+                FIND US ON
+              </h3>
               <div className="grid grid-cols-4 gap-3">
                 <a
                   href="https://github.com/ahmedmmordi/re-use"

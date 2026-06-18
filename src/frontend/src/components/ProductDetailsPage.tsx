@@ -282,7 +282,7 @@ export function ProductDetailsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1400px] mx-auto px-8 py-4">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <button onClick={() => navigate("/")} className="hover:text-[#4B0082]">
               Home
@@ -298,7 +298,7 @@ export function ProductDetailsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1400px] mx-auto px-8 py-12">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
           {/* Image Gallery */}
           <div className="space-y-4">

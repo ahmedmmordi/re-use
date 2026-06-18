@@ -307,7 +307,7 @@ export function AccountSettingsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1000px] mx-auto px-8 py-4">
+        <div className="max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8 py-4">
           <button
             onClick={() => navigate("/my-profile")}
             className="flex items-center gap-2 text-gray-600 hover:text-[#3d2e7c] transition-colors"
@@ -319,10 +319,10 @@ export function AccountSettingsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-[1000px] mx-auto px-8 py-12">
+      <div className="max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Page header */}
-          <div className="bg-gradient-to-r from-[#3d2e7c] to-[#4a3689] px-8 py-8">
+          <div className="bg-gradient-to-r from-[#3d2e7c] to-[#4a3689] px-4 sm:px-6 md:px-8 py-6 md:py-8">
             <h1 className="text-white text-3xl font-bold mb-2">Account Settings</h1>
             <p className="text-purple-200">Manage your security and account preferences</p>
           </div>

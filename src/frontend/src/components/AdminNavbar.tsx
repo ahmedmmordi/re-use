@@ -265,7 +265,7 @@ export function AdminNavbar() {
 
               {/* Profile Dropdown Menu */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-95 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
                   <div className="p-4 bg-gradient-to-r from-[#3d2e7c] to-[#4a3689]">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">

@@ -394,10 +394,12 @@ export function PublicUserProfilePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(profile.id).then(() => {
-                      setIdCopied(true);
-                      setTimeout(() => setIdCopied(false), 2000);
-                    });
+                    navigator.clipboard
+                      .writeText(`${window.location.origin}/profile/${profile.id}`)
+                      .then(() => {
+                        setIdCopied(true);
+                        setTimeout(() => setIdCopied(false), 2000);
+                      });
                   }}
                   className="flex items-center gap-1 text-xs font-mono text-gray-500 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
                   title="Copy full ID"

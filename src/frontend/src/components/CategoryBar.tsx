@@ -217,7 +217,7 @@ export function CategoryBar() {
             className="absolute top-full left-0 right-0 bg-white border-t border-b border-[#E5E5E5] z-[998] animate-in fade-in slide-in-from-top-2 duration-200"
             style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
           >
-            <div className="max-w-[1200px] mx-auto py-8 px-6 grid grid-cols-[320px_1fr] gap-6 min-h-[400px]">
+            <div className="max-w-[1200px] mx-auto py-4 px-4 md:py-8 md:px-6 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6 min-h-[200px] md:min-h-[400px]">
               {/* Level 1: Main Subcategories */}
               <div className="bg-[#FAFAFA] border border-[#F0F0F0] rounded-lg p-5">
                 <h3
@@ -263,53 +263,55 @@ export function CategoryBar() {
               </div>
 
               {/* Level 2: Subcategory Details */}
-              {hoveredSubcategoryData ? (
-                <div
-                  className="bg-white border border-[#F5F5F5] rounded-lg p-5 animate-in slide-in-from-right-4 fade-in duration-150"
-                  onMouseEnter={() => setHoveredSubcategory(hoveredSubcategoryData.id)}
-                >
-                  <h4 className="text-[17px] font-semibold text-[#222] mb-2">
-                    {hoveredSubcategoryData.label}
-                  </h4>
-                  <p className="text-sm text-gray-500 mb-4 pb-4 border-b border-[#F0F0F0]">
-                    {hoveredSubcategoryData.productCount.toLocaleString()} items available
-                  </p>
-
-                  {hoveredSubcategoryData.nestedItems &&
-                    hoveredSubcategoryData.nestedItems.length > 0 && (
-                      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-y-1 gap-x-5 mb-4">
-                        {hoveredSubcategoryData.nestedItems.map((item) => (
-                          <button
-                            key={item.id}
-                            onClick={() =>
-                              handleSubcategoryClick(
-                                activeCategoryData.id,
-                                hoveredSubcategoryData.id
-                              )
-                            }
-                            className="py-2 px-3 rounded text-[14px] text-left transition-all duration-150 text-[#4D4D4D] hover:bg-[#F3E8FF] hover:text-[#7C3AED]"
-                            style={{ lineHeight: "1.5" }}
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                  <button
-                    onClick={() =>
-                      handleSubcategoryClick(activeCategoryData.id, hoveredSubcategoryData.id)
-                    }
-                    className="text-[14px] font-semibold text-[#7C3AED] hover:underline"
+              <div className="hidden md:contents">
+                {hoveredSubcategoryData ? (
+                  <div
+                    className="bg-white border border-[#F5F5F5] rounded-lg p-5 animate-in slide-in-from-right-4 fade-in duration-150"
+                    onMouseEnter={() => setHoveredSubcategory(hoveredSubcategoryData.id)}
                   >
-                    Browse all in {hoveredSubcategoryData.label} →
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center text-gray-400 text-sm">
-                  <p>Hover over a subcategory to see more details</p>
-                </div>
-              )}
+                    <h4 className="text-[17px] font-semibold text-[#222] mb-2">
+                      {hoveredSubcategoryData.label}
+                    </h4>
+                    <p className="text-sm text-gray-500 mb-4 pb-4 border-b border-[#F0F0F0]">
+                      {hoveredSubcategoryData.productCount.toLocaleString()} items available
+                    </p>
+
+                    {hoveredSubcategoryData.nestedItems &&
+                      hoveredSubcategoryData.nestedItems.length > 0 && (
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-y-1 gap-x-5 mb-4">
+                          {hoveredSubcategoryData.nestedItems.map((item) => (
+                            <button
+                              key={item.id}
+                              onClick={() =>
+                                handleSubcategoryClick(
+                                  activeCategoryData.id,
+                                  hoveredSubcategoryData.id
+                                )
+                              }
+                              className="py-2 px-3 rounded text-[14px] text-left transition-all duration-150 text-[#4D4D4D] hover:bg-[#F3E8FF] hover:text-[#7C3AED]"
+                              style={{ lineHeight: "1.5" }}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                    <button
+                      onClick={() =>
+                        handleSubcategoryClick(activeCategoryData.id, hoveredSubcategoryData.id)
+                      }
+                      className="text-[14px] font-semibold text-[#7C3AED] hover:underline"
+                    >
+                      Browse all in {hoveredSubcategoryData.label} →
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center text-gray-400 text-sm">
+                    <p>Hover over a subcategory to see more details</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </>

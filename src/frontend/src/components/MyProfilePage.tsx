@@ -25,6 +25,7 @@ import type { UpdateUserProfileRequest, UserProfileResponse } from "../services/
 import { getMyListings } from "../services/productService";
 import type { SellerSummaryResponse } from "../services/productService";
 import { AuthError } from "../services/authService";
+import { EGYPT_CITIES } from "./data/locations";
 
 type FormState = Required<{
   [K in keyof UpdateUserProfileRequest]: string;
@@ -42,7 +43,6 @@ const EMPTY_FORM: FormState = {
 };
 
 const FULL_NAME_REGEX = /^[a-zA-Z\s'-]+$/;
-const CITY_REGEX = /^[a-zA-Z\s-]+$/;
 const POSTAL_CODE_REGEX = /^[a-zA-Z0-9\s-]+$/;
 const COUNTRY_REGEX = /^[a-zA-Z\s-]+$/;
 
@@ -219,14 +219,6 @@ export function MyProfilePage() {
 
     if (formData.addressLine1.length > 200) {
       errors.addressLine1 = "Address line must not exceed 200 characters.";
-    }
-
-    if (formData.city) {
-      if (formData.city.length > 100) {
-        errors.city = "City must not exceed 100 characters.";
-      } else if (!CITY_REGEX.test(formData.city)) {
-        errors.city = "City can only contain letters, spaces, and hyphens.";
-      }
     }
 
     if (formData.stateProvince.length > 100) {
@@ -604,10 +596,12 @@ export function MyProfilePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(profile.id).then(() => {
-                      setIdCopied(true);
-                      setTimeout(() => setIdCopied(false), 2000);
-                    });
+                    navigator.clipboard
+                      .writeText(`${window.location.origin}/profile/${profile.id}`)
+                      .then(() => {
+                        setIdCopied(true);
+                        setTimeout(() => setIdCopied(false), 2000);
+                      });
                   }}
                   className="flex items-center gap-1 text-xs font-mono text-gray-500 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
                   title="Copy full ID"
@@ -699,12 +693,23 @@ export function MyProfilePage() {
                         error={fieldErrors.addressLine1}
                       />
                       <div className="grid grid-cols-2 gap-3">
-                        <SimpleInput
-                          value={formData.city}
-                          onChange={(v) => handleChange("city", v)}
-                          placeholder="City"
-                          error={fieldErrors.city}
-                        />
+                        <div className="flex flex-col gap-1">
+                          <select
+                            value={formData.city}
+                            onChange={(e) => handleChange("city", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+                          >
+                            <option value="">Select city</option>
+                            {EGYPT_CITIES.map((city) => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ))}
+                          </select>
+                          {fieldErrors.city && (
+                            <p className="text-xs text-red-500">{fieldErrors.city}</p>
+                          )}
+                        </div>
                         <SimpleInput
                           value={formData.stateProvince}
                           onChange={(v) => handleChange("stateProvince", v)}

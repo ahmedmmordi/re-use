@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EGYPT_CITIES } from "./data/locations";
 import {
   X,
   SlidersHorizontal,
@@ -45,7 +46,7 @@ export function AdvancedFilters({ isOpen, onClose }: AdvancedFiltersProps) {
       name: "Local Vintage Furniture",
       hasAlert: true,
       filters: {
-        location: "Within 25 miles",
+        location: "",
         priceMin: 50,
         priceMax: 500,
         status: ["Used", "Like New"],
@@ -159,12 +160,12 @@ export function AdvancedFilters({ isOpen, onClose }: AdvancedFiltersProps) {
               onChange={(e) => setLocation(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1] focus:border-[#4169E1]"
             >
-              <option value="">Anywhere</option>
-              <option value="5">Within 5 miles</option>
-              <option value="10">Within 10 miles</option>
-              <option value="25">Within 25 miles</option>
-              <option value="50">Within 50 miles</option>
-              <option value="100">Within 100 miles</option>
+              <option value="">Anywhere in Egypt</option>
+              {EGYPT_CITIES.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
             </select>
           </div>
 

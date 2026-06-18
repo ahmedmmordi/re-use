@@ -14,6 +14,7 @@ import { fetchCategoryBySlugOrId, getParentCategory, rollupProductCount } from "
 import type { Category } from "./data/categories";
 import { listProducts } from "../services/productService";
 import type { ProductResponse, ProductCondition } from "../services/productService";
+import { EGYPT_CITIES } from "./data/locations";
 import {
   getFollowedCategories,
   followCategory,
@@ -604,13 +605,18 @@ function FilterSidebar({
 
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-3">Location</label>
-        <input
-          type="text"
-          placeholder="Enter city or country"
+        <select
           value={filters.location}
           onChange={(e) => onChange({ ...filters, location: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
-        />
+        >
+          <option value="">Anywhere in Egypt</option>
+          {EGYPT_CITIES.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
       </div>
     </>
   );
