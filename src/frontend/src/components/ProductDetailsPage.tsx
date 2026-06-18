@@ -10,6 +10,7 @@ import {
   Send,
   ShieldCheck,
   Star,
+  Flag,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -25,6 +26,7 @@ import type { CommentResponse } from "../services/commentService";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { trackActivity } from "../services/activityService";
+import { ReportDialog } from "./ReportDialog";
 
 function formatPrice(p: ProductDetailsResponse): string {
   if (p.type === "Wanted") {
@@ -90,6 +92,11 @@ export function ProductDetailsPage() {
   const [commentError, setCommentError] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
+
+  const [reportDialog, setReportDialog] = useState<{
+    targetType: "Product" | "Comment";
+    targetId: string;
+  } | null>(null);
 
   const loadReplies = async (commentId: string) => {
     if (repliesMap[commentId] || !productId) return;
@@ -416,6 +423,15 @@ export function ProductDetailsPage() {
                   {shareCopied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
                   <span className="font-medium">{shareCopied ? "Copied!" : "Share"}</span>
                 </button>
+                {isAuthenticated && product && (
+                  <button
+                    onClick={() => setReportDialog({ targetType: "Product", targetId: product.id })}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full border-2 border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-500 transition-all duration-200"
+                  >
+                    <Flag className="w-5 h-5" />
+                    <span className="font-medium">Report</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -559,6 +575,17 @@ export function ProductDetailsPage() {
                               : `View ${item.replyCount} ${item.replyCount === 1 ? "reply" : "replies"}`}
                         </button>
                       )}
+                      {isAuthenticated && (
+                        <button
+                          onClick={() =>
+                            setReportDialog({ targetType: "Comment", targetId: item.id })
+                          }
+                          className="text-sm text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+                        >
+                          <Flag className="w-3 h-3" />
+                          Report
+                        </button>
+                      )}
                     </div>
 
                     {expandedReplies.has(item.id) &&
@@ -600,6 +627,17 @@ export function ProductDetailsPage() {
                               )}
                             </div>
                             <p className="text-sm text-gray-700">{reply.body}</p>
+                            {isAuthenticated && (
+                              <button
+                                onClick={() =>
+                                  setReportDialog({ targetType: "Comment", targetId: reply.id })
+                                }
+                                className="mt-1 text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+                              >
+                                <Flag className="w-3 h-3" />
+                                Report
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -673,6 +711,14 @@ export function ProductDetailsPage() {
           )}
         </div>
       </div>
+      {reportDialog && (
+        <ReportDialog
+          open={!!reportDialog}
+          onClose={() => setReportDialog(null)}
+          targetType={reportDialog.targetType}
+          targetId={reportDialog.targetId}
+        />
+      )}
     </div>
   );
 }

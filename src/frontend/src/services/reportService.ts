@@ -73,6 +73,13 @@ export interface ReviewReportRequest {
   reviewNotes?: string;
 }
 
+export interface CreateReportRequest {
+  targetType: ReportTargetType;
+  targetId: string;
+  reason: ReportReason;
+  notes?: string;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -132,6 +139,21 @@ export async function reviewReport(
 
   const res = await fetch(`${BASE_URL}/admin/reports/${id}/review`, {
     method: "PATCH",
+    body: formData,
+    credentials: "include",
+  });
+  return handleResponse<ReportDetailsResponse>(res);
+}
+
+/** POST /api/reports */
+export async function createReport(request: CreateReportRequest): Promise<ReportDetailsResponse> {
+  const formData = new FormData();
+  formData.append("TargetType", request.targetType);
+  formData.append("TargetId", request.targetId);
+  formData.append("Reason", request.reason);
+  if (request.notes?.trim()) formData.append("Notes", request.notes.trim());
+  const res = await fetch(`${BASE_URL}/reports`, {
+    method: "POST",
     body: formData,
     credentials: "include",
   });

@@ -10,6 +10,7 @@ import {
   UserMinus,
   UserPlus,
   X,
+  Flag,
 } from "lucide-react";
 import { getMyProfile, getPublicProfile } from "../services/userService";
 import type { UserProfileResponse } from "../services/userService";
@@ -19,6 +20,7 @@ import { followUser, unfollowUser, getFollowing } from "../services/followServic
 import { AuthError } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { Pagination } from "./ui/Pagination";
+import { ReportDialog } from "./ReportDialog";
 
 const PRODUCTS_PAGE_SIZE = 9;
 
@@ -78,6 +80,8 @@ export function PublicUserProfilePage() {
   const [banner, setBanner] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
   const [idCopied, setIdCopied] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
+  const [reportDialog, setReportDialog] = useState(false);
 
   const isSelf = useMemo(() => {
     if (!viewerId || !profile) return false;
@@ -345,7 +349,17 @@ export function PublicUserProfilePage() {
             </div>
 
             {/* Action button */}
-            <div className="absolute top-3 right-3 sm:top-4 sm:right-6">
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-6 flex items-center gap-2">
+              {!isSelf && viewer && (
+                <button
+                  type="button"
+                  onClick={() => setReportDialog(true)}
+                  className="flex items-center gap-1.5 bg-white text-gray-500 hover:text-red-500 border border-gray-300 hover:border-red-400 px-3 py-2 rounded-full shadow transition-colors text-sm"
+                  title="Report this user"
+                >
+                  <Flag className="w-4 h-4" />
+                </button>
+              )}
               {isSelf ? (
                 <button
                   type="button"
@@ -539,6 +553,14 @@ export function PublicUserProfilePage() {
             />
           </div>
         </div>
+      )}
+      {userId && (
+        <ReportDialog
+          open={reportDialog}
+          onClose={() => setReportDialog(false)}
+          targetType="User"
+          targetId={userId}
+        />
       )}
     </div>
   );
