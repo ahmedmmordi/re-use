@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFavorites } from "../context/FavoritesContext";
 import {
   Heart,
@@ -15,6 +15,13 @@ import {
 import { SearchBar } from "./SearchBar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useRef } from "react";
+import {
+  getNotifications,
+  getUnreadCount,
+  markAsRead,
+  type NotificationDto,
+} from "../services/notificationService";
 
 interface LoggedInNavbarProps {
   onLogout?: () => void;
@@ -28,7 +35,80 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
 
   const { favoriteIds } = useFavorites();
   const favoriteCount = favoriteIds.size;
-  const notificationCount = 0; // TODO: wire up when implemented
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    getUnreadCount()
+      .then(setUnreadCount)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!isNotifOpen) return;
+    function onClickOutside(e: MouseEvent) {
+      if ((e.target as HTMLElement).closest("[data-notif]")) return;
+      setIsNotifOpen(false);
+      setExpandedId(null);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [isNotifOpen]);
+
+  const toggleNotif = async () => {
+    if (isNotifOpen) {
+      setIsNotifOpen(false);
+      setExpandedId(null);
+      return;
+    }
+    setIsNotifOpen(true);
+    setNotifLoading(true);
+    try {
+      const result = await getNotifications(1, 15);
+      setNotifications(result.data);
+    } catch {
+      /* ignore */
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+
+    if (unreadIds.length === 0) return;
+
+    try {
+      await Promise.all(unreadIds.map((id) => markAsRead(id)));
+      setNotifications((prev) => prev.map((n) => (n.isRead ? n : { ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  function timeAgo(dateStr: string): string {
+    const m = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
   const chatCount = 0; // TODO: wire up when implemented
 
   const displayName = user?.fullName || user?.email || "User";
@@ -88,20 +168,82 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
             </button>
 
             {/* Notifications */}
-            <button
-              onClick={() => navigate("/notifications")}
-              className="text-white p-2 rounded-lg hover:bg-white/10 hover:scale-105 transition-all duration-200 relative group"
-            >
-              <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
-              {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center animate-pulse">
-                  {notificationCount}
-                </span>
+            <div ref={notifRef} data-notif className="relative">
+              <button
+                onClick={toggleNotif}
+                className="text-white p-2 rounded-lg hover:bg-white/10 hover:scale-105 transition-all duration-200 relative group"
+              >
+                <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center animate-pulse">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+                <div className="absolute top-full mt-0.5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Notifications
+                </div>
+              </button>
+
+              {isNotifOpen && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <span className="font-semibold text-gray-900 text-sm">Notifications</span>
+
+                    <div className="flex items-center gap-3">
+                      {unreadCount > 0 && (
+                        <span className="text-xs text-[#4a3689] font-medium">
+                          {unreadCount} unread
+                        </span>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleMarkAllAsRead}
+                        disabled={unreadCount === 0}
+                        className="text-xs font-medium text-[#4a3689] hover:underline disabled:opacity-40 disabled:hover:no-underline"
+                      >
+                        Read all
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+                    {notifLoading ? (
+                      <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+                    ) : notifications.length === 0 ? (
+                      <p className="py-8 text-center text-sm text-gray-400">No notifications yet</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => {
+                            if (!n.isRead) handleMarkAsRead(n.id);
+                            setExpandedId((prev) => (prev === n.id ? null : n.id));
+                          }}
+                          className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 ${!n.isRead ? "bg-purple-50" : ""}`}
+                        >
+                          <span
+                            className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 ${!n.isRead ? "bg-[#4a3689]" : "bg-transparent"}`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`text-sm truncate ${!n.isRead ? "font-semibold text-gray-900" : "text-gray-600"}`}
+                            >
+                              {n.title}
+                            </p>
+                            <p
+                              className={`text-xs text-gray-500 mt-0.5 ${expandedId === n.id ? "break-words" : "truncate"}`}
+                            >
+                              {n.body}
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
-              <div className="absolute top-full mt-0.5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Notifications
-              </div>
-            </button>
+            </div>
 
             {/* Chat */}
             <button
@@ -425,17 +567,15 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
                 )}
               </button>
               <button
-                onClick={() => {
-                  navigate("/notifications");
-                  setIsMobileMenuOpen(false);
-                }}
+                onClick={toggleNotif}
+                data-notif
                 className="text-white p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 relative"
               >
                 <Bell className="w-5 h-5" />
                 <span className="text-sm">Notifications</span>
-                {notificationCount > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {notificationCount}
+                    {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
               </button>
@@ -455,6 +595,76 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
                 )}
               </button>
             </div>
+
+            {isNotifOpen && (
+              <div
+                data-notif
+                className="w-full bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
+              >
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span className="font-semibold text-gray-900 text-sm">Notifications</span>
+
+                  <div className="flex items-center gap-3">
+                    {unreadCount > 0 && (
+                      <span className="text-xs text-[#4a3689] font-medium">
+                        {unreadCount} unread
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleMarkAllAsRead}
+                      disabled={unreadCount === 0}
+                      className="text-xs font-medium text-[#4a3689] hover:underline disabled:opacity-40 disabled:hover:no-underline"
+                    >
+                      Read all
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                  {notifLoading ? (
+                    <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+                  ) : notifications.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-gray-400">No notifications yet</p>
+                  ) : (
+                    notifications.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => {
+                          if (!n.isRead) handleMarkAsRead(n.id);
+                          setExpandedId((prev) => (prev === n.id ? null : n.id));
+                        }}
+                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 ${
+                          !n.isRead ? "bg-purple-50" : ""
+                        }`}
+                      >
+                        <span
+                          className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 ${
+                            !n.isRead ? "bg-[#4a3689]" : "bg-transparent"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm truncate ${
+                              !n.isRead ? "font-semibold text-gray-900" : "text-gray-600"
+                            }`}
+                          >
+                            {n.title}
+                          </p>
+                          <p
+                            className={`text-xs text-gray-500 mt-0.5 ${expandedId === n.id ? "break-words" : "truncate"}`}
+                          >
+                            {n.body}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Profile Links */}
             <div className="space-y-2">
