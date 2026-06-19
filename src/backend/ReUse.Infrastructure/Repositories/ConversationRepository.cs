@@ -20,13 +20,15 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
     }
 
     public async Task<Conversation?> GetByParticipantsAndProductAsync(
-        Guid productId, Guid buyerId, Guid sellerId)
+        Guid productId, Guid ownerId, Guid reactantId)
     {
         return await _context.Conversations
             .FirstOrDefaultAsync(c =>
                 c.ProductId == productId &&
-                c.BuyerId == buyerId &&
-                c.SellerId == sellerId);
+                c.OwnerId == ownerId &&
+                c.ReactantId == reactantId &&
+                c.IsActive &&
+                c.Status == ConversationStatus.Active);
     }
 
     public async Task<List<Conversation>> GetByProductIdAsync(Guid productId)
@@ -42,8 +44,8 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
     public async Task<Conversation?> GetWithDetailsAsync(Guid conversationId)
     {
         return await _context.Conversations
-            .Include(c => c.Buyer)
-            .Include(c => c.Seller)
+            .Include(c => c.Owner)
+            .Include(c => c.Reactant)
             .Include(c => c.Product)
                 .ThenInclude(p => p.ProductImages.OrderBy(i => i.DisplayOrder).Take(1))
             .FirstOrDefaultAsync(c => c.Id == conversationId);
@@ -54,7 +56,7 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
     {
         return await _context.Conversations
             .AsNoTracking()
-            .Where(c => c.BuyerId == userId || c.SellerId == userId)
+            .Where(c => c.ReactantId == userId || c.OwnerId == userId)
             .OrderByDescending(c => c.LastActivityAt)
             .Select(c => new ConversationProjection
             {
@@ -66,13 +68,12 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
                                          .Select(i => i.Url)
                                          .FirstOrDefault(),
                 ProductStatus = c.Product.Status,
-                BuyerId = c.BuyerId,
-                BuyerName = c.Buyer.FullName,
-                BuyerAvatarUrl = c.Buyer.ProfileImageUrl,
-                SellerId = c.SellerId,
-                SellerName = c.Seller.FullName,
-                SellerAvatarUrl = c.Seller.ProfileImageUrl,
-                ConversationType = c.ConversationType,
+                ReactantId = c.ReactantId,
+                ReactantName = c.Reactant.FullName,
+                ReactantAvatarUrl = c.Reactant.ProfileImageUrl,
+                OwnerId = c.OwnerId,
+                OwnerName = c.Owner.FullName,
+                OwnerAvatarUrl = c.Owner.ProfileImageUrl,
                 Status = c.Status,
                 IsActive = c.IsActive,
                 LastActivityAt = c.LastActivityAt,
@@ -95,43 +96,10 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
                                                    : m.Content
                                            : m.MessageType == MessageType.Media
                                                ? "📷 Photo"
-                                           : m.MessageType == MessageType.Offer
-                                               ? "💰 Offer sent"
-                                           : m.MessageType == MessageType.OfferAccepted
-                                               ? "✅ Offer accepted"
-                                           : m.MessageType == MessageType.OfferDeclined
-                                               ? "❌ Offer declined"
                                            : m.Content)
                                        .FirstOrDefault()
             })
             .ToPagedListAsync(pageNumber, pageSize);
-    }
-
-    public async Task<bool> HasPendingOfferAsync(Guid conversationId, Guid sellerId)
-    {
-        // Find the most recent Offer sent by the seller in this conversation
-        var lastOffer = await _context.Messages
-            .Where(m =>
-                m.ConversationId == conversationId &&
-                m.SenderId == sellerId &&
-                m.MessageType == MessageType.Offer)
-            .OrderByDescending(m => m.SentAt)
-            .FirstOrDefaultAsync();
-
-        // No offer ever sent — seller is free to send one
-        if (lastOffer is null) return false;
-
-        // Check if the buyer responded after that offer
-        // Any OfferAccepted or OfferDeclined message that came after it means it is resolved
-        var isResolved = await _context.Messages
-            .AnyAsync(m =>
-                m.ConversationId == conversationId &&
-                m.SentAt > lastOffer.SentAt &&
-                (m.MessageType == MessageType.OfferAccepted ||
-                 m.MessageType == MessageType.OfferDeclined));
-
-        // Pending = offer exists but has NOT been resolved yet
-        return !isResolved;
     }
 
     public async Task<List<Conversation>> GetInactiveConversationsAsync(DateTime cutoff)
@@ -147,7 +115,7 @@ public class ConversationRepository : BaseRepository<Conversation>, IConversatio
     public async Task DeleteByUserIdAsync(Guid userId)
     {
         var conversations = await _context.Conversations
-       .Where(c => c.BuyerId == userId || c.SellerId == userId)
+       .Where(c => c.OwnerId == userId || c.ReactantId == userId)
        .ToListAsync();
         _context.Conversations.RemoveRange(conversations);
     }

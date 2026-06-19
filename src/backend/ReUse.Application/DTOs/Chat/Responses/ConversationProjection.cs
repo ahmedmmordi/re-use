@@ -14,13 +14,12 @@ public class ConversationProjection
     public string ProductTitle { get; init; } = string.Empty;
     public string? ProductCoverImageUrl { get; init; }
     public ProductStatus ProductStatus { get; init; }
-    public Guid BuyerId { get; init; }
-    public string BuyerName { get; init; } = string.Empty;
-    public string? BuyerAvatarUrl { get; init; }
-    public Guid SellerId { get; init; }
-    public string SellerName { get; init; } = string.Empty;
-    public string? SellerAvatarUrl { get; init; }
-    public ConversationType ConversationType { get; init; }
+    public Guid ReactantId { get; init; }
+    public string ReactantName { get; init; } = string.Empty;
+    public string? ReactantAvatarUrl { get; init; }
+    public Guid OwnerId { get; init; }
+    public string OwnerName { get; init; } = string.Empty;
+    public string? OwnerAvatarUrl { get; init; }
     public ConversationStatus Status { get; init; }
     public bool IsActive { get; init; }
     public DateTime LastActivityAt { get; init; }

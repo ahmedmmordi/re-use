@@ -13,6 +13,5 @@ public record SendMessageRequest(
     // This keeps message sending stateless — no binary data through the API.
     string? MediaUrl,
 
-    // Required when MessageType == Offer.
-    decimal? OfferPrice
+    Microsoft.AspNetCore.Http.IFormFile? ImageFile = null
 );

@@ -49,22 +49,6 @@ public interface IConversationService
         Guid conversationId, SendMessageRequest request, Guid senderId);
 
     /// <summary>
-    /// Buyer accepts the latest pending offer from the seller (WantedOffer only).
-    /// Creates a system OfferAccepted message and unblocks the seller.
-    /// Throws NotFoundException if no pending offer exists.
-    /// Throws ForbiddenException if the caller is not the buyer.
-    /// </summary>
-    Task<MessageResponse> AcceptOfferAsync(Guid conversationId, Guid callerId);
-
-    /// <summary>
-    /// Buyer declines the latest pending offer from the seller (WantedOffer only).
-    /// Creates a system OfferDeclined message and unblocks the seller.
-    /// Throws NotFoundException if no pending offer exists.
-    /// Throws ForbiddenException if the caller is not the buyer.
-    /// </summary>
-    Task<MessageResponse> DeclineOfferAsync(Guid conversationId, Guid callerId);
-
-    /// <summary>
     /// Marks all unread messages in the conversation as Read.
     /// Returns the number of rows updated.
     /// Called by ChatHub.JoinConversation — also available as a REST fallback.

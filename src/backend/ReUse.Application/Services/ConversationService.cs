@@ -7,6 +7,7 @@ using ReUse.Application.DTOs.Notification.NotificationData;
 using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
 using ReUse.Domain.Entities;
 using ReUse.Domain.Enums;
 
@@ -17,21 +18,25 @@ public class ConversationService : IConversationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationPublisher _notificationPublisher;
     private readonly IMapper _mapper;
+    private readonly IImageValidator _imageValidator;
+    private readonly ICloudinaryService _cloudinaryService;
 
     public ConversationService(
         IUnitOfWork unitOfWork,
         INotificationPublisher notificationPublisher,
-        IMapper mapper)
+        IMapper mapper,
+        IImageValidator imageValidator,
+        ICloudinaryService cloudinaryService)
     {
         _unitOfWork = unitOfWork;
         _notificationPublisher = notificationPublisher;
         _mapper = mapper;
+        _imageValidator = imageValidator;
+        _cloudinaryService = cloudinaryService;
     }
 
-    // ── Start conversation ───────────────────────────────────────────────────
-
     public async Task<ConversationResponse> StartConversationAsync(
-        Guid productId, StartConversationRequest request, Guid callerId)
+        Guid productId, StartConversationRequest request, Guid reactantId)
     {
         var product = await _unitOfWork.Product.GetByIdAsync(productId)
             ?? throw new NotFoundException("Product");
@@ -39,47 +44,13 @@ public class ConversationService : IConversationService
         if (product.Status != ProductStatus.Active)
             throw new BadRequestException("Cannot start a conversation on an inactive listing.");
 
-        // Resolve buyer/seller roles based on product type
-        Guid buyerId;
-        Guid sellerId;
-        ConversationType type;
+        var ownerId = product.OwnerUserId;
 
-        switch (product.ProductType)
-        {
-            case ProductType.Regular:
-                // Caller is the buyer, product owner is the seller
-                if (callerId == product.OwnerUserId)
-                    throw new BadRequestException("You cannot start a conversation on your own listing.");
-                buyerId = callerId;
-                sellerId = product.OwnerUserId;
-                type = ConversationType.BuyerSeller;
-                break;
+        if (reactantId == product.OwnerUserId)
+            throw new BadRequestException("You cannot start a conversation on your own listing.");
 
-            case ProductType.Wanted:
-                // Caller is the seller (making an offer), product owner is the buyer
-                if (callerId == product.OwnerUserId)
-                    throw new BadRequestException("You cannot respond to your own wanted listing.");
-                buyerId = product.OwnerUserId;
-                sellerId = callerId;
-                type = ConversationType.WantedOffer;
-                break;
-
-            case ProductType.Swap:
-                // Caller is the buyer (proposing swap), product owner is the seller
-                if (callerId == product.OwnerUserId)
-                    throw new BadRequestException("You cannot propose a swap on your own listing.");
-                buyerId = callerId;
-                sellerId = product.OwnerUserId;
-                type = ConversationType.SwapRequest;
-                break;
-
-            default:
-                throw new BadRequestException("Unknown product type.");
-        }
-
-        // One thread per (product, buyer, seller) triplet
         var existing = await _unitOfWork.Conversation
-            .GetByParticipantsAndProductAsync(productId, buyerId, sellerId);
+            .GetByParticipantsAndProductAsync(productId, ownerId, reactantId);
 
         if (existing is not null)
             throw new ConflictException("Conversation");
@@ -90,9 +61,8 @@ public class ConversationService : IConversationService
         {
             Id = Guid.NewGuid(),
             ProductId = productId,
-            BuyerId = buyerId,
-            SellerId = sellerId,
-            ConversationType = type,
+            ReactantId = reactantId,
+            OwnerId = ownerId,
             Status = ConversationStatus.Active,
             IsActive = true,
             LastActivityAt = now,
@@ -102,30 +72,24 @@ public class ConversationService : IConversationService
         _unitOfWork.Conversation.Add(conversation);
         await _unitOfWork.SaveChangesAsync();
 
-        // Send the optional opening message in the same operation
         if (!string.IsNullOrWhiteSpace(request.InitialMessage))
         {
             var message = BuildMessage(
-                conversation.Id, callerId, MessageType.Text, request.InitialMessage, null, null, now);
+                conversation.Id, reactantId, MessageType.Text, request.InitialMessage, null, now);
 
             _unitOfWork.Message.Add(message);
 
             conversation.LastActivityAt = now;
             await _unitOfWork.SaveChangesAsync();
 
-            // Notify the other participant
-            var receiverId = callerId == buyerId ? sellerId : buyerId;
-            await NotifyNewMessageAsync(conversation.Id, callerId, receiverId);
+            await NotifyNewMessageAsync(conversation.Id, reactantId, ownerId);
         }
 
-        // Load details for the response
         var created = await _unitOfWork.Conversation.GetWithDetailsAsync(conversation.Id)
             ?? conversation;
 
-        return MapToConversationResponse(created, callerId, unreadCount: 0);
+        return MapToConversationResponse(created, reactantId, unreadCount: 0);
     }
-
-    // ── Get conversation detail ──────────────────────────────────────────────
 
     public async Task<ConversationDetailResponse> GetConversationAsync(
         Guid conversationId, Guid callerId)
@@ -137,7 +101,6 @@ public class ConversationService : IConversationService
 
         var unreadCount = await _unitOfWork.Message.GetUnreadCountAsync(conversationId, callerId);
 
-        // First page of messages — oldest first
         var messages = await _unitOfWork.Message
             .GetConversationMessagesAsync(conversationId, callerId, pageNumber: 1, pageSize: 30);
 
@@ -147,8 +110,6 @@ public class ConversationService : IConversationService
             Messages = MapToPagedMessageResponse(messages, callerId)
         };
     }
-
-    // ── Get my conversations ─────────────────────────────────────────────────
 
     public async Task<PagedResult<ConversationResponse>> GetMyConversationsAsync(
         Guid callerId, PaginationParams pagination)
@@ -177,8 +138,6 @@ public class ConversationService : IConversationService
         };
     }
 
-    // ── Get messages (infinite scroll) ───────────────────────────────────────
-
     public async Task<PagedResult<MessageResponse>> GetMessagesAsync(
         Guid conversationId, PaginationParams pagination, Guid callerId)
     {
@@ -193,8 +152,6 @@ public class ConversationService : IConversationService
         return MapToPagedMessageResponse(messages, callerId);
     }
 
-    // ── Send message ─────────────────────────────────────────────────────────
-
     public async Task<MessageResponse> SendMessageAsync(
         Guid conversationId, SendMessageRequest request, Guid senderId)
     {
@@ -206,110 +163,47 @@ public class ConversationService : IConversationService
         if (!conversation.IsActive)
             throw new ForbiddenException("This conversation is closed.");
 
-        // ── WantedOffer offer-lock ────────────────────────────────────────────
-        if (request.MessageType == MessageType.Offer)
-        {
-            if (conversation.ConversationType != ConversationType.WantedOffer)
-                throw new BadRequestException("Offer messages are only valid in WantedOffer conversations.");
-
-            if (senderId != conversation.SellerId)
-                throw new ForbiddenException("Only the seller can send an offer.");
-
-            var hasPending = await _unitOfWork.Conversation
-                .HasPendingOfferAsync(conversationId, senderId);
-
-            if (hasPending)
-                throw new BadRequestException(
-                    "You cannot send a new offer until the buyer responds to your current one.");
-        }
-
         var now = DateTime.UtcNow;
+
+        string? mediaUrl = request.MediaUrl;
+        var messageType = request.MessageType;
+
+        if (request.ImageFile != null)
+        {
+            _imageValidator.Validate(request.ImageFile);
+            var uploadResult = await _cloudinaryService.UpdateAsync(request.ImageFile, "chat_media");
+            mediaUrl = uploadResult.Url;
+            messageType = MessageType.Media;
+        }
 
         var message = BuildMessage(
             conversationId,
             senderId,
-            request.MessageType,
+            messageType,
             request.Content,
-            request.MediaUrl,
-            request.OfferPrice,
+            mediaUrl,
             now);
 
         _unitOfWork.Message.Add(message);
 
-        // Bump activity clock
         conversation.LastActivityAt = now;
         _unitOfWork.Conversation.Update(conversation);
 
         await _unitOfWork.SaveChangesAsync();
 
         // Notify the other participant
-        var receiverId = senderId == conversation.BuyerId
-            ? conversation.SellerId
-            : conversation.BuyerId;
+        var receiverId = senderId == conversation.OwnerId
+            ? conversation.ReactantId
+            : conversation.OwnerId;
 
         await NotifyNewMessageAsync(conversationId, senderId, receiverId);
 
-        // Populate sender nav for mapping
         var sender = await _unitOfWork.User.GetByIdAsync(senderId);
         message.Sender = sender!;
 
         return MapToMessageResponse(message, callerId: senderId);
     }
 
-    // ── Accept offer ─────────────────────────────────────────────────────────
-
-    public async Task<MessageResponse> AcceptOfferAsync(Guid conversationId, Guid callerId)
-        => await RespondToOfferAsync(conversationId, callerId, MessageType.OfferAccepted);
-
-    // ── Decline offer ────────────────────────────────────────────────────────
-
-    public async Task<MessageResponse> DeclineOfferAsync(Guid conversationId, Guid callerId)
-        => await RespondToOfferAsync(conversationId, callerId, MessageType.OfferDeclined);
-
-    private async Task<MessageResponse> RespondToOfferAsync(
-        Guid conversationId, Guid callerId, MessageType responseType)
-    {
-        var conversation = await _unitOfWork.Conversation.GetWithDetailsAsync(conversationId)
-            ?? throw new NotFoundException("Conversation");
-
-        if (conversation.ConversationType != ConversationType.WantedOffer)
-            throw new BadRequestException("Offer actions are only valid in WantedOffer conversations.");
-
-        if (callerId != conversation.BuyerId)
-            throw new ForbiddenException("Only the buyer can accept or decline an offer.");
-
-        if (!conversation.IsActive)
-            throw new ForbiddenException("This conversation is closed.");
-
-        var pendingOffer = await _unitOfWork.Message
-            .GetLatestPendingOfferAsync(conversationId, conversation.SellerId)
-            ?? throw new NotFoundException("Pending offer");
-
-        var now = DateTime.UtcNow;
-        var content = responseType == MessageType.OfferAccepted
-            ? "Offer accepted."
-            : "Offer declined.";
-
-        var systemMessage = BuildMessage(
-            conversationId, callerId, responseType, content, null, null, now);
-
-        _unitOfWork.Message.Add(systemMessage);
-
-        conversation.LastActivityAt = now;
-        _unitOfWork.Conversation.Update(conversation);
-
-        await _unitOfWork.SaveChangesAsync();
-
-        // Notify the seller that their offer was answered
-        await NotifyNewMessageAsync(conversationId, callerId, conversation.SellerId);
-
-        var caller = await _unitOfWork.User.GetByIdAsync(callerId);
-        systemMessage.Sender = caller!;
-
-        return MapToMessageResponse(systemMessage, callerId);
-    }
-
-    // ── Mark as read ─────────────────────────────────────────────────────────
 
     public async Task<int> MarkAsReadAsync(Guid conversationId, Guid callerId)
     {
@@ -320,8 +214,6 @@ public class ConversationService : IConversationService
 
         return await _unitOfWork.Message.MarkConversationAsReadAsync(conversationId, callerId);
     }
-
-    // ── Delete message ───────────────────────────────────────────────────────
 
     public async Task DeleteMessageAsync(Guid messageId, Guid callerId)
     {
@@ -342,8 +234,6 @@ public class ConversationService : IConversationService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    // ── Close conversation ───────────────────────────────────────────────────
-
     public async Task CloseConversationAsync(Guid conversationId, Guid callerId)
     {
         var conversation = await _unitOfWork.Conversation.GetWithDetailsAsync(conversationId)
@@ -361,11 +251,9 @@ public class ConversationService : IConversationService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
     private static void EnsureParticipant(Conversation conversation, Guid userId)
     {
-        if (conversation.BuyerId != userId && conversation.SellerId != userId)
+        if (conversation.ReactantId != userId && conversation.OwnerId != userId)
             throw new ForbiddenException("You are not a participant in this conversation.");
     }
 
@@ -375,27 +263,16 @@ public class ConversationService : IConversationService
         MessageType type,
         string? content,
         string? mediaUrl,
-        decimal? offerPrice,
         DateTime now)
     {
-        // For Offer messages, embed the price at the start of Content so it can be
-        // extracted by ExtractOfferPrice without a dedicated column.
-        // Format: "{price}|{note}" e.g. "250.00|Good condition, barely used"
-        // Note is optional — "250.00|" is valid.
-        var storedContent = type == MessageType.Offer && offerPrice.HasValue
-            ? $"{offerPrice.Value:F2}|{content ?? string.Empty}"
-            : content;
-
         return new Message
         {
-            Id = Guid.NewGuid(),
             ConversationId = conversationId,
             SenderId = senderId,
             MessageType = type,
-            Content = storedContent,
+            Content = content,
             MediaUrl = mediaUrl,
-            SentAt = now,
-            CreatedAt = now
+            SentAt = now
         };
     }
 
@@ -450,15 +327,6 @@ public class ConversationService : IConversationService
             PageSize = paged.PageSize,
             TotalRecords = paged.TotalRecords
         };
-    }
-
-    // OfferPrice is stored in Content as "{price}|{note}" — handled in ConversationProfile
-    private static string? ExtractOfferNote(string? content)
-    {
-        if (string.IsNullOrEmpty(content)) return null;
-        var pipeIndex = content.IndexOf('|');
-        if (pipeIndex < 0 || pipeIndex == content.Length - 1) return null;
-        return content[(pipeIndex + 1)..];
     }
 
 }

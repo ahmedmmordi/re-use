@@ -22,6 +22,7 @@ import {
   markAsRead,
   type NotificationDto,
 } from "../services/notificationService";
+import { useChat } from "../context/ChatContext";
 
 interface LoggedInNavbarProps {
   onLogout?: () => void;
@@ -34,6 +35,7 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
   const { user, logout } = useAuth();
 
   const { favoriteIds } = useFavorites();
+  const { totalUnreadCount } = useChat();
   const favoriteCount = favoriteIds.size;
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
@@ -109,7 +111,8 @@ export function LoggedInNavbar({ onLogout }: LoggedInNavbarProps) {
     if (h < 24) return `${h}h ago`;
     return `${Math.floor(h / 24)}d ago`;
   }
-  const chatCount = 0; // TODO: wire up when implemented
+  // const notificationCount = 0; // TODO: wire up when implemented
+  const chatCount = totalUnreadCount;
 
   const displayName = user?.fullName || user?.email || "User";
   const displayAvatar = (user?.fullName?.[0] ?? user?.email?.[0] ?? "U").toUpperCase();

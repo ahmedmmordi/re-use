@@ -18,11 +18,6 @@ public class ConversationEntityTypeConfiguration : IEntityTypeConfiguration<Conv
                .ValueGeneratedNever();
 
         // Properties
-        builder.Property(c => c.ConversationType)
-               .HasConversion<string>()
-               .HasMaxLength(20)
-               .IsRequired();
-
         builder.Property(c => c.Status)
                .HasConversion<string>()
                .HasMaxLength(20)
@@ -49,15 +44,15 @@ public class ConversationEntityTypeConfiguration : IEntityTypeConfiguration<Conv
                .OnDelete(DeleteBehavior.Restrict);
 
         // FK → User (Buyer)
-        builder.HasOne(c => c.Buyer)
+        builder.HasOne(c => c.Owner)
                .WithMany()
-               .HasForeignKey(c => c.BuyerId)
+               .HasForeignKey(c => c.OwnerId)
                .OnDelete(DeleteBehavior.Restrict);
 
         // FK → User (Seller)
-        builder.HasOne(c => c.Seller)
+        builder.HasOne(c => c.Reactant)
                .WithMany()
-               .HasForeignKey(c => c.SellerId)
+               .HasForeignKey(c => c.ReactantId)
                .OnDelete(DeleteBehavior.Restrict);
 
         // One-to-many → Messages (cascade so deleting a conversation wipes its messages)
@@ -66,22 +61,11 @@ public class ConversationEntityTypeConfiguration : IEntityTypeConfiguration<Conv
                .HasForeignKey(m => m.ConversationId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        // ── Constraints ──────────────────────────────────────────────────────
-
-        // One thread per (product, buyer, seller) triplet — prevents duplicates
-        builder.HasIndex(c => new { c.ProductId, c.BuyerId, c.SellerId })
-               .IsUnique();
-
-        // A user cannot be both buyer and seller in the same conversation
-        builder.ToTable(t => t.HasCheckConstraint(
-            "CK_Conversation_Buyer_Not_Seller",
-            "\"BuyerId\" <> \"SellerId\""));
-
         // ── Indexes ──────────────────────────────────────────────────────────
 
         // "Get all conversations for user X" — the most common query
-        builder.HasIndex(c => new { c.BuyerId, c.Status });
-        builder.HasIndex(c => new { c.SellerId, c.Status });
+        builder.HasIndex(c => new { c.OwnerId, c.Status });
+        builder.HasIndex(c => new { c.ReactantId, c.Status });
 
         // Used by the background job to find stale conversations
         builder.HasIndex(c => c.LastActivityAt);

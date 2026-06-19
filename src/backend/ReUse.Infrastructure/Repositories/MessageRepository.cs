@@ -39,7 +39,7 @@ public class MessageRepository : BaseRepository<Message>, IMessageRepository
                 m.ConversationId == conversationId &&
                 !(m.SenderId == viewerId && m.IsDeletedBySender) &&
                 !(m.SenderId != viewerId && m.IsDeletedByReceiver))
-            .OrderBy(m => m.SentAt)
+            .OrderByDescending(m => m.SentAt)
             .ToPagedListAsync(pageNumber, pageSize);
     }
 
@@ -63,25 +63,4 @@ public class MessageRepository : BaseRepository<Message>, IMessageRepository
                 .SetProperty(m => m.DeliveredAt,
                     m => m.DeliveredAt == null ? DateTime.UtcNow : m.DeliveredAt));
 
-    public async Task<Message?> GetLatestPendingOfferAsync(Guid conversationId, Guid sellerId)
-    {
-        var lastOffer = await _context.Messages
-            .Where(m =>
-                m.ConversationId == conversationId &&
-                m.SenderId == sellerId &&
-                m.MessageType == MessageType.Offer)
-            .OrderByDescending(m => m.SentAt)
-            .FirstOrDefaultAsync();
-
-        if (lastOffer is null) return null;
-
-        var isResolved = await _context.Messages
-            .AnyAsync(m =>
-                m.ConversationId == conversationId &&
-                m.SentAt > lastOffer.SentAt &&
-                (m.MessageType == MessageType.OfferAccepted ||
-                 m.MessageType == MessageType.OfferDeclined));
-
-        return isResolved ? null : lastOffer;
-    }
 }

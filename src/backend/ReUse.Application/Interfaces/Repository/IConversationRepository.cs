@@ -8,7 +8,7 @@ namespace ReUse.Application.Interfaces.Repository;
 public interface IConversationRepository : IBaseRepository<Conversation>
 {
     Task<Conversation?> GetByParticipantsAndProductAsync(
-        Guid productId, Guid buyerId, Guid sellerId);
+        Guid productId, Guid ownerId, Guid reactantId);
 
     /// <summary>
     /// Returns a conversation with participants and product loaded.
@@ -22,8 +22,6 @@ public interface IConversationRepository : IBaseRepository<Conversation>
     /// </summary>
     Task<PagedResult<ConversationProjection>> GetUserConversationsAsync(
         Guid userId, int pageNumber, int pageSize);
-
-    Task<bool> HasPendingOfferAsync(Guid conversationId, Guid sellerId);
 
     Task<List<Conversation>> GetInactiveConversationsAsync(DateTime cutoff);
 

@@ -12,6 +12,7 @@ import {
   Star,
   Flag,
   Pencil,
+  X,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -28,6 +29,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { trackActivity } from "../services/activityService";
 import { ReportDialog } from "./ReportDialog";
+import { useChat } from "../context/ChatContext";
 
 function formatPrice(p: ProductDetailsResponse): string {
   if (p.type === "Wanted") {
@@ -75,9 +77,52 @@ export function ProductDetailsPage() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { isFavorited, add, remove } = useFavorites();
+  const { startConversation, conversations } = useChat();
 
   const [product, setProduct] = useState<ProductDetailsResponse | null>(null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
+
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [initialMessageText, setInitialMessageText] = useState("Hi, is this item still available?");
+  const [startingChat, setStartingChat] = useState(false);
+
+  const handleContactSeller = () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    setInitialMessageText("Hi, is this item still available?");
+    setShowContactModal(true);
+  };
+
+  const handleStartChatConfirm = async () => {
+    if (!product) return;
+    setStartingChat(true);
+    try {
+      const conv = await startConversation(product.id, initialMessageText.trim() || null);
+      setShowContactModal(false);
+      navigate(`/chat/${conv.id}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (
+        message.includes("Conflict") ||
+        message.includes("already exists") ||
+        message.includes("409")
+      ) {
+        const existing = conversations.find((c) => c.productId === product.id);
+        setShowContactModal(false);
+        if (existing) {
+          navigate(`/chat/${existing.id}`);
+        } else {
+          navigate("/chat");
+        }
+      } else {
+        alert(message || "Failed to start conversation.");
+      }
+    } finally {
+      setStartingChat(false);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -453,6 +498,7 @@ export function ProductDetailsPage() {
               <div className="flex flex-col gap-3">
                 <Button
                   size="lg"
+                  onClick={handleContactSeller}
                   className="w-full bg-white text-[#4B0082] hover:bg-gray-100 text-[16px] font-semibold py-6 rounded-xl"
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
@@ -728,6 +774,52 @@ export function ProductDetailsPage() {
           targetType={reportDialog.targetType}
           targetId={reportDialog.targetId}
         />
+      )}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 text-base">Start Conversation</h3>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="text-gray-400 hover:text-gray-600 rounded-lg p-1 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4 font-sans">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Initial Message
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Type your starting message..."
+                  value={initialMessageText}
+                  onChange={(e) => setInitialMessageText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30 focus:border-[#7C3AED] resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowContactModal(false)}
+                  className="rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleStartChatConfirm}
+                  disabled={startingChat}
+                  className="rounded-xl bg-[#4B0082] hover:bg-[#3d2e7c] text-white text-sm font-semibold px-4 py-2 shadow-md transition-all border-0 cursor-pointer"
+                >
+                  {startingChat ? "Starting..." : "Send Message"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

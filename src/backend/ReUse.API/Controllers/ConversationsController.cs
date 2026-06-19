@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -6,8 +7,10 @@ using ReUse.API.Extensions;
 using ReUse.Application.DTOs;
 using ReUse.Application.DTOs.Chat.Requests;
 using ReUse.Application.DTOs.Chat.Responses;
+using ReUse.Application.DTOs.Users.UserProfile;
 using ReUse.Application.Hubs;
 using ReUse.Application.Interfaces.Services;
+using ReUse.Application.Interfaces.Services.External;
 
 namespace ReUse.API.Controllers;
 
@@ -110,7 +113,7 @@ public class ConversationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SendMessage(
         [FromRoute] Guid conversationId,
-        [FromBody] SendMessageRequest request)
+        [FromForm] SendMessageRequest request)
     {
         var callerId = User.GetBusinessId();
 
@@ -127,48 +130,6 @@ public class ConversationsController : ControllerBase
             conversationId, callerId, "ReceiveMessage", result);
 
         return CreatedAtAction(nameof(GetMessages), new { conversationId }, result);
-    }
-
-    // ── Accept offer ─────────────────────────────────────────────────────────
-
-    [HttpPost("api/conversations/{conversationId:guid}/offers/accept")]
-    [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> AcceptOffer([FromRoute] Guid conversationId)
-    {
-        var callerId = User.GetBusinessId();
-
-        var result = await _conversationService
-            .AcceptOfferAsync(conversationId, callerId);
-
-
-        await PushToConversationExcludingSender(
-            conversationId, callerId, "ReceiveMessage", result);
-
-        return Ok(result);
-    }
-
-    // ── Decline offer ────────────────────────────────────────────────────────
-
-    [HttpPost("api/conversations/{conversationId:guid}/offers/decline")]
-    [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeclineOffer([FromRoute] Guid conversationId)
-    {
-        var callerId = User.GetBusinessId();
-
-        var result = await _conversationService
-            .DeclineOfferAsync(conversationId, callerId);
-
-        // ── FIX 3: broadcast OfferDeclined message via ReceiveMessage ────────
-        await PushToConversationExcludingSender(
-            conversationId, callerId, "ReceiveMessage", result);
-
-        return Ok(result);
     }
 
     // ── Mark as read (REST fallback) ─────────────────────────────────────────

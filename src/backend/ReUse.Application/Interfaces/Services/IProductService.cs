@@ -44,11 +44,11 @@ public interface IProductService
     Task ChangeProductStatusByAdminAsync(Guid productId, ProductStatus status);
     Task RestoreProductByAdminAsync(Guid productId);
 
-    Task CloseProductAsync(Guid productId, Guid userId, CloseProductRequest request);
-
-    Task ConfirmDealAsync(Guid dealId, Guid userId);
-
-    Task RejectDealAsync(Guid dealId, Guid userId);
-
-    Task<List<ProductDeal>> GetMyDealsAsync(Guid userId);
+    // Task CloseProductAsync(Guid productId, Guid userId, CloseProductRequest request);
+    //
+    // Task ConfirmDealAsync(Guid dealId, Guid userId);
+    //
+    // Task RejectDealAsync(Guid dealId, Guid userId);
+    //
+    // Task<List<ProductDeal>> GetMyDealsAsync(Guid userId);
 }

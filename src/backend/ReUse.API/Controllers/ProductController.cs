@@ -243,52 +243,52 @@ public class ProductController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("/api/me/deals")]
-    [Authorize]
-    public async Task<IActionResult> GetMyDeals()
-    {
-        var userId = User.GetBusinessId();
-
-        var deals = await _productService.GetMyDealsAsync(userId);
-
-        return Ok(deals);
-    }
-
-    [HttpPost("{productId:guid}/close")]
-    [Authorize]
-    public async Task<IActionResult> Close(
-        Guid productId,
-        [FromBody] CloseProductRequest request)
-    {
-        var userId = User.GetBusinessId();
-
-        await _productService.CloseProductAsync(
-            productId,
-            userId,
-            request);
-
-        return NoContent();
-    }
-
-    [HttpPost("/api/deals/{dealId:guid}/confirm")]
-    [Authorize]
-    public async Task<IActionResult> ConfirmDeal(Guid dealId)
-    {
-        var userId = User.GetBusinessId();
-
-        await _productService.ConfirmDealAsync(dealId, userId);
-
-        return NoContent();
-    }
-
-    [HttpPost("/api/deals/{dealId:guid}/reject")]
-    [Authorize]
-    public async Task<IActionResult> RejectDeal(Guid dealId)
-    {
-        var userId = User.GetBusinessId();
-
-        await _productService.RejectDealAsync(dealId, userId);
-
-        return NoContent();
-    }
+    // [HttpPost("/api/me/deals")]
+    // [Authorize]
+    // public async Task<IActionResult> GetMyDeals()
+    // {
+    //     var userId = User.GetBusinessId();
+    //
+    //     var deals = await _productService.GetMyDealsAsync(userId);
+    //
+    //     return Ok(deals);
+    // }
+    //
+    // [HttpPost("{productId:guid}/close")]
+    // [Authorize]
+    // public async Task<IActionResult> Close(
+    //     Guid productId,
+    //     [FromBody] CloseProductRequest request)
+    // {
+    //     var userId = User.GetBusinessId();
+    //
+    //     await _productService.CloseProductAsync(
+    //         productId,
+    //         userId,
+    //         request);
+    //
+    //     return NoContent();
+    // }
+    //
+    // [HttpPost("/api/deals/{dealId:guid}/confirm")]
+    // [Authorize]
+    // public async Task<IActionResult> ConfirmDeal(Guid dealId)
+    // {
+    //     var userId = User.GetBusinessId();
+    //
+    //     await _productService.ConfirmDealAsync(dealId, userId);
+    //
+    //     return NoContent();
+    // }
+    //
+    // [HttpPost("/api/deals/{dealId:guid}/reject")]
+    // [Authorize]
+    // public async Task<IActionResult> RejectDeal(Guid dealId)
+    // {
+    //     var userId = User.GetBusinessId();
+    //
+    //     await _productService.RejectDealAsync(dealId, userId);
+    //
+    //     return NoContent();
+    // }
 }

@@ -35,6 +35,7 @@ import ProductDetailsPageWrapper from "./pages/ProductDetailsPageWrapper";
 import AdminReportsPageWrapper from "./pages/AdminReportsPageWrapper";
 import NotificationBroadcastPageWrapper from "./pages/NotificationBroadcastPageWrapper";
 import LogsAuditPageWrapper from "./pages/LogsAuditPageWrapper";
+import ChatPageWrapper from "./pages/ChatPageWrapper";
 
 const routeErrorElement = <GlobalErrorPage />;
 
@@ -206,6 +207,14 @@ export const router = createBrowserRouter([
           {
             path: "/activity-history",
             Component: ActivityHistoryPageWrapper,
+          },
+          {
+            path: "/chat",
+            Component: ChatPageWrapper,
+          },
+          {
+            path: "/chat/:conversationId",
+            Component: ChatPageWrapper,
           },
         ],
       },

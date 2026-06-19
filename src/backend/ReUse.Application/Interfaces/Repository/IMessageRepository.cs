@@ -24,11 +24,4 @@ public interface IMessageRepository : IBaseRepository<Message>
     /// </summary>
     Task<int> MarkConversationAsReadAsync(Guid conversationId, Guid readerId);
 
-    /// <summary>
-    /// Returns the latest Offer message sent by sellerId in this conversation
-    /// that has not been responded to (no OfferAccepted or OfferDeclined after it).
-    /// Returns null if no pending offer exists.
-    /// Used by the service to validate accept/decline actions.
-    /// </summary>
-    Task<Message?> GetLatestPendingOfferAsync(Guid conversationId, Guid sellerId);
 }
