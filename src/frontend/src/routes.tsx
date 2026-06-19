@@ -33,6 +33,7 @@ import MyProductsPageWrapper from "./pages/MyProductsPageWrapper";
 import ProductDetailsPageWrapper from "./pages/ProductDetailsPageWrapper";
 import AdminReportsPageWrapper from "./pages/AdminReportsPageWrapper";
 import NotificationBroadcastPageWrapper from "./pages/NotificationBroadcastPageWrapper";
+import LogsAuditPageWrapper from "./pages/LogsAuditPageWrapper";
 
 const routeErrorElement = <GlobalErrorPage />;
 
@@ -157,6 +158,10 @@ export const router = createBrowserRouter([
           {
             path: "/admin/broadcast",
             Component: NotificationBroadcastPageWrapper,
+          },
+          {
+            path: "/admin/logs",
+            Component: LogsAuditPageWrapper,
           },
         ],
       },
