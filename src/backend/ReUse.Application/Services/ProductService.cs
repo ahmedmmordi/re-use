@@ -11,6 +11,7 @@ using ReUse.Application.Exceptions;
 using ReUse.Application.Interfaces;
 using ReUse.Application.Interfaces.Services;
 using ReUse.Application.Interfaces.Services.External;
+using ReUse.Application.Services.Assistant;
 using ReUse.Domain.Entities;
 using ReUse.Domain.Enums;
 
@@ -24,13 +25,15 @@ public class ProductService : IProductService
     private readonly IMapper _mapper;
     private readonly IRecommendationService _recommendationService;
     private readonly IEmailConfirmationService _emailConfirmationService;
+    private readonly IEmbeddingService _embeddingService;
     public ProductService(
         IUnitOfWork unitOfWork,
         IProductImageService productImageService,
         IMapper mapper,
         IActivityService activityService,
         IRecommendationService recommendationService,
-        IEmailConfirmationService emailConfirmationService)
+        IEmailConfirmationService emailConfirmationService,
+        IEmbeddingService embeddingService)
     {
         _unitOfWork = unitOfWork;
         _productImageService = productImageService;
@@ -38,6 +41,7 @@ public class ProductService : IProductService
         _activityService = activityService;
         _recommendationService = recommendationService;
         _emailConfirmationService = emailConfirmationService;
+        _embeddingService = embeddingService;
     }
 
     #region Create
@@ -60,10 +64,11 @@ public class ProductService : IProductService
         var response = await PersistProductAsync(product, request.Images);
         try { await _activityService.CreateActivityAsync(sellerId, product.Id, "product.created", $"Created regular product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await SyncEmbeddingAsync(product.Id);
         return response;
     }
 
-    // SWAP 
+    // SWAP
     public async Task<ProductResponse> CreateSwapProductAsync(
         CreateSwapProductRequest request,
         Guid sellerId)
@@ -85,6 +90,7 @@ public class ProductService : IProductService
         var response = await PersistSwapProductAsync(product, request.OfferImages, request.WantedImages);
         try { await _activityService.CreateActivityAsync(sellerId, product.Id, "product.created", $"Created swap product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await SyncEmbeddingAsync(product.Id);
         return response;
     }
     // WANTED
@@ -106,6 +112,7 @@ public class ProductService : IProductService
         var response = await PersistProductAsync(product, request.Images);
         try { await _activityService.CreateActivityAsync(sellerId, product.Id, "product.created", $"Created wanted product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await SyncEmbeddingAsync(product.Id);
         return response;
     }
 
@@ -222,6 +229,7 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
         try { await _activityService.CreateActivityAsync(userId, productId, "product.updated", $"Updated regular product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await SyncEmbeddingAsync(productId);
 
     }
 
@@ -258,6 +266,7 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
         try { await _activityService.CreateActivityAsync(userId, productId, "product.updated", $"Updated swap product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await SyncEmbeddingAsync(productId);
     }
 
     public async Task UpdateWantedProductAsync(
@@ -295,6 +304,7 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
         try { await _activityService.CreateActivityAsync(userId, productId, "product.updated", $"Updated wanted product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await SyncEmbeddingAsync(productId);
     }
 
     #endregion
@@ -319,6 +329,7 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
         try { await _activityService.CreateActivityAsync(userId, productId, "product.deleted", $"Deleted product: {product.Title}"); }
         catch { /* Activity logging must not fail the main operation */ }
+        await RemoveEmbeddingAsync(productId);
     }
     #endregion
 
@@ -376,6 +387,7 @@ public class ProductService : IProductService
         product.Status = status;
 
         await _unitOfWork.SaveChangesAsync();
+        await SyncEmbeddingAsync(productId);
     }
 
     public async Task RestoreProductByAdminAsync(Guid productId)
@@ -392,6 +404,7 @@ public class ProductService : IProductService
         product.Status = ProductStatus.Active;
 
         await _unitOfWork.SaveChangesAsync();
+        await SyncEmbeddingAsync(productId);
     }
 
     #endregion
@@ -515,6 +528,39 @@ public class ProductService : IProductService
 
         if (category.ParentId is null)
             throw new BadRequestException("Category must be a subcategory");
+    }
+
+    #endregion
+
+    #region Embedding sync
+
+    // Re-index a product in the assistant's semantic search. Reloads the
+    // product with its category so the embedded text matches the backfill
+    // feed; only Active products are indexed (others are removed). Failures
+    // must never break the main product operation.
+    private async Task SyncEmbeddingAsync(Guid productId)
+    {
+        try
+        {
+            var active = await _unitOfWork.Product.GetActiveByIdsAsync(new[] { productId });
+            var product = active.FirstOrDefault();
+
+            if (product is null)
+            {
+                await _embeddingService.DeleteProductAsync(productId);
+                return;
+            }
+
+            await _embeddingService.IndexProductAsync(
+                productId, ProductEmbeddingText.Compose(product));
+        }
+        catch { /* Embedding sync must not fail the main operation */ }
+    }
+
+    private async Task RemoveEmbeddingAsync(Guid productId)
+    {
+        try { await _embeddingService.DeleteProductAsync(productId); }
+        catch { /* Embedding sync must not fail the main operation */ }
     }
 
     #endregion

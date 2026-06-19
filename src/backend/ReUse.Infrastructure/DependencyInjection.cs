@@ -92,6 +92,25 @@ public static class DependencyInjection
         services.AddScoped<IViewTrackingService, ViewTrackingService>();
         #endregion
 
+        #region AI Assistant
+        services.Configure<AssistantOptions>(configuration.GetSection("Assistant"));
+
+        var assistantOptions = configuration.GetSection("Assistant").Get<AssistantOptions>()
+                               ?? new AssistantOptions();
+
+        services.AddHttpClient<IEmbeddingService, EmbeddingService>(client =>
+        {
+            client.BaseAddress = new Uri(assistantOptions.EmbeddingBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
+        services.AddHttpClient<IAssistantLlmService, GroqAssistantService>(client =>
+        {
+
+            client.Timeout = TimeSpan.FromSeconds(180);
+        });
+        #endregion
+
         #region ImageService
         services.AddScoped<IImageValidator, ImageValidator>();
         services.AddScoped<ICloudinaryService, CloudinaryService>();

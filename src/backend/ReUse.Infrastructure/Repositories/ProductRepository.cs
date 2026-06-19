@@ -212,4 +212,30 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
             .ExecuteDeleteAsync();
     }
     #endregion
+
+    #region GetActiveByIdsAsync
+    public async Task<List<Product>> GetActiveByIdsAsync(IEnumerable<Guid> ids)
+        => await _context.Products
+            .AsNoTracking()
+            .Include(p => p.ProductImages.OrderBy(i => i.DisplayOrder))
+            .Include(p => p.Category)
+            .Include(p => p.Owner)
+            .Include(p => p.Favorites)
+            .Where(p => ids.Contains(p.Id))
+            .Where(p => p.Status == ProductStatus.Active)
+            .Where(p => p.Owner.IsActive)
+            .Where(p => p.Category.IsActive && (p.Category.Parent == null || p.Category.Parent.IsActive))
+            .ToListAsync();
+    #endregion
+
+    #region GetAllActiveAsync
+    public async Task<List<Product>> GetAllActiveAsync()
+        => await _context.Products
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Where(p => p.Status == ProductStatus.Active)
+            .Where(p => p.Owner.IsActive)
+            .Where(p => p.Category.IsActive && (p.Category.Parent == null || p.Category.Parent.IsActive))
+            .ToListAsync();
+    #endregion
 }

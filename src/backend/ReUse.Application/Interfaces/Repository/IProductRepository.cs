@@ -27,4 +27,11 @@ public interface IProductRepository : IBaseRepository<Product>
     Task<Product?> GetForAdminByIdAsync(Guid productId);
     Task<AdminProductsSummary> GetAdminSummaryAsync();
     Task DeleteByUserIdAsync(Guid userId);
+
+    // AI Assistant: hydrate active products for the ids returned by the
+    // embedding search (order is restored by the caller).
+    Task<List<Product>> GetActiveByIdsAsync(IEnumerable<Guid> ids);
+
+    // AI Assistant: all active products for the embedding backfill feed.
+    Task<List<Product>> GetAllActiveAsync();
 }

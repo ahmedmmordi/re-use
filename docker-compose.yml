@@ -59,6 +59,28 @@ services:
       - PAYMOB__HMAC=${PAYMOB__HMAC}
       - Paymob__CardIntegrationId=${PAYMOB__CARD_INTEGRATION_ID}
       - Paymob__CallbackUrl=${PAYMOB__CALLBACK_URL}
+      - Assistant__EmbeddingBaseUrl=${ASSISTANT__EMBEDDING_BASE_URL}
+      - Assistant__InternalKey=${ASSISTANT__INTERNAL_KEY}
+      - Assistant__GroqApiKey=${ASSISTANT__GROQ_API_KEY}
+      - Assistant__GroqModel=${ASSISTANT__GROQ_MODEL}
+
+  embedding:
+    build:
+      context: ./src/embedding
+    container_name: reuse_embedding
+    depends_on:
+      - backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.embedding-data:/data
+    environment:
+      - EMBEDDING_DATA_DIR=/data
+      - EMBEDDING_BACKEND_FEED_URL=${ASSISTANT__PRODUCT_FEED_URL}
+      - EMBEDDING_INTERNAL_KEY=${ASSISTANT__INTERNAL_KEY}
+    restart: unless-stopped
+
+
   frontend:
     build:
       context: ./src/frontend

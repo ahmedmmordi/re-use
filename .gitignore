@@ -38,3 +38,12 @@ dist-ssr
 *.sw?
 .env
 core.*
+
+# AI Assistant persisted data (model + embedding index)
+.embedding-data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

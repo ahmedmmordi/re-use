@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReUse.Application.Interfaces.Services;
 using ReUse.Application.Options;
 using ReUse.Application.Services;
+using ReUse.Application.Services.Assistant;
 
 namespace ReUse.Application;
 
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IConversationService, ConversationService>();
+        services.AddScoped<IAssistantService, AssistantService>();
         services.AddScoped<ISystemActivityLogService, SystemActivityLogService>();
         services.AddScoped<IReportService, ReportService>();
         #endregion

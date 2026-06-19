@@ -19,4 +19,5 @@ public static class ErrorsCode
     public const string BadRequest = "BAD_REQUEST";
     public const string UserLockedOut = "USER_LOCKED_OUT";
     public const string UserBlocked = "USER_BLOCKED";
+    public const string ServiceUnavailable = "SERVICE_UNAVAILABLE";
 }
