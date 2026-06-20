@@ -19,6 +19,7 @@ import FavoritesPageWrapper from "./pages/FavoritesPageWrapper";
 import MyProfilePageWrapper from "./pages/MyProfilePageWrapper";
 import PublicUserProfilePageWrapper from "./pages/PublicUserProfilePageWrapper";
 import CreateProductPageWrapper from "./pages/CreateProductPageWrapper";
+import EditProductPageWrapper from "./pages/EditProductPageWrapper";
 import ProductManagementPageWrapper from "./pages/ProductManagementPageWrapper";
 import AccountSettingsPageWrapper from "./pages/AccountSettingsPageWrapper";
 import UserManagementPageWrapper from "./pages/UserManagementPageWrapper";
@@ -185,6 +186,10 @@ export const router = createBrowserRouter([
           {
             path: "/create-product",
             Component: CreateProductPageWrapper,
+          },
+          {
+            path: "/product/:productId/edit",
+            Component: EditProductPageWrapper,
           },
           {
             path: "/account-settings",

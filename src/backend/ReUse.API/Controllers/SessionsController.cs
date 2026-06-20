@@ -48,6 +48,7 @@ public class SessionsController : ControllerBase
 
         return Ok(new
         {
+            id = profile.Id,
             email,
             role,
             fullName = profile.FullName,

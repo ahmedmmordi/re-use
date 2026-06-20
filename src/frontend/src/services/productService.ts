@@ -336,6 +336,71 @@ export async function createSwapProduct(req: CreateSwapProductRequest): Promise<
   return handleResponse<ProductResponse>(res);
 }
 
+// ─── Update endpoints ──────────────────────────────────────────────────────
+
+export interface BasicInfoUpdateRequest {
+  title?: string;
+  description?: string;
+  locationCity?: string;
+  locationCountry?: string;
+  categoryId?: string;
+  condition?: ProductCondition;
+}
+
+export interface UpdateRegularProductRequest {
+  basicInfo?: BasicInfoUpdateRequest;
+  price?: number;
+  allowNegotiation?: boolean;
+}
+
+export interface UpdateWantedProductRequest {
+  basicInfo?: BasicInfoUpdateRequest;
+  desiredPriceMin?: number;
+  desiredPriceMax?: number;
+}
+
+export interface UpdateSwapProductRequest {
+  basicInfo?: BasicInfoUpdateRequest;
+  wantedItemTitle?: string;
+  wantedItemDescription?: string;
+}
+
+export async function updateRegularProduct(
+  id: string,
+  req: UpdateRegularProductRequest
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/Product/regular/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  await handleEmptyResponse(res);
+}
+
+export async function updateWantedProduct(
+  id: string,
+  req: UpdateWantedProductRequest
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/Product/wanted/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  await handleEmptyResponse(res);
+}
+
+export async function updateSwapProduct(id: string, req: UpdateSwapProductRequest): Promise<void> {
+  const res = await fetch(`${BASE_URL}/Product/swap/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  await handleEmptyResponse(res);
+}
+
 // ─── Admin endpoints ─────────────────────────────────────────────────────────
 
 export interface AdminProductsQuery {

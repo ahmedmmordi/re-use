@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Star,
   Flag,
+  Pencil,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -72,7 +73,7 @@ function formatDate(value: string): string {
 export function ProductDetailsPage() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { isFavorited, add, remove } = useFavorites();
 
   const [product, setProduct] = useState<ProductDetailsResponse | null>(null);
@@ -405,6 +406,15 @@ export function ProductDetailsPage() {
             <div className="mb-6">
               <h1 className="text-[36px] font-bold text-gray-900 mb-4">{product.title}</h1>
               <div className="flex items-center gap-3">
+                {user?.id === product.ownerUserId && (
+                  <button
+                    onClick={() => navigate(`/product/${product.id}/edit`)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[#4B0082] text-[#4B0082] hover:bg-purple-50 transition-all duration-200"
+                  >
+                    <Pencil className="w-5 h-5" />
+                    <span className="font-medium">Edit</span>
+                  </button>
+                )}
                 <button
                   onClick={toggleFavorite}
                   className={`flex items-center gap-2 px-6 py-3 rounded-full border-2 transition-all duration-200 ${
