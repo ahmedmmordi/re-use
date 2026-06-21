@@ -68,7 +68,12 @@ public class AssistantService : IAssistantService
         }
 
         // Search intents: semantic search (no LLM), hydrate, filter, then reply.
-        var query = string.IsNullOrWhiteSpace(filters.Category) ? request.Message : filters.Category;
+        // Use the LLM-resolved search query, which folds in conversation context
+        // (a follow-up like "find me some" inherits the item from a prior turn).
+        // Fall back to the raw message if the model gave nothing usable.
+        var query = string.IsNullOrWhiteSpace(filters.SearchQuery)
+            ? request.Message
+            : filters.SearchQuery;
         var hits = await _embedding.SearchAsync(query, _options.SearchTopN, _options.MinScore);
 
         var scoreById = hits.ToDictionary(h => h.ProductId, h => h.Score);
@@ -146,6 +151,7 @@ public class AssistantService : IAssistantService
             Id = r.Id,
             Title = r.Title,
             Category = r.CategoryName,
+            Type = r.Type,
             Price = r.Price,
             Condition = r.Condition?.ToString() ?? string.Empty,
             SemanticDistance = scoreById.TryGetValue(r.Id, out var s) ? 1 - s : 1
@@ -168,12 +174,22 @@ public class AssistantService : IAssistantService
             {
               "is_on_topic": boolean,
               "intent": "buy" | "sell" | "swap" | "question" | "off_topic",
+              "search_query": string | null,
               "category": string | null,
               "min_price": number | null,
               "max_price": number | null,
               "condition": "new" | "used" | "any" | null,
               "excluded_brands": string[]
             }
+
+            Rules:
+            - intent is "buy" whenever the user wants to find, get, or look for an
+              item to acquire (e.g. "I want a chair", "show me phones", "find me some").
+            - search_query: the concrete item to search for, as a short noun phrase
+              (e.g. "office chair", "smartphone"). Resolve follow-ups from History:
+              if the message is vague ("find me some", "show more") reuse the item
+              from the most recent relevant turn. Null only when no item is implied.
+            - Put numeric budgets in min_price/max_price, never in search_query.
 
             History: {{historyText}}
             Message: {{message}}
