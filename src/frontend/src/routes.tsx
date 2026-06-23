@@ -29,6 +29,7 @@ import GlobalErrorPage from "./pages/GlobalErrorPage";
 import LegalPage from "./pages/LegalPage";
 import SearchRedirectPage from "./pages/SearchRedirectPage";
 import ActivityHistoryPageWrapper from "./pages/ActivityHistoryPageWrapper";
+import HowItWorksPageWrapper from "./pages/HowItWorksPageWrapper";
 
 import MyProductsPageWrapper from "./pages/MyProductsPageWrapper";
 import ProductDetailsPageWrapper from "./pages/ProductDetailsPageWrapper";
@@ -92,6 +93,11 @@ export const router = createBrowserRouter([
       {
         path: "/legal",
         Component: LegalPage,
+        errorElement: routeErrorElement,
+      },
+      {
+        path: "/how-it-works",
+        Component: HowItWorksPageWrapper,
         errorElement: routeErrorElement,
       },
       {
