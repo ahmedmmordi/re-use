@@ -40,7 +40,7 @@ public static class AppExtensions
         OrderSeeder.SeedAsync(services).GetAwaiter().GetResult();
         FeedbackSeeder.SeedAsync(services).GetAwaiter().GetResult();
         ConversationSeeder.SeedAsync(services).GetAwaiter().GetResult();
-        ProductDealSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        // ProductDealSeeder.SeedAsync(services).GetAwaiter().GetResult();
         NotificationSeeder.SeedAsync(services).GetAwaiter().GetResult();
         ReportSeeder.SeedAsync(services).GetAwaiter().GetResult();
         BroadcastMessageSeeder.SeedAsync(services).GetAwaiter().GetResult();

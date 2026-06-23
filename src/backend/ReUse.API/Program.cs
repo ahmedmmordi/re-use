@@ -55,6 +55,7 @@ public class Program
 
         app.MapHub<NotificationHub>("/hubs/notifications");
         app.MapHub<ChatHub>("/hubs/chat");
+        app.MapGet("/health", () => Results.Ok()).AllowAnonymous();
         app.Run();
     }
 }

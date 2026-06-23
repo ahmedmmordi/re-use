@@ -391,7 +391,7 @@ export function AdminDashboardPage() {
                         <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#6B7280" }} />
                         <YAxis
                           tick={{ fontSize: 12, fill: "#6B7280" }}
-                          tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                          tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
                         />
                         <Tooltip content={<ChartTooltip />} />
                         <Line

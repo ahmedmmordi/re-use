@@ -19,6 +19,8 @@ export interface UserProfileResponse {
   country: string | null;
   followersCount: number;
   followingCount: number;
+  ratingsAverage: number;
+  ratingsCount: number;
 }
 
 export interface UpdateUserProfileRequest {

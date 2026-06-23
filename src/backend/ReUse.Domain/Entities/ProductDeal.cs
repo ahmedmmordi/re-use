@@ -10,21 +10,18 @@ public class ProductDeal : BaseEntity
     public Guid ConversationId { get; set; }
     public Conversation Conversation { get; set; } = default!;
 
-    public Guid SellerId { get; set; }
-    public User Seller { get; set; } = default!;
+    public Guid ProposerId { get; set; }
+    public User Proposer { get; set; } = default!;
 
-    public Guid BuyerId { get; set; }
-    public User Buyer { get; set; } = default!;
+    public Guid ReceiverId { get; set; }
+    public User Receiver { get; set; } = default!;
 
     public DealType DealType { get; set; }
+    public DealStatus Status { get; set; } = DealStatus.Pending;
 
     public decimal? AgreedPrice { get; set; }
 
     public string? Notes { get; set; }
 
     public DateTime? CompletedAt { get; set; }
-
-    public bool SellerConfirmed { get; set; }
-
-    public bool BuyerConfirmed { get; set; }
 }

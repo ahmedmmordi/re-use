@@ -21,6 +21,9 @@ import { AuthError } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { Pagination } from "./ui/Pagination";
 import { ReportDialog } from "./ReportDialog";
+import { getUserFeedback } from "../services/feedbackService";
+import type { FeedbackResponse } from "../services/feedbackService";
+import { Star } from "lucide-react";
 
 const PRODUCTS_PAGE_SIZE = 9;
 
@@ -54,6 +57,27 @@ function formatPrice(p: ProductResponse): string {
   return p.price != null ? `$${p.price}` : "—";
 }
 
+function RatingStars({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5 text-amber-400">
+      {[1, 2, 3, 4, 5].map((star) => {
+        const isFilled = star <= Math.round(rating);
+        return (
+          <Star
+            key={star}
+            className={`w-4 h-4 ${isFilled ? "fill-amber-400 text-amber-400" : "text-gray-200"}`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
 export function PublicUserProfilePage() {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
@@ -82,6 +106,14 @@ export function PublicUserProfilePage() {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const [reportDialog, setReportDialog] = useState(false);
+
+  // Tabs & Reviews
+  const [activeTab, setActiveTab] = useState<"listings" | "reviews">("listings");
+  const [reviews, setReviews] = useState<FeedbackResponse[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
 
   const isSelf = useMemo(() => {
     if (!viewerId || !profile) return false;
@@ -164,6 +196,31 @@ export function PublicUserProfilePage() {
       cancelled = true;
     };
   }, [userId, productsPage]);
+
+  // Load this user's feedback (paged)
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    setReviewsLoading(true);
+    setReviewsError(null);
+
+    getUserFeedback(userId, reviewsPage, 5)
+      .then((page) => {
+        if (cancelled) return;
+        setReviews(page.data);
+        setReviewsTotalPages(page.totalPages);
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setReviewsError(err.message || "Failed to load reviews.");
+      })
+      .finally(() => {
+        if (!cancelled) setReviewsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, reviewsPage]);
 
   // Detect follow state for authenticated viewers (non-self)
   useEffect(() => {
@@ -465,7 +522,7 @@ export function PublicUserProfilePage() {
               <div className="space-y-6">
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
                   <h3 className="font-semibold text-gray-900 mb-4">Profile Stats</h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
                     <div>
                       <p className="text-2xl font-bold text-[#7C3AED]">{profile.followersCount}</p>
                       <p className="text-sm text-gray-600">Followers</p>
@@ -478,6 +535,17 @@ export function PublicUserProfilePage() {
                       <p className="text-2xl font-bold text-[#7C3AED]">{productsTotal}</p>
                       <p className="text-sm text-gray-600">Products</p>
                     </div>
+                    <div>
+                      <p className="text-2xl font-bold text-[#7C3AED] flex items-center gap-1 justify-center sm:justify-start">
+                        {profile.ratingsCount > 0 ? profile.ratingsAverage.toFixed(1) : "—"}
+                        {profile.ratingsCount > 0 && (
+                          <svg className="w-5 h-5 text-amber-400 fill-current" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        )}
+                      </p>
+                      <p className="text-sm text-gray-600">Rating ({profile.ratingsCount})</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -485,52 +553,191 @@ export function PublicUserProfilePage() {
           </div>
         </div>
 
-        {/* Listings */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              {isSelf ? "Your active listings" : `Listings by ${profile.fullName}`}
-            </h2>
-            {productsTotal > 0 && (
-              <span className="text-sm text-gray-500">
-                {productsTotal.toLocaleString()} item{productsTotal === 1 ? "" : "s"}
-              </span>
-            )}
+        {/* Tabs: Listings & Reviews */}
+        <div className="mt-8 border-b border-gray-200">
+          <div className="flex gap-6">
+            <button
+              onClick={() => setActiveTab("listings")}
+              className={`pb-3 font-semibold text-base sm:text-lg border-b-2 transition-all cursor-pointer ${
+                activeTab === "listings"
+                  ? "border-[#7C3AED] text-[#7C3AED]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Listings ({productsTotal})
+            </button>
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className={`pb-3 font-semibold text-base sm:text-lg border-b-2 transition-all cursor-pointer ${
+                activeTab === "reviews"
+                  ? "border-[#7C3AED] text-[#7C3AED]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Reviews ({profile?.ratingsCount ?? 0})
+            </button>
           </div>
+        </div>
 
-          {productsLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : productsError ? (
-            <div className="text-center py-12">
-              <p className="text-red-500">{productsError}</p>
-            </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
-              <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">This user has no active listings yet.</p>
-            </div>
-          ) : (
+        {/* Tab Content */}
+        <div className="mt-6">
+          {activeTab === "listings" ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                {products.map((p) => (
-                  <ProductTile
-                    key={p.id}
-                    product={p}
-                    onClick={() => navigate(`/product/${p.id}`)}
-                  />
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-900">
+                  {isSelf ? "Your active listings" : `Listings by ${profile.fullName}`}
+                </h2>
+                {productsTotal > 0 && (
+                  <span className="text-sm text-gray-500">
+                    {productsTotal.toLocaleString()} item{productsTotal === 1 ? "" : "s"}
+                  </span>
+                )}
               </div>
-              <Pagination
-                currentPage={productsPage}
-                totalPages={productsTotalPages}
-                onPageChange={(page) => {
-                  setProductsPage(page);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              />
+
+              {productsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : productsError ? (
+                <div className="text-center py-12">
+                  <p className="text-red-500">{productsError}</p>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">This user has no active listings yet.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    {products.map((p) => (
+                      <ProductTile
+                        key={p.id}
+                        product={p}
+                        onClick={() => navigate(`/product/${p.id}`)}
+                      />
+                    ))}
+                  </div>
+                  <Pagination
+                    currentPage={productsPage}
+                    totalPages={productsTotalPages}
+                    onPageChange={(page) => {
+                      setProductsPage(page);
+                      // Scroll to tab block instead of top of page to keep user context
+                      const el = document.getElementById("profile-tabs-content");
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    }}
+                  />
+                </>
+              )}
             </>
+          ) : (
+            <div id="profile-tabs-content" className="space-y-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col md:flex-row items-center gap-6 shadow-xs">
+                <div className="text-center md:border-r md:border-gray-100 md:pr-10">
+                  <p className="text-5xl font-black text-gray-900">
+                    {profile.ratingsCount > 0 ? profile.ratingsAverage.toFixed(1) : "—"}
+                  </p>
+                  <div className="flex justify-center my-2">
+                    <RatingStars rating={profile.ratingsAverage} />
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    {profile.ratingsCount} {profile.ratingsCount === 1 ? "Review" : "Reviews"}
+                  </p>
+                </div>
+                <div className="flex-1 text-center md:text-left space-y-1">
+                  <h3 className="font-bold text-gray-900 text-base">User Feedback</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed max-w-lg">
+                    Reviews and ratings are generated from completed deals on ReUse. Both buyers and
+                    sellers rate each other after successful swaps, purchases, and offers.
+                  </p>
+                </div>
+              </div>
+
+              {reviewsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="w-8 h-8 border-4 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : reviewsError ? (
+                <div className="text-center py-12">
+                  <p className="text-red-500">{reviewsError}</p>
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+                  <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No reviews yet for this user.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((r) => {
+                    const initials = getInitials(r.rater.fullName);
+                    return (
+                      <div
+                        key={r.id}
+                        className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs flex gap-4 items-start hover:shadow-md transition-shadow"
+                      >
+                        {r.rater.profileImageUrl ? (
+                          <img
+                            src={r.rater.profileImageUrl}
+                            alt={r.rater.fullName}
+                            className="w-10 h-10 rounded-full object-cover border border-gray-150 flex-shrink-0 cursor-pointer"
+                            onClick={() => navigate(`/profile/${r.rater.id}`)}
+                          />
+                        ) : (
+                          <div
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] text-white flex items-center justify-center font-bold text-sm border border-gray-150 flex-shrink-0 cursor-pointer"
+                            onClick={() => navigate(`/profile/${r.rater.id}`)}
+                          >
+                            {initials}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span
+                              className="font-bold text-gray-900 text-sm sm:text-base hover:text-[#7C3AED] transition-colors cursor-pointer"
+                              onClick={() => navigate(`/profile/${r.rater.id}`)}
+                            >
+                              {r.rater.fullName}
+                            </span>
+                            <span className="text-xs text-gray-400 font-medium">
+                              {formatDate(r.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <RatingStars rating={r.stars} />
+                            <span className="text-xs text-gray-500">
+                              for{" "}
+                              <strong className="text-gray-700 font-semibold">
+                                {r.productTitle}
+                              </strong>
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mt-2.5 leading-relaxed whitespace-pre-wrap">
+                            {r.comment || (
+                              <span className="italic text-gray-400">
+                                No comment review provided.
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {reviewsTotalPages > 1 && (
+                    <Pagination
+                      currentPage={reviewsPage}
+                      totalPages={reviewsTotalPages}
+                      onPageChange={(page) => {
+                        setReviewsPage(page);
+                        const el = document.getElementById("profile-tabs-content");
+                        if (el) el.scrollIntoView({ behavior: "smooth" });
+                      }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

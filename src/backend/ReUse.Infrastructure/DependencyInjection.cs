@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IBroadcastRepository, BroadcastRepository>();
         services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+        services.AddScoped<IProductDealRepository, ProductDealRepository>();
         #endregion
 
         #region Services

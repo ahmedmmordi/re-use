@@ -26,19 +26,24 @@ public class ProductDealEntityTypeConfiguration : IEntityTypeConfiguration<Produ
             .HasForeignKey(x => x.ConversationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Seller
-        builder.HasOne(x => x.Seller)
+        // Proposer
+        builder.HasOne(x => x.Proposer)
             .WithMany()
-            .HasForeignKey(x => x.SellerId)
+            .HasForeignKey(x => x.ProposerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Buyer
-        builder.HasOne(x => x.Buyer)
+        // Receiver
+        builder.HasOne(x => x.Receiver)
             .WithMany()
-            .HasForeignKey(x => x.BuyerId)
+            .HasForeignKey(x => x.ReceiverId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(x => x.DealType)
+            .HasConversion<string>()
+            .HasMaxLength(30)
+            .IsRequired();
+
+        builder.Property(x => x.Status)
             .HasConversion<string>()
             .HasMaxLength(20)
             .IsRequired();
@@ -49,20 +54,11 @@ public class ProductDealEntityTypeConfiguration : IEntityTypeConfiguration<Produ
         builder.Property(x => x.Notes)
             .HasMaxLength(1000);
 
-        builder.Property(x => x.SellerConfirmed)
-            .HasDefaultValue(false);
-
-        builder.Property(x => x.BuyerConfirmed)
-            .HasDefaultValue(false);
-
         // Indexes
         builder.HasIndex(x => x.ProductId);
-
         builder.HasIndex(x => x.ConversationId)
             .IsUnique();
-
-        builder.HasIndex(x => x.SellerId);
-
-        builder.HasIndex(x => x.BuyerId);
+        builder.HasIndex(x => x.ProposerId);
+        builder.HasIndex(x => x.ReceiverId);
     }
 }
