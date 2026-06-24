@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Sockets;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -109,6 +112,30 @@ public static class DependencyInjection
         {
 
             client.Timeout = TimeSpan.FromSeconds(180);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            ConnectCallback = async (context, cancellationToken) =>
+            {
+                var entry = await Dns.GetHostEntryAsync(
+                    context.DnsEndPoint.Host, AddressFamily.InterNetwork, cancellationToken);
+                var socket = new Socket(
+                    AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                {
+                    NoDelay = true
+                };
+                try
+                {
+                    await socket.ConnectAsync(
+                        entry.AddressList, context.DnsEndPoint.Port, cancellationToken);
+                    return new NetworkStream(socket, ownsSocket: true);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+            }
         });
         #endregion
 

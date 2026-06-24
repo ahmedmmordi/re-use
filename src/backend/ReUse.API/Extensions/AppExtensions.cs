@@ -38,6 +38,13 @@ public static class AppExtensions
         CommentSeeder.SeedAsync(services).GetAwaiter().GetResult();
         ActivitySeeder.SeedAsync(services).GetAwaiter().GetResult();
         OrderSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        FeedbackSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        ConversationSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        ProductDealSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        NotificationSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        ReportSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        BroadcastMessageSeeder.SeedAsync(services).GetAwaiter().GetResult();
+        SystemActivityLogSeeder.SeedAsync(services).GetAwaiter().GetResult();
     }
 
     public static void UseSwaggerServices(this WebApplication app)

@@ -25,6 +25,9 @@ public static class ProductSeeder
     private record SeedSwap(SeedProductBase Base, string WantedTitle, string? WantedDescription, ProductCondition? WantedCondition);
     private record SeedWanted(SeedProductBase Base, decimal? PriceMin, decimal? PriceMax);
 
+    // Template used by the procedural generator below to expand the catalogue to ~150 items
+    private record GenTemplate(string CategorySlug, string Title, string Description, string City, decimal BasePrice, string ImageUrl);
+
     private const string AhmedMordiEmail = "ahmed.mordi@reuse.dev";
     private const string AhmedMohamedEmail = "ahmed.mohamed@reuse.dev";
     private const string FarahEmail = "farah.hazem@reuse.dev";
@@ -556,6 +559,134 @@ public static class ProductSeeder
             10m, 50m),
     };
 
+    private static readonly string[] OwnerEmails =
+    {
+        AhmedMordiEmail, AhmedMohamedEmail, FarahEmail, TasabeihEmail, OmarEmail,
+    };
+
+    private static readonly (string City, string Country)[] Locations =
+    {
+        ("Cairo", "Egypt"), ("Alexandria", "Egypt"), ("Giza", "Egypt"),
+        ("Mansoura", "Egypt"), ("Tanta", "Egypt"), ("Aswan", "Egypt"),
+        ("Luxor", "Egypt"), ("Port Said", "Egypt"), ("Suez", "Egypt"),
+        ("Ismailia", "Egypt"),
+    };
+
+    private static readonly GenTemplate[] GenTemplates =
+    {
+        new("phones-accessories", "{0} iPhone 12 mobile phone 128GB",
+            "Used iPhone 12 mobile phone, 128GB. Clean smartphone, battery health good. Includes charger and case.",
+            "Cairo", 470m, "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=800"),
+        new("phones-accessories", "{0} Samsung Galaxy A54 phone",
+            "Samsung Galaxy A54 mobile phone, dual sim. Smartphone in good condition with screen protector and box.",
+            "Tanta", 320m, "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800"),
+        new("phones-accessories", "{0} Xiaomi Redmi Note phone",
+            "Xiaomi Redmi Note mobile phone. Reliable budget smartphone, big battery. Charger included.",
+            "Giza", 180m, "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800"),
+        new("phones-accessories", "{0} OnePlus Nord mobile phone",
+            "OnePlus Nord phone, fast charging. Smooth Android smartphone, no scratches. Comes with cable.",
+            "Alexandria", 260m, "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800"),
+        new("laptops-computers", "{0} Dell XPS 13 laptop i7",
+            "Dell XPS 13 laptop, i7, 16GB RAM, 512GB SSD. Lightweight ultrabook computer for work and study.",
+            "Cairo", 720m, "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800"),
+        new("laptops-computers", "{0} HP Pavilion laptop 15",
+            "HP Pavilion laptop, 15 inch, Ryzen 5, 8GB RAM. Everyday computer, runs smoothly. Charger included.",
+            "Giza", 430m, "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800"),
+        new("laptops-computers", "{0} ASUS ZenBook laptop",
+            "ASUS ZenBook laptop, thin and light computer. Full HD display, great keyboard. Box included.",
+            "Mansoura", 560m, "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800"),
+        new("laptops-computers", "{0} Acer Aspire desktop computer",
+            "Acer Aspire desktop computer tower. Intel CPU, 16GB RAM, SSD. Good for office and browsing.",
+            "Tanta", 380m, "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800"),
+        new("gaming", "{0} PlayStation 4 Pro console",
+            "Play station 4 Pro console with controller. Plays games great. All cables included, light use.",
+            "Cairo", 240m, "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800"),
+        new("gaming", "{0} Xbox Series X console",
+            "Xbox Series X gaming console. One controller and cables. Plays all games, kept in good condition.",
+            "Alexandria", 410m, "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=800"),
+        new("gaming", "{0} PlayStation 5 controller DualSense",
+            "Play station 5 DualSense controller. Works perfectly with the console. No drift, like new.",
+            "Giza", 55m, "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=800"),
+        new("gaming", "{0} Nintendo Switch Lite console",
+            "Nintendo Switch Lite handheld console. Compact gaming device, plays all switch games. Charger included.",
+            "Tanta", 170m, "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=800"),
+        new("audio", "{0} Bose QuietComfort headphones",
+            "Bose QuietComfort wireless headphones. Excellent noise cancelling audio. Carry case and cable included.",
+            "Cairo", 190m, "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800"),
+        new("audio", "{0} JBL Tune Bluetooth speaker",
+            "JBL Tune portable Bluetooth speaker. Loud clean audio, long battery. USB-C charging cable included.",
+            "Mansoura", 60m, "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800"),
+        new("cameras", "{0} Nikon D3500 DSLR camera",
+            "Nikon D3500 DSLR camera with 18-55mm lens. Great beginner camera, low shutter count. Battery and charger.",
+            "Alexandria", 350m, "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800"),
+        new("cameras", "{0} Sony Alpha a6000 mirrorless camera",
+            "Sony Alpha a6000 mirrorless camera with kit lens. Compact, sharp photos. Includes battery and strap.",
+            "Giza", 420m, "https://images.unsplash.com/photo-1495707902641-75cac588d2e9?w=800"),
+        new("men-shoes", "{0} Nike Revolution running shoes size 42",
+            "Nike Revolution running shoes, size 42. Comfortable for daily wear. Light use, plenty of life left.",
+            "Cairo", 55m, "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800"),
+        new("men-watches", "{0} Casio classic wrist watch",
+            "Casio classic wrist watch, water resistant. Keeps perfect time. Original strap, barely used.",
+            "Tanta", 40m, "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800"),
+        new("women-dresses", "{0} Summer floral dress size M",
+            "Light summer floral dress, size M. Worn a couple of times. Perfect for warm days and outings.",
+            "Alexandria", 35m, "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800"),
+        new("women-bags", "{0} Leather handbag tote",
+            "Genuine leather handbag tote in brown. Roomy and sturdy. Light wear inside, authentic.",
+            "Mansoura", 95m, "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800"),
+        new("women-shoes", "{0} White sneakers size 38",
+            "Classic white sneakers, women's size 38. Clean and comfortable. Original box included.",
+            "Giza", 60m, "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800"),
+        new("furniture", "{0} Wooden study desk and table",
+            "Wooden study desk table, 120cm. Sturdy work table for laptop and books. Easy to disassemble.",
+            "Cairo", 90m, "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=800"),
+        new("furniture", "{0} Ergonomic office chair",
+            "Ergonomic office chair with adjustable height and armrests. Comfortable for long hours at the desk.",
+            "Giza", 130m, "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800"),
+        new("furniture", "{0} Dining table with 4 chairs",
+            "Wooden dining table with four chairs. Solid set, seats four. Minor marks, very sturdy.",
+            "Alexandria", 220m, "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800"),
+        new("furniture", "{0} Wooden bookshelf 5 shelves",
+            "Wooden bookshelf with five shelves for books and decor. Sturdy and easy to move.",
+            "Mansoura", 110m, "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800"),
+        new("decor", "{0} Modern table lamp",
+            "Modern bedside table lamp, warm light. Fully working, adds a cozy tone to any table or desk.",
+            "Tanta", 30m, "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800"),
+        new("kitchen-dining", "{0} Stainless steel cookware set",
+            "Stainless steel cookware set, pots and pans. Lightly used kitchen set, no dents. Great for any kitchen.",
+            "Cairo", 80m, "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800"),
+        new("books", "{0} The Lord of the Rings book set",
+            "The Lord of the Rings book set, paperback. Classic fantasy books, gently read, no markings.",
+            "Mansoura", 25m, "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=800"),
+        new("books", "{0} Clean Code programming book",
+            "Clean Code programming book by Robert Martin. Great software book for developers. Like new.",
+            "Giza", 18m, "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800"),
+        new("books", "{0} Rich Dad Poor Dad book",
+            "Rich Dad Poor Dad finance book, paperback. Read once, no markings. A popular personal finance book.",
+            "Cairo", 9m, "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800"),
+        new("bicycles", "{0} City commuter bicycle size M",
+            "City commuter bicycle, size M. Smooth ride, recently serviced. Great bike for daily city travel.",
+            "Alexandria", 180m, "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=800"),
+        new("cars", "{0} Toyota Corolla car spare alloy wheels",
+            "Set of Toyota Corolla car alloy wheels, 16 inch. Good condition, fit most sedan cars. No cracks.",
+            "Cairo", 300m, "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800"),
+        new("auto-parts", "{0} Car dash camera full HD",
+            "Full HD car dash camera with night vision. Records driving, easy to install in any car. Cable included.",
+            "Giza", 45m, "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800"),
+        new("motorcycles", "{0} Motorcycle helmet full face",
+            "Full face motorcycle helmet, size L. DOT certified, clean padding. Light use, no cracks.",
+            "Tanta", 70m, "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800"),
+        new("fitness-equipment", "{0} Adjustable dumbbells set",
+            "Adjustable dumbbells set for home gym. Saves space, plates intact. Light home use.",
+            "Cairo", 150m, "https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?w=800"),
+        new("power-tools", "{0} Cordless drill 18V",
+            "Cordless drill, 18V, with battery and charger. Used on a few projects, runs strong. Case included.",
+            "Giza", 75m, "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800"),
+        new("lego-building", "{0} LEGO City building set",
+            "LEGO City building set, complete with instructions. Built once, all bricks present. Great gift.",
+            "Mansoura", 60m, "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800"),
+    };
+
     public static async Task SeedAsync(IServiceProvider services)
     {
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
@@ -638,7 +769,86 @@ public static class ProductSeeder
             idx++;
         }
 
+        GenerateProducts(dbContext, categories, users, now);
+
         await dbContext.SaveChangesAsync();
+    }
+
+    // Deterministically expands the catalogue to ~150 keyword-rich products with varied
+    // owners, locations, conditions, statuses, premium flags and timestamps (recent and old).
+    private static void GenerateProducts(
+        ApplicationDbContext dbContext,
+        IReadOnlyDictionary<string, Guid> categories,
+        IReadOnlyDictionary<string, Guid> users,
+        DateTime now)
+    {
+        var random = new Random(1234);
+        var conditions = (ProductCondition[])Enum.GetValues(typeof(ProductCondition));
+        var variants = new[] { "Used", "Pre-owned", "Second-hand" };
+
+        var gen = 0;
+        foreach (var template in GenTemplates)
+        {
+            if (!categories.TryGetValue(template.CategorySlug, out var categoryId))
+            {
+                continue;
+            }
+
+            // Three variants per template -> spreads ownership and timing across the catalogue.
+            for (var v = 0; v < 3; v++)
+            {
+                var ownerEmail = OwnerEmails[gen % OwnerEmails.Length];
+                if (!users.TryGetValue(ownerEmail, out var ownerId))
+                {
+                    gen++;
+                    continue;
+                }
+
+                var location = Locations[random.Next(Locations.Length)];
+                var condition = conditions[random.Next(conditions.Length)];
+
+                // Timestamps spread from a few minutes ago to ~2 years old.
+                var minutesAgo = random.Next(0, 1051200);
+                var createdAt = now.AddMinutes(-minutesAgo);
+
+                // Most products active; a minority sold/closed/under review for realistic spread.
+                var statusRoll = random.Next(100);
+                var status = statusRoll < 70 ? ProductStatus.Active
+                    : statusRoll < 85 ? ProductStatus.Sold
+                    : statusRoll < 95 ? ProductStatus.Closed
+                    : ProductStatus.UnderReview;
+
+                var isPremium = random.Next(100) < 20;
+                var price = template.BasePrice + random.Next(-20, 60);
+                if (price < 5m)
+                {
+                    price = 5m;
+                }
+
+                var product = new RegularProduct
+                {
+                    Title = string.Format(template.Title, variants[v]),
+                    Description = template.Description,
+                    CategoryId = categoryId,
+                    OwnerUserId = ownerId,
+                    Condition = condition,
+                    LocationCity = location.City,
+                    LocationCountry = location.Country,
+                    Status = status,
+                    Price = price,
+                    AllowNegotiation = random.Next(2) == 0,
+                    IsPremium = isPremium,
+                    PremiumExpiresAt = isPremium ? now.AddDays(random.Next(1, 90)) : null,
+                    ViewCount = random.Next(0, 800),
+                    RecentFavoriteCount = random.Next(0, 40),
+                    CreatedAt = createdAt,
+                    ProductImages = BuildImages(new[] { new SeedImage(template.ImageUrl) }, ProductImageType.Offer),
+                };
+
+                dbContext.Products.Add(product);
+                gen++;
+            }
+        }
     }
 
     private static List<ProductImage> BuildImages(SeedImage[] images, ProductImageType type)
