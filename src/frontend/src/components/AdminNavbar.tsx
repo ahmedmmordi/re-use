@@ -136,7 +136,10 @@ export function AdminNavbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
           <div className="flex items-center gap-8">
-            <button onClick={() => navigate("/admin/dashboard")} className="flex items-center gap-3 group">
+            <button
+              onClick={() => navigate("/admin/dashboard")}
+              className="flex items-center gap-3 group"
+            >
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
                 <LayoutDashboard className="w-6 h-6 text-[#4B0082]" />
               </div>
