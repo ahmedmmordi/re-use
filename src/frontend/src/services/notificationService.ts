@@ -26,8 +26,8 @@ export async function getNotifications(
   pageSize = 15
 ): Promise<PagedResult<NotificationDto>> {
   const params = new URLSearchParams({
-    "Pagination.PageNumber": String(pageNumber),
-    "Pagination.PageSize": String(pageSize),
+    PageNumber: String(pageNumber),
+    PageSize: String(pageSize),
   });
   const res = await fetch(`${BASE_URL}/notifications?${params}`, { credentials: "include" });
   return handleResponse(res);

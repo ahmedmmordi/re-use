@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,7 +38,9 @@ public class NotificationService : INotificationService
                 Title = n.Title,
                 Body = n.Body,
                 Type = n.Type.ToString(),
-                Data = JsonSerializer.Deserialize<object>(n.Data),
+                Data = string.IsNullOrWhiteSpace(n.Data)
+                    ? null
+                    : JsonSerializer.Deserialize<object>(n.Data),
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt,
                 ReadAt = n.ReadAt
