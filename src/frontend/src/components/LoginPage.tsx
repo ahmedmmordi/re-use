@@ -11,7 +11,7 @@ interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<AuthUser>;
   onNavigateToSignUp?: () => void;
   onNavigateToForgotPassword?: () => void;
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (user?: AuthUser) => void;
 }
 
 export function LoginPage({
@@ -74,7 +74,7 @@ export function LoginPage({
       setTimeout(() => {
         setUser(userData);
         setShowSuccess(false);
-        onLoginSuccess?.();
+        onLoginSuccess?.(userData);
       }, 2000);
     } catch (err) {
       if (err instanceof AuthError) {

@@ -3,10 +3,10 @@ import { LoggedInNavbar } from "../components/LoggedInNavbar";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { CategoryBar } from "../components/CategoryBar.tsx";
-import { AdminNavbar } from "../components/AdminNavbar.tsx";
 import { HeroSection } from "../components/HeroSection.tsx";
 import { RecommendedSection } from "../components/RecommendedSection.tsx";
 import { PopularCategoriesSection } from "../components/PopularCategoriesSection.tsx";
+import { Navigate } from "react-router-dom";
 
 export default function HomePage() {
   const { isLoading, user } = useAuth();
@@ -19,9 +19,13 @@ export default function HomePage() {
     );
   }
 
+  if (user?.role === "Admin") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
-      {user?.role === "Admin" ? <AdminNavbar /> : user ? <LoggedInNavbar /> : <Navbar />}
+      {user ? <LoggedInNavbar /> : <Navbar />}
       <CategoryBar />
       <HeroSection />
       <div className="flex-1">

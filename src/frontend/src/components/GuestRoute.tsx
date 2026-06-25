@@ -12,7 +12,8 @@ export function GuestRoute({ redirectTo = "/" }: GuestRouteProps) {
 
   // If user is logged in → block access
   if (user) {
-    return <Navigate to={redirectTo} replace />;
+    const target = user.role === "Admin" ? "/admin/dashboard" : redirectTo;
+    return <Navigate to={target} replace />;
   }
 
   // Otherwise allow access
